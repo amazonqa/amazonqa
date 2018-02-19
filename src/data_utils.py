@@ -1,15 +1,25 @@
 """Utilities to parse and analyse data
 """
 
+import pickle
 import pandas as pd
 import gzip
 import numpy as np
+
+VIDEO_GAMES = 'Video_Games'
+
+CATEGORIES = [
+  VIDEO_GAMES,
+]
+
+FILES = {
+  VIDEO_GAMES: ('../data/answers_multiple/QA_Video_Games.json.gz', '../data/reviews_small/reviews_Video_Games_5.json.gz'),
+}
 
 def parse(path):
   g = gzip.open(path, 'rb')
   for l in g:
     yield eval(l)
-
 
 def getDF(path):
   i = 0
@@ -19,6 +29,32 @@ def getDF(path):
     i += 1
   return pd.DataFrame.from_dict(df, orient='index')
 
+def create_qa_review_tables(category):
+    qa = getDF(FILES[category][0])
+    reviews = getDF(FILES[category][1])
+
+    common_products = set(qa.asin.values).intersection(reviews.asin.values)
+    qa_rows = []
+
+    for _, qa_row in qa.iterrows():
+        if qa_row.asin in common_products:
+            for question in qa_row.questions:
+                for answer in question['answers']:
+                    row = {'asin': qa_row.asin}
+                    for key in ['questionText', 'askerID', 'questionType']:
+                        row[key] = question.get(key, None)
+                    for key in ['answererID', 'answerType', 'answerText', 'answerScore']:
+                        row[key] = answer.get(key, None)
+                    qa_rows.append(row)
+    qa_table = pd.DataFrame(qa_rows)
+    reviews = reviews[reviews.asin.isin(common_products)]
+
+    with open('../data/%s.pickle' % category, 'wb') as f:
+        pickle.dump((qa_table, reviews), f)
+
+def tables_from_category(category):
+    with open('../data/%s.pickle' % category, 'rb') as f:
+        return pickle.load(f)
 
 def convertRowToReviewJson(row):
     json = {}
@@ -27,10 +63,8 @@ def convertRowToReviewJson(row):
     json['summary'] = row['summary']
     return json
 
-
 def filterReviews(columns):
     return columns['reviews'].tolist()[:2]
-
 
 def preprocessReviewsDF(reviews_path):
   reviews_df = getDF('../data/reviews_'+category+'_5.json.gz')
@@ -39,7 +73,6 @@ def preprocessReviewsDF(reviews_path):
   reviews_filtered_df = reviews_df.groupby('asin').apply(filterReviews).reset_index()
   reviews_filtered_df.columns = ['asin', 'reviews']
   return reviews_filtered_df
-
 
 def flatten(qa_reviews_df):
   qa_reviews_flattend_array = []
@@ -65,16 +98,12 @@ def preprocess(qa_path, reviews_path):
   qa_reviews_df = pd.merge(qa_df, reviews_df, on=['asin', 'asin'])
 
   qa_reviews_flattend_array = flatten(qa_reviews_df)
-
   np.save('qa_reviews', qa_reviews_flattend_array)
 
+# if __name__ == "__main__":
+#   category = 'Video_Games'
 
-if __name__ == "__main__":
-  category = 'Video_Games'
+#   qa_path = '../data/QA_%s_multiple.json.gz' % (category)
+#   reviews_path = '../data/reviews_%s_5.json.gz' % (category)
 
-  qa_path = '../data/QA_%s_multiple.json.gz' % (category)
-  reviews_path = '../data/reviews_%s_5.json.gz' % (category)
-
-  preprocess(qa_path, reviews_path)
-
-
+#   preprocess(qa_path, reviews_path)
