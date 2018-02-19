@@ -12,9 +12,17 @@ CATEGORIES = [
   VIDEO_GAMES,
 ]
 
-FILES = {
-  VIDEO_GAMES: ('../data/answers_multiple/QA_Video_Games.json.gz', '../data/reviews_small/reviews_Video_Games_5.json.gz'),
-}
+QA = 'QA'
+REVIEWS = 'Reviews'
+
+def filepath(category, key):
+    if key == QA:
+        path = '../data/answers_multiple/QA_%s.json.gz' % category
+    elif key == REVIEWS:
+        path = '../data/reviews_small/reviews_%s_5.json.gz' % category
+    else:
+        raise 'Unexpected key'
+    return path
 
 def parse(path):
   g = gzip.open(path, 'rb')
@@ -30,9 +38,7 @@ def getDF(path):
   return pd.DataFrame.from_dict(df, orient='index')
 
 def create_qa_review_tables(category):
-    qa = getDF(FILES[category][0])
-    reviews = getDF(FILES[category][1])
-
+    qa, reviews = [getDF(filepath(category, key)) for key in [QA, REVIEWS]]
     common_products = set(qa.asin.values).intersection(reviews.asin.values)
     qa_rows = []
 
@@ -90,6 +96,12 @@ def flatten(qa_reviews_df):
 
   return np.array(qa_reviews_flattend_array)
 
+def save_tables_for_all_categories():
+  """Processes .tar.gz files for all the categories
+  and saves qa & reviews tables in a .pickle format
+  """
+  for category in CATEGORIES:
+    create_qa_review_tables(category)
 
 def preprocess(qa_path, reviews_path):
   qa_df = getDF(qa_path)
