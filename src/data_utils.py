@@ -65,8 +65,8 @@ def getDF(path):
     i = 0
     df = {}
     for d in parse(path):
-    df[i] = d
-    i += 1
+        df[i] = d
+        i += 1
     return pd.DataFrame.from_dict(df, orient='index')
 
 def create_qa_review_tables(category):
@@ -124,8 +124,8 @@ def flatten(qa_reviews_df):
       for answer in question['answers'][:2]:
         item = (review_list, question['questionText'], answer['answerText'])
         qa_reviews_flattend_array.append(item)
-
-  return np.array(qa_reviews_flattend_array)
+    
+    return np.array(qa_reviews_flattend_array)
 
 def save_tables_for_all_categories():
     """Processes .tar.gz files for all the categories
