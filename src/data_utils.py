@@ -30,7 +30,7 @@ CATEGORIES = [
   BEAUTY,
   CELL_PHONES_AND_ACCESSORIES,
   CLOTHING_SHOES_AND_JEWELRY,
-  ELECTRONICS,
+#  ELECTRONICS,
   GROCERY_AND_GOURMET_FOOD,
   HEALTH_AND_PERSONAL_CARE,
   HOME_AND_KITCHEN,
@@ -47,7 +47,7 @@ CATEGORIES = [
 QA = 'QA'
 REVIEWS = 'Reviews'
 
-DATA_PATH = '../../data'
+DATA_PATH = '../../data/pickle_files'
 
 def filepath(category, key):
     if key == QA:
@@ -94,7 +94,7 @@ def create_qa_review_tables(category):
 
 def tables_from_category(category):
     with open('%s/%s.pickle' % (DATA_PATH, category), 'rb') as f:
-        return pickle.load(f)
+        return pickle.load(f, encoding='latin1')
 
 def convertRowToReviewJson(row):
     json = {}
