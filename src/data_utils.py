@@ -47,11 +47,13 @@ CATEGORIES = [
 QA = 'QA'
 REVIEWS = 'Reviews'
 
+DATA_PATH = '../../data'
+
 def filepath(category, key):
     if key == QA:
-        path = '../data/answers_multiple/QA_%s.json.gz' % category
+        path = '%s/QA_%s.json.gz' % (DATA_PATH, category)
     elif key == REVIEWS:
-        path = '../data/reviews_small/reviews_%s_5.json.gz' % category
+        path = '%s/reviews_%s_5.json.gz' % (DATA_PATH, category)
     else:
         raise 'Unexpected key'
     return path
@@ -87,11 +89,11 @@ def create_qa_review_tables(category):
     qa_table = pd.DataFrame(qa_rows)
     reviews = reviews[reviews.asin.isin(common_products)]
 
-    with open('../data/%s.pickle' % category, 'wb') as f:
+    with open('%s/%s.pickle' % (DATA_PATH, category), 'wb') as f:
         pickle.dump((qa_table, reviews), f)
 
 def tables_from_category(category):
-    with open('../data/%s.pickle' % category, 'rb') as f:
+    with open('%s/%s.pickle' % (DATA_PATH, category), 'rb') as f:
         return pickle.load(f)
 
 def convertRowToReviewJson(row):
@@ -107,3 +109,66 @@ def save_tables_for_all_categories():
     """
     for category in CATEGORIES:
         create_qa_review_tables(category)
+
+def token_count(line):
+    return len(line.split(' '))
+
+def get_category_stats(category):
+    qa_table, reviews_table = tables_from_category(category)
+
+    # Number of Products
+    num_products = len(np.unique(qa_table.asin))
+
+    # Number of questions
+    question_table = qa_table[['asin', 'questionText', 'questionType']].drop_duplicates()
+    num_questions = len(question_table)
+    vc = question_table['questionType'].value_counts()
+    num_yes_no, num_oe = vc['yes/no'], vc['open-ended']
+
+    # Number of answers
+    num_answers = len(qa_table)
+
+    # Number of reviews
+    num_reviews = len(reviews_table)
+
+    # Per product
+    avg_reviews = reviews_table.groupby(['asin']).count()['reviewText'].mean()
+
+    # Avg question per product & answers per question
+    avg_questions_per_product = qa_table[['asin', 'questionText']].drop_duplicates().groupby('asin')['questionText'].count().mean()
+    avg_answers_per_question = qa_table.groupby(['questionText']).count()['answerText'].mean()
+
+    # Duplicate questions
+    df = question_table.groupby(['questionText']).count()
+    num_dupl_questions = len(df[df.asin > 1])
+
+    return {
+        'Num Products': num_products,
+        'Num Questions': num_questions,
+        'Num Answers': num_answers,
+        'Num Yes/No Questions': num_yes_no,
+        'Num Open Ended Questions': num_oe,
+        'Num Reviews': num_reviews,
+        'Avg Reviews Per Product': avg_reviews,
+        'Avg Questions Per Product': avg_questions_per_product,
+        'Avg Answers Per Question': avg_answers_per_question,
+        'Num Duplicate Questions': num_dupl_questions,
+    }
+
+def data_stats():
+    rows = []
+    categories = CATEGORIES
+    for category in categories:
+        rows.append(get_category_stats(category))
+    return pd.DataFrame(rows, columns=[
+        'Num Products',
+        'Num Questions',
+        'Num Answers',
+        'Num Yes/No Questions',
+        'Num Open Ended Questions',
+        'Num Reviews',
+        'Avg Reviews Per Product',
+        'Avg Questions Per Product',
+        'Avg Answers Per Question',
+        'Num Duplicate Questions',
+    ], index=categories)
