@@ -12,11 +12,16 @@ from torch.autograd import Variable
 from torch import optim
 import torch.nn.functional as F
 
-from encoder import *
-from decoder import *
 from helper import *
-from lang import *
+from model import *
+from vocabulary import *
+
+from tqdm import tqdm
+
 import os
+import string
+import sys
+
 use_cuda = torch.cuda.is_available()
 
 def trainIters(encoder, decoder, epochs, num_iters, learning_rate):
@@ -29,13 +34,12 @@ def trainIters(encoder, decoder, epochs, num_iters, learning_rate):
     decoder_optimizer = optim.SGD(decoder.parameters(), lr=learning_rate)
 
     criterion = nn.NLLLoss()
-    import sys
-    run = sys.argv[1]
+
     for epoch in range(epochs):
         print('Epoch ', epoch, ' starting\n')
-        training_pairs = [random.choice(pairs) for i in range(num_iters)]
+        training_pairs = train_pairs#[random.choice(train_pairs) for i in range(num_iters)]
         total_loss = 0.0
-        for iter in range(1, num_iters+1):
+        for iter in tqdm(range(1, num_iters+1)):
             training_pair = training_pairs[iter - 1]
             input_variable = training_pair[0]
             target_variable = training_pair[1]
@@ -109,50 +113,57 @@ def train(input_variable, target_variable, encoder, decoder, encoder_optimizer, 
 
 
 def normalize_pair(triplet):
-    pair = [triplet[1], triplet[2]]
-    return np.array([val.lower().strip() for val in pair])
+    pair = [triplet[0], triplet[1]]
+    table = str.maketrans(string.punctuation, ' '*len(string.punctuation))
+    return [val.lower().translate(table).strip() for val in pair]
 
-def prepareData(qlang, alang):
-    data = np.array(np.load('../../data/qa_reviews.npy'))
-    pairs = [normalize_pair(triplet) for triplet in data]
+def prepareData(category):
+    train_data = pickle.load(open('../../data/nn/' + category + '_qar_train.pickle', 'rb'))
+    test_data = pickle.load(open('../../data/nn/' + category + '_qar_test.pickle', 'rb'))
 
-    input_lang = Lang(qlang)
-    output_lang = Lang(alang)
+    train_pairs = [normalize_pair(triplet) for triplet in train_data]
+    test_pairs  = [normalize_pair(triplet) for triplet in test_data]
+
+    input_lang = Vocabulary(40000)
+    output_lang = Vocabulary(60000)
 
     print("Creating languages...")
-    for pair in pairs:
-        input_lang.addSentence(pair[0])
-        output_lang.addSentence(pair[1])
+    for pair in train_pairs:
+        input_lang.add_sequence(pair[0].split())
+        output_lang.add_sequence(pair[1].split())
+
+    input_lang.trim()
+    output_lang.trim()
 
     print("Counted words:")
-    print(input_lang.name, input_lang.n_words)
-    print(output_lang.name, output_lang.n_words)
+    print("qlang: ", input_lang._num_tokens)
+    #print(input_lang._token2index)
+    print("alang: ", output_lang._num_tokens)
+    #print(output_lang._token2index)
 
-    print("Total Pairs:", len(pairs))
+    train_pairs = [variablesFromPair(input_lang, output_lang, pair) \
+            for pair in train_pairs]
 
-    return input_lang, output_lang, pairs, len(pairs)
+    test_pairs = [variablesFromPair(input_lang, output_lang, pair) \
+            for pair in test_pairs]
+
+    print("Train Pairs:", len(train_pairs))
+    print("Test Pairs:", len(test_pairs))
+
+    return input_lang, output_lang, train_pairs, test_pairs
 
 
-input_lang, output_lang, raw_pairs, l = prepareData('qlang', 'alang')
+category = sys.argv[1]
+run = sys.argv[2]
 
-pairs = [variablesFromPair(input_lang, output_lang, pair) for pair in raw_pairs]
-
-import random
-random.shuffle(pairs)
-
-num_train = int(l*0.7)
-num_test = l - num_train
-
-training_pairs = pairs[0:num_train]
-test_pairs = pairs[num_train:]
-pickle.dump(test_pairs, open('test_pairs.pickle', 'wb'))
+input_lang, output_lang, train_pairs, test_pairs = prepareData(category)
 
 hidden_size = 256
-encoder_ = EncoderRNN(input_lang.n_words, hidden_size)
-decoder_ = DecoderRNN(hidden_size, output_lang.n_words)
+encoder_ = EncoderRNN(input_lang._num_tokens + input_lang._num_reserved, hidden_size)
+decoder_ = DecoderRNN(hidden_size, output_lang._num_tokens + output_lang._num_reserved)
 
 if use_cuda:
     encoder_ = encoder_.cuda()
     decoder_ = decoder_.cuda()
 
-trainIters(encoder_, decoder_, 10, l, 0.01)
+trainIters(encoder_, decoder_, 10, len(train_pairs), 0.01)

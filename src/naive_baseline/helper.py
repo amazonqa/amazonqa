@@ -14,15 +14,14 @@ from torch import optim
 import torch.nn.functional as F
 
 use_cuda = torch.cuda.is_available()
-SOS_token = 0
-EOS_token = 1
+SOS_token = 1
+EOS_token = 2
 
-def indexesFromSentence(lang, sentence):
-    return [lang.word2index[word] for word in sentence.split(' ')]
-
+#def indexesFromSentence(lang, sentence):
+    #return [lang.get_index(word) for word in sentence.split()]
 
 def variableFromSentence(lang, sentence):
-    indexes = indexesFromSentence(lang, sentence)
+    indexes = lang.indices_from_sequence(sentence.split())
     indexes.append(EOS_token)
     result = Variable(torch.LongTensor(indexes).view(-1, 1))
     return result.cuda() if use_cuda else result
