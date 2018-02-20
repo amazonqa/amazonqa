@@ -221,21 +221,34 @@ def create_ngram_freq_array(category, n):
     qa_table, reviews_table = tables_from_category(category)
     reviews = list(reviews_table['reviewText'].unique())
 
-    stopset = set(stopwords.words('english'))
+    stopset_u = set(stopwords.words('english'))
+    stopset = set([str(sw) for sw in stopset_u])
 
     ngrams = []
 
     sample_size = int(0.1*len(reviews))
     random_reviews = [reviews[i] for i in random.sample(range(0, len(reviews)), sample_size)]
 
+    len_review = 0
+    max_review = 0
+
     for review in reviews:
         review = review.translate(str.maketrans('', '', string.punctuation))
         tokens = nltk.word_tokenize(review)
-        tokens = [w.lower() for w in tokens if not w in stopset]
+        tokens = [w.lower() for w in tokens if not w.lower() in stopset]
+
+        len_review += len(tokens)
+        max_review = max(max_review, len(tokens))
+
         ngrams.extend(list(nltk.ngrams(tokens, n)))
 
+    print(len_review/len(reviews))
+    print(max_review)
+
     fdist = nltk.FreqDist(ngrams)
-    file = open(str(n)+category+'-grams-top100.txt', 'w')
+    print(len(fdist))
+
+    file = open(str(n)+category+'-grams-top500-reviewText.txt', 'w')
 
     for word, frequency in fdist.most_common(500):
         file.write(" ".join(word)+' '+str(frequency)+'\n')
