@@ -8,6 +8,7 @@ import numpy as np
 import nltk
 from nltk.corpus import stopwords
 import random
+import string 
 
 AUTOMOTIVE = 'Automotive'
 BABY = 'Baby'
@@ -224,12 +225,13 @@ def create_ngram_freq_array(category, n):
 
     ngrams = []
 
-    sample_size = len(reviews)
+    sample_size = int(0.1*len(reviews))
     random_reviews = [reviews[i] for i in random.sample(range(0, len(reviews)), sample_size)]
 
     for review in random_reviews:
+        review = review.translate(str.maketrans('', '', string.punctuation))
         tokens = nltk.word_tokenize(review)
-        tokens = [w for w in tokens if not w in stopset]
+        tokens = [w.lower() for w in tokens if not w in stopset]
         ngrams.extend(list(nltk.ngrams(tokens, n)))
 
     final_list = []
