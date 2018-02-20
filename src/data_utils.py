@@ -216,7 +216,7 @@ def save_qa_pairs_train_test(category, train_ratio):
 
     return qardata
 
-def get_review_text(category, n):
+def create_ngram_freq_array(category, n):
     qa_table, reviews_table = tables_from_category(category)
     reviews = list(reviews_table['reviewText'].unique())
 
@@ -246,8 +246,6 @@ def get_review_text(category, n):
 
     for word, frequency in fdist.most_common(100):
         file.write(" ".join(word)+' '+str(frequency)+'\n')
-
-    return ngram_freq_array
 
 #save_qa_pairs_train_test(ELECTRONICS, 0.8)
 #save_qa_pairs_train_test(TOYS_AND_GAMES, 0.8)
