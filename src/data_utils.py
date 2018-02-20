@@ -235,7 +235,7 @@ def create_ngram_freq_array(category, n):
         ngrams.extend(list(nltk.ngrams(tokens, n)))
 
     fdist = nltk.FreqDist(ngrams)
-    file = open(str(n)+'-grams-top100.txt', 'w')
+    file = open(str(n)+category+'-grams-top100.txt', 'w')
 
     for word, frequency in fdist.most_common(500):
         file.write(" ".join(word)+' '+str(frequency)+'\n')
