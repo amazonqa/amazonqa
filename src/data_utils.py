@@ -5,6 +5,9 @@ import pickle
 import pandas as pd
 import gzip
 import numpy as np
+import nltk
+from nltk.corpus import stopwords
+import random
 
 AUTOMOTIVE = 'Automotive'
 BABY = 'Baby'
@@ -213,5 +216,37 @@ def save_qa_pairs_train_test(category, train_ratio):
 
     return qardata
 
-save_qa_pairs_train_test(ELECTRONICS, 0.8)
+def get_review_text(category, n):
+    qa_table, reviews_table = tables_from_category(category)
+    reviews = list(reviews_table['reviewText'].unique())
+
+    stopset = set(stopwords.words('english'))
+
+    ngrams = []
+
+    random_reviews = [reviews[i] for i in random.sample(range(0, len(reviews)), 10)]
+
+    for review in random_reviews:
+        tokens = nltk.word_tokenize(review)
+        tokens = [w for w in tokens if not w in stopset]
+        ngrams.extend(list(nltk.ngrams(tokens, n)))
+
+    final_list = []
+
+    fdist = nltk.FreqDist(ngrams)
+    for word, frequency in fdist.items():
+        final_list.append([" ".join(word), frequency])
+
+    ngram_freq_array = np.array(final_list)
+    with open('%s/%d-gram-%s.pickle' % (DATA_PATH, n, category), 'wb') as f:
+        pickle.dump(ngram_freq_array, f)
+
+    file = open(str(n)+'-grams-top100.txt', 'w')
+
+    for word, frequency in fdist.most_common(100):
+        file.write(" ".join(word)+' '+str(frequency)+'\n')
+
+    return ngram_freq_array
+
+#save_qa_pairs_train_test(ELECTRONICS, 0.8)
 #save_qa_pairs_train_test(TOYS_AND_GAMES, 0.8)
