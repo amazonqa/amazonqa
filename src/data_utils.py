@@ -224,7 +224,8 @@ def get_review_text(category, n):
 
     ngrams = []
 
-    random_reviews = [reviews[i] for i in random.sample(range(0, len(reviews)), 10)]
+    sample_size = len(reviews)
+    random_reviews = [reviews[i] for i in random.sample(range(0, len(reviews)), sample_size)]
 
     for review in random_reviews:
         tokens = nltk.word_tokenize(review)
