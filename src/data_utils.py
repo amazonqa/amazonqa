@@ -228,25 +228,16 @@ def create_ngram_freq_array(category, n):
     sample_size = int(0.1*len(reviews))
     random_reviews = [reviews[i] for i in random.sample(range(0, len(reviews)), sample_size)]
 
-    for review in random_reviews:
+    for review in reviews:
         review = review.translate(str.maketrans('', '', string.punctuation))
         tokens = nltk.word_tokenize(review)
         tokens = [w.lower() for w in tokens if not w in stopset]
         ngrams.extend(list(nltk.ngrams(tokens, n)))
 
-    final_list = []
-
     fdist = nltk.FreqDist(ngrams)
-    for word, frequency in fdist.items():
-        final_list.append([" ".join(word), frequency])
-
-    ngram_freq_array = np.array(final_list)
-    with open('%s/%d-gram-%s.pickle' % (DATA_PATH, n, category), 'wb') as f:
-        pickle.dump(ngram_freq_array, f)
-
     file = open(str(n)+'-grams-top100.txt', 'w')
 
-    for word, frequency in fdist.most_common(100):
+    for word, frequency in fdist.most_common(500):
         file.write(" ".join(word)+' '+str(frequency)+'\n')
 
 #save_qa_pairs_train_test(ELECTRONICS, 0.8)
