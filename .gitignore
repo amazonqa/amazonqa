@@ -1,0 +1,4 @@
+data/*
+*__pycache__*
+src/naive_baseline/log*
+*.py.sw*

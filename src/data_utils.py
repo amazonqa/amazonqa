@@ -5,6 +5,10 @@ import pickle
 import pandas as pd
 import gzip
 import numpy as np
+import nltk
+from nltk.corpus import stopwords
+import random
+import string 
 
 AUTOMOTIVE = 'Automotive'
 BABY = 'Baby'
@@ -30,7 +34,7 @@ CATEGORIES = [
   BEAUTY,
   CELL_PHONES_AND_ACCESSORIES,
   CLOTHING_SHOES_AND_JEWELRY,
-#  ELECTRONICS,
+  ELECTRONICS,
   GROCERY_AND_GOURMET_FOOD,
   HEALTH_AND_PERSONAL_CARE,
   HOME_AND_KITCHEN,
@@ -47,7 +51,8 @@ CATEGORIES = [
 QA = 'QA'
 REVIEWS = 'Reviews'
 
-DATA_PATH = '../../data/pickle_files'
+DATA_PATH = '../data/pickle_files'
+NN_DATA_PATH = '../data/nn/'
 
 def filepath(category, key):
     if key == QA:
@@ -172,3 +177,68 @@ def data_stats():
         'Avg Answers Per Question',
         'Num Duplicate Questions',
     ], index=categories)
+
+# get question with the most helpful review and random answer
+def save_qa_pairs_train_test(category, train_ratio):
+    qa_table, reviews_table = tables_from_category(category)
+
+    fn = lambda obj: obj.loc[np.random.choice(obj.index, 1, False),:]
+    fqa_helpful = qa_table[['asin', 'questionText', 'answerText']]\
+            .drop_duplicates().groupby('questionText', as_index=False)\
+            .apply(fn).reset_index()[['asin', 'questionText', 'answerText']]
+    print("Processed QA")
+
+    rev = reviews_table[['asin', 'helpful', 'reviewText']]
+    qa_rev = pd.merge(rev, fqa_helpful, how='inner', on=['asin', 'asin'])
+    qa_rev['helpful'] = qa_rev['helpful'].apply(lambda l : l[0])
+
+    qa_rev_helpful = qa_rev.sort_values('helpful', ascending=False)\
+            .groupby(['questionText', 'answerText'], as_index=False).first()
+
+    #df = qa_rev_helpful[['questionText', 'answerText', 'reviewText']]
+
+    print("Processed Reviews")
+
+    qardata = list(zip( list(qa_rev_helpful['questionText']), \
+                   list(qa_rev_helpful['answerText']), \
+                   list(qa_rev_helpful['reviewText'])
+                   ))
+    for item in qardata[0]:
+        print(item + '\n\n')
+    print(len(qardata))
+
+    index = int(len(qardata) * train_ratio)
+    qar_train = qardata[0:index]
+    qar_test = qardata[index:]
+    pickle.dump(qar_train, open(NN_DATA_PATH + category + '_qar_train.pickle', 'wb'))
+    pickle.dump(qar_test, open(NN_DATA_PATH + category + '_qar_test.pickle', 'wb'))
+
+    print("Saved data")
+
+    return qardata
+
+def create_ngram_freq_array(category, n):
+    qa_table, reviews_table = tables_from_category(category)
+    reviews = list(reviews_table['reviewText'].unique())
+
+    stopset = set(stopwords.words('english'))
+
+    ngrams = []
+
+    sample_size = int(0.1*len(reviews))
+    random_reviews = [reviews[i] for i in random.sample(range(0, len(reviews)), sample_size)]
+
+    for review in reviews:
+        review = review.translate(str.maketrans('', '', string.punctuation))
+        tokens = nltk.word_tokenize(review)
+        tokens = [w.lower() for w in tokens if not w in stopset]
+        ngrams.extend(list(nltk.ngrams(tokens, n)))
+
+    fdist = nltk.FreqDist(ngrams)
+    file = open(str(n)+category+'-grams-top100.txt', 'w')
+
+    for word, frequency in fdist.most_common(500):
+        file.write(" ".join(word)+' '+str(frequency)+'\n')
+
+#save_qa_pairs_train_test(ELECTRONICS, 0.8)
+#save_qa_pairs_train_test(TOYS_AND_GAMES, 0.8)
