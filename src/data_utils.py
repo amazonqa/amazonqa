@@ -9,56 +9,14 @@ import nltk
 from nltk.corpus import stopwords
 import random
 import string 
+import constants as C
 
-AUTOMOTIVE = 'Automotive'
-BABY = 'Baby'
-BEAUTY = 'Beauty'
-CELL_PHONES_AND_ACCESSORIES = 'Cell_Phones_and_Accessories'
-CLOTHING_SHOES_AND_JEWELRY = 'Clothing_Shoes_and_Jewelry'
-ELECTRONICS = 'Electronics'
-GROCERY_AND_GOURMET_FOOD = 'Grocery_and_Gourmet_Food'
-HEALTH_AND_PERSONAL_CARE = 'Health_and_Personal_Care'
-HOME_AND_KITCHEN = 'Home_and_Kitchen'
-MUSICAL_INSTRUMENTS = 'Musical_Instruments'
-OFFICE_PRODUCTS = 'Office_Products'
-PATIO_LAWN_AND_GARDEN = 'Patio_Lawn_and_Garden'
-PET_SUPPLIES = 'Pet_Supplies'
-SPORTS_AND_OUTDOORS = 'Sports_and_Outdoors'
-TOOLS_AND_HOME_IMPROVEMENT = 'Tools_and_Home_Improvement'
-TOYS_AND_GAMES = 'Toys_and_Games'
-VIDEO_GAMES = 'Video_Games'
-
-CATEGORIES = [
-  AUTOMOTIVE,
-  BABY,
-  BEAUTY,
-  CELL_PHONES_AND_ACCESSORIES,
-  CLOTHING_SHOES_AND_JEWELRY,
-  ELECTRONICS,
-  GROCERY_AND_GOURMET_FOOD,
-  HEALTH_AND_PERSONAL_CARE,
-  HOME_AND_KITCHEN,
-  MUSICAL_INSTRUMENTS,
-  OFFICE_PRODUCTS,
-  PATIO_LAWN_AND_GARDEN,
-  PET_SUPPLIES,
-  SPORTS_AND_OUTDOORS,
-  TOOLS_AND_HOME_IMPROVEMENT,
-  TOYS_AND_GAMES,
-  VIDEO_GAMES,
-]
-
-QA = 'QA'
-REVIEWS = 'Reviews'
-
-DATA_PATH = '../data/pickle_files'
-NN_DATA_PATH = '../data/nn/'
 
 def filepath(category, key):
-    if key == QA:
-        path = '%s/QA_%s.json.gz' % (DATA_PATH, category)
-    elif key == REVIEWS:
-        path = '%s/reviews_%s_5.json.gz' % (DATA_PATH, category)
+    if key == C.QA:
+        path = '%s/QA_%s.json.gz' % (C.QA_DATA_PATH, category)
+    elif key == C.REVIEWS:
+        path = '%s/reviews_%s_5.json.gz' % (C.REVIEWS_DATA_PATH, category)
     else:
         raise 'Unexpected key'
     return path
@@ -77,7 +35,7 @@ def getDF(path):
     return pd.DataFrame.from_dict(df, orient='index')
 
 def create_qa_review_tables(category):
-    qa, reviews = [getDF(filepath(category, key)) for key in [QA, REVIEWS]]
+    qa, reviews = [getDF(filepath(category, key)) for key in [C.QA, C.REVIEWS]]
     common_products = set(qa.asin.values).intersection(reviews.asin.values)
     qa_rows = []
 
@@ -94,11 +52,11 @@ def create_qa_review_tables(category):
     qa_table = pd.DataFrame(qa_rows)
     reviews = reviews[reviews.asin.isin(common_products)]
 
-    with open('%s/%s.pickle' % (DATA_PATH, category), 'wb') as f:
+    with open('%s/%s.pickle' % (C.DATA_PATH, category), 'wb') as f:
         pickle.dump((qa_table, reviews), f)
 
 def tables_from_category(category):
-    with open('%s/%s.pickle' % (DATA_PATH, category), 'rb') as f:
+    with open('%s/%s.pickle' % (C.DATA_PATH, category), 'rb') as f:
         return pickle.load(f, encoding='latin1')
 
 def convertRowToReviewJson(row):
@@ -112,7 +70,7 @@ def save_tables_for_all_categories():
     """Processes .tar.gz files for all the categories
     and saves qa & reviews tables in a .pickle format
     """
-    for category in CATEGORIES:
+    for category in C.CATEGORIES:
         create_qa_review_tables(category)
 
 def token_count(line):
@@ -162,7 +120,7 @@ def get_category_stats(category):
 
 def data_stats():
     rows = []
-    categories = CATEGORIES
+    categories = C.CATEGORIES
     for category in categories:
         rows.append(get_category_stats(category))
     return pd.DataFrame(rows, columns=[
@@ -210,8 +168,8 @@ def save_qa_pairs_train_test(category, train_ratio):
     index = int(len(qardata) * train_ratio)
     qar_train = qardata[0:index]
     qar_test = qardata[index:]
-    pickle.dump(qar_train, open(NN_DATA_PATH + category + '_qar_train.pickle', 'wb'))
-    pickle.dump(qar_test, open(NN_DATA_PATH + category + '_qar_test.pickle', 'wb'))
+    pickle.dump(qar_train, open(C.NN_DATA_PATH + category + '_qar_train.pickle', 'wb'))
+    pickle.dump(qar_test, open(C.NN_DATA_PATH + category + '_qar_test.pickle', 'wb'))
 
     print("Saved data")
 
