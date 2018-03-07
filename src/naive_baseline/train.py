@@ -27,7 +27,6 @@ use_cuda = torch.cuda.is_available()
 def trainIters(encoder, decoder, epochs, num_iters, learning_rate):
     start = time.time()
     plot_losses = []
-    loss_total = 0  # Reset every print_every
 
     #enocder_optimizer1 = optim.SGD(encoder.parameters(), lr=learning_rate)
     encoder_optimizer = optim.SGD(encoder.parameters(), lr=learning_rate)
@@ -37,43 +36,51 @@ def trainIters(encoder, decoder, epochs, num_iters, learning_rate):
 
     for epoch in range(epochs):
         print('Epoch ', epoch, ' starting\n')
-        training_pairs = train_pairs#[random.choice(train_pairs) for i in range(num_iters)]
+        #train_pairs = [random.choice(train_pairs) for i in range(num_iters)]
         total_loss = 0.0
         for iter in tqdm(range(1, num_iters+1)):
-            training_pair = training_pairs[iter - 1]
-            input_variable = training_pair[0]
-            target_variable = training_pair[1]
+            train_pair = train_pairs[iter - 1]
+            input_variable = train_pair[0]
+            target_variable = train_pair[1]
 
             loss = train(input_variable, target_variable, encoder, decoder, \
                     encoder_optimizer, decoder_optimizer, criterion)
 
-            loss_total += loss
+            total_loss += loss
 
             print_every = 5000
             if iter % print_every == 0 or iter == num_iters - 1:
-                loss_avg = loss_total / iter
+                loss_avg = total_loss / iter
                 print('%s (%d %d%%) %.4f' % (timeSince(start, iter / num_iters), \
                     iter, iter / num_iters * 100, loss_avg))
 
         print("SAVING MODELS FOR EPOCH - ", str(epoch))
-        dir = 'model' + run
+        dir = category + '_model/' + run + '/'
         if not os.path.exists(dir):
             os.makedirs(dir)
 
-        torch.save(encoder, dir + 'encoder_%d')
-        torch.save(decoder, dir + 'decoder_%d')
+        torch.save(encoder, dir + 'encoder_' + str(epoch))
+        torch.save(decoder, dir + 'decoder_' + str(epoch))
 
-    #FIXME put test stuff
+
 teacher_forcing_ratio = 0.0
 MAX_LENGTH=10000
+
 
 def train(input_variable, target_variable, encoder, decoder, encoder_optimizer, \
         decoder_optimizer, criterion, max_length=MAX_LENGTH):
 
-    encoder_hidden = encoder.init_hidden()
-
     encoder_optimizer.zero_grad()
     decoder_optimizer.zero_grad()
+
+    loss, target_length = forward(input_variable, target_variable, encoder, \
+        decoder, criterion, max_length=MAX_LENGTH)
+
+    return backward(encoder_optimizer, decoder_optimizer, loss, target_length)
+
+def forward(input_variable, target_variable, encoder, decoder, criterion, max_length=MAX_LENGTH):
+
+    encoder_hidden = encoder.init_hidden()
 
     input_length = input_variable.size()[0]
     target_length = target_variable.size()[0]
@@ -103,7 +110,9 @@ def train(input_variable, target_variable, encoder, decoder, encoder_optimizer, 
 
         loss += criterion(decoder_output, target_variable[di])
         if ni == EOS_token: break
+    return loss, target_length
 
+def backward(encoder_optimizer, decoder_optimizer, loss, target_length):
     loss.backward()
 
     encoder_optimizer.step()
@@ -113,7 +122,7 @@ def train(input_variable, target_variable, encoder, decoder, encoder_optimizer, 
 
 
 def normalize_pair(triplet):
-    pair = [triplet[0], triplet[1]]
+    pair = [triplet[2], triplet[1]]
     table = str.maketrans(string.punctuation, ' '*len(string.punctuation))
     return [val.lower().translate(table).strip() for val in pair]
 
@@ -124,8 +133,8 @@ def prepareData(category):
     train_pairs = [normalize_pair(triplet) for triplet in train_data]
     test_pairs  = [normalize_pair(triplet) for triplet in test_data]
 
-    input_lang = Vocabulary(40000)
-    output_lang = Vocabulary(60000)
+    input_lang = Vocabulary(10000000)
+    output_lang = Vocabulary(6000000)
 
     print("Creating languages...")
     for pair in train_pairs:

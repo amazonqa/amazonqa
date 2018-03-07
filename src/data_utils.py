@@ -8,8 +8,10 @@ import numpy as np
 import nltk
 from nltk.corpus import stopwords
 import random
-import string 
+import string
 import constants as C
+import string
+from tqdm import tqdm
 
 
 def filepath(category, key):
@@ -190,7 +192,7 @@ def create_ngram_freq_array(category, n):
     len_review = 0
     max_review = 0
 
-    for review in reviews:
+    for review in tqdm(reviews):
         review = review.translate(str.maketrans('', '', string.punctuation))
         tokens = nltk.word_tokenize(review)
         tokens = [w.lower() for w in tokens if not w.lower() in stopset]

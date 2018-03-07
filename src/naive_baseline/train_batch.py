@@ -21,46 +21,10 @@ from tqdm import tqdm
 import os
 import string
 import sys
-from torch.utils.data.dataset import Dataset
 
 use_cuda = torch.cuda.is_available()
 
-class Amazon_Dataset(Dataset):
-
-    def __init__(self, category, type):
-        data = pickle.load(open('../../data/nn/' + category + '_qar_' + type + '.pickle', 'rb'))
-    
-        pairs = [normalize_pair(triplet) for triplet in data]
-
-        input_lang = Vocabulary(40000)
-        output_lang = Vocabulary(60000)
-
-        print("Creating languages...")
-        for pair in pairs:
-            input_lang.add_sequence(pair[0].split())
-            output_lang.add_sequence(pair[1].split())
-
-        input_lang.trim()
-        output_lang.trim()
-
-        self.in_num_tokens = input_lang._num_tokens
-        self.out_num_tokens = output_lang._num_tokens
-
-        self.in_num_reserved = input_lang._num_reserved
-        self.out_num_reserved = input_lang._num_reserved
-
-        self.pairs = pairs
-
-        self.length = len(pairs)
-
-    def __getitem__(self, index):
-        pair = self.pairs[index]
-        return (pair[0], pair[1])
-
-    def __len__(self):
-        return self.length
-
-def trainIters(encoder, decoder, epochs, train_pairs, learning_rate):
+def trainIters(encoder, decoder, epochs, num_iters, learning_rate):
     start = time.time()
     plot_losses = []
     loss_total = 0  # Reset every print_every
@@ -69,20 +33,18 @@ def trainIters(encoder, decoder, epochs, train_pairs, learning_rate):
     encoder_optimizer = optim.SGD(encoder.parameters(), lr=learning_rate)
     decoder_optimizer = optim.SGD(decoder.parameters(), lr=learning_rate)
 
-    num_iters = len(train_pairs)
-
     criterion = nn.NLLLoss()
 
     for epoch in range(epochs):
         print('Epoch ', epoch, ' starting\n')
-        
+        #train_pairs = [random.choice(train_pairs) for i in range(num_iters)]
         total_loss = 0.0
-        
-        for batch_idx, (input_variables, target_variables) in enumerate(train_pairs):
-            print(input_variables)
-            print(target_variables)
+        for iter in tqdm(range(1, num_iters+1)):
+            train_pair = train_pairs[iter - 1]
+            input_variable = train_pair[0]
+            target_variable = train_pair[1]
 
-            loss = train(input_variables, target_variables, encoder, decoder, \
+            loss = train(input_variable, target_variable, encoder, decoder, \
                     encoder_optimizer, decoder_optimizer, criterion)
 
             loss_total += loss
@@ -94,24 +56,33 @@ def trainIters(encoder, decoder, epochs, train_pairs, learning_rate):
                     iter, iter / num_iters * 100, loss_avg))
 
         print("SAVING MODELS FOR EPOCH - ", str(epoch))
-        dir = 'model/' + run
+        dir = category + '_model/' + run + '/'
         if not os.path.exists(dir):
             os.makedirs(dir)
 
-        torch.save(encoder, dir + 'encoder_%d')
-        torch.save(decoder, dir + 'decoder_%d')
+        torch.save(encoder, dir + 'encoder_' + str(epoch))
+        torch.save(decoder, dir + 'decoder_' + str(epoch))
 
-    #FIXME put test stuff
+
 teacher_forcing_ratio = 0.0
 MAX_LENGTH=10000
+
 
 def train(input_variable, target_variable, encoder, decoder, encoder_optimizer, \
         decoder_optimizer, criterion, max_length=MAX_LENGTH):
 
-    encoder_hidden = encoder.init_hidden()
-
     encoder_optimizer.zero_grad()
     decoder_optimizer.zero_grad()
+
+    loss, target_length = forward(input_variable, target_variable, encoder, \
+        decoder, criterion, max_length=MAX_LENGTH)
+
+    return backward(encoder_optimizer, decoder_optimizer, loss, target_length)
+
+def forward(input_variable, target_variable, encoder, decoder, encoder_optimizer, \
+        decoder_optimizer, criterion, max_length=MAX_LENGTH):
+
+    encoder_hidden = encoder.init_hidden()
 
     input_length = input_variable.size()[0]
     target_length = target_variable.size()[0]
@@ -141,7 +112,9 @@ def train(input_variable, target_variable, encoder, decoder, encoder_optimizer, 
 
         loss += criterion(decoder_output, target_variable[di])
         if ni == EOS_token: break
+    return loss, target_length
 
+def backward(encoder_optimizer, decoder_optimizer, loss, target_length):
     loss.backward()
 
     encoder_optimizer.step()
@@ -194,25 +167,14 @@ def prepareData(category):
 category = sys.argv[1]
 run = sys.argv[2]
 
-#input_lang, output_lang, train_pairs, test_pairs = prepareData(category)
-dset_train = Amazon_Dataset(category, 'train')
-in_num_tokens = dset_train.in_num_tokens
-out_num_tokens = dset_train.out_num_tokens
-
-in_num_reserved = dset_train.in_num_reserved
-out_num_reserved = dset_train.out_num_reserved
-
-train_pairs = torch.utils.data.DataLoader(dset_train, shuffle=True, batch_size=2)
-
-#dset_test = Amazon_Dataset(category, 'test')
-#test_pairs = torch.utils.data.DataLoader(dset_test, shuffle=True, batch_size=1)
+input_lang, output_lang, train_pairs, test_pairs = prepareData(category)
 
 hidden_size = 256
-encoder_ = EncoderRNN(in_num_tokens + in_num_reserved, hidden_size)
-decoder_ = DecoderRNN(hidden_size, out_num_tokens + out_num_reserved)
+encoder_ = EncoderRNN(input_lang._num_tokens + input_lang._num_reserved, hidden_size)
+decoder_ = DecoderRNN(hidden_size, output_lang._num_tokens + output_lang._num_reserved)
 
 if use_cuda:
     encoder_ = encoder_.cuda()
     decoder_ = decoder_.cuda()
 
-trainIters(encoder_, decoder_, 10, train_pairs, 0.01)
+trainIters(encoder_, decoder_, 10, len(train_pairs), 0.01)
