@@ -153,7 +153,7 @@ def generate_split_data(category):
   pd = get_filter_dataframe(category)
   length = len(pd)
 
-  indexes = range(0, length)
+  indexes = list(range(0, length))
   random.shuffle(indexes)
 
   train = (int)(length*60.0/100)
