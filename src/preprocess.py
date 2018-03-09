@@ -14,7 +14,9 @@ import data_utils as D
 # convert reviews row to json
 def reviewToJson(row):
   json = {}
-  json[C.TEXT] = row[C.REVIEW_TEXT]
+  text = row[C.REVIEW_TEXT]
+  matchIdx = text.find("\n\n\n\n")
+  json[C.TEXT] = text[0:matchIdx] if matchIdx != -1 else text
 
   scores = str(row[C.HELPFUL])[1:-1].split(',')
   json[C.HELPFUL] = int(scores[0].strip())
@@ -28,14 +30,22 @@ def questionsToJson(questions_list):
   new_questions_list = []
   for question in questions_list:
     new_question = {}
-    new_question[C.TEXT] = question[C.QUESTION_TEXT]
+
+    text = question[C.QUESTION_TEXT]
+    matchIdx = text.find("\n\n\n\n")
+
+    new_question[C.TEXT] = text[0:matchIdx] if matchIdx != -1 else text
     new_question[C.TIME] = question[C.QUESTION_TIME]
     new_question[C.TYPE] = question[C.QUESTION_TYPE]
 
     new_answers = []
     for answer in question[C.ANSWERS]:
       new_answer = {}
-      new_answer[C.TEXT] = answer[C.ANSWER_TEXT]
+
+      text = answer[C.ANSWER_TEXT]
+      matchIdx = text.find("\n\n\n\n")
+
+      new_answer[C.TEXT] = text[0:matchIdx] if matchIdx != -1 else text
       new_answer[C.TIME] = answer[C.ANSWER_TIME]
 
       scores = str(answer[C.HELPFUL])[1:-1].split(',')
