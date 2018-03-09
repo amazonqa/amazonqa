@@ -174,8 +174,8 @@ def generate_split_data(category):
     test_pd.to_pickle(f)
 
 
-def generate_split_data_all_categories(category):
-  for category in CATEGORIES:
+def generate_split_data_all_categories():
+  for category in C.CATEGORIES:
     generate_split_data(category)
 
 
