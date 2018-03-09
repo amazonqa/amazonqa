@@ -1,4 +1,3 @@
-
 import pickle
 import pandas as pd
 import gzip
@@ -9,7 +8,7 @@ import random
 import string
 import constants as C
 import data_utils as D
-
+from tqdm import tqdm
 
 # convert reviews row to json
 def reviewToJson(row):
@@ -78,7 +77,7 @@ def generate_raw_data(category):
 
 
 def generate_raw_data_all_categories():
-  for category in CATEGORIES:
+  for category in tqdm(C.CATEGORIES):
     generate_raw_data(category)
 
 
