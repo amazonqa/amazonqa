@@ -72,6 +72,25 @@ QA_DATA_PATH = '../data/answers_multiple'
 REVIEWS_DATA_PATH = '../data/reviews_small'
 JSON_DATA_PATH = '../data/json_data'
 NN_DATA_PATH = '../data/nn'
+INPUT_DATA_PATH = '../data/input'
 
 
-
+LENGTH_DICT = [
+  {'Category': 'Automotive', 'ReviewLength': 185, 'QuestionLength': 27, 'AnswerLength': 66},
+  {'Category': 'Baby', 'ReviewLength': 219, 'QuestionLength': 28, 'AnswerLength': 64},
+  {'Category': 'Beauty', 'ReviewLength': 187, 'QuestionLength': 26, 'AnswerLength': 63},
+  {'Category': 'Cell_Phones_and_Accessories', 'ReviewLength': 218, 'QuestionLength': 26, 'AnswerLength': 53},
+  {'Category': 'Clothing_Shoes_and_Jewelry', 'ReviewLength': 142, 'QuestionLength': 25, 'AnswerLength': 53},
+  {'Category': 'Electronics', 'ReviewLength': 269, 'QuestionLength': 28, 'AnswerLength': 70},
+  {'Category': 'Grocery_and_Gourmet_Food', 'ReviewLength': 175, 'QuestionLength': 25, 'AnswerLength': 63},
+  {'Category': 'Health_and_Personal_Care', 'ReviewLength': 206, 'QuestionLength': 26, 'AnswerLength': 65},
+  {'Category': 'Home_and_Kitchen', 'ReviewLength': 222, 'QuestionLength': 26, 'AnswerLength': 62},
+  {'Category': 'Musical_Instruments', 'ReviewLength': 195, 'QuestionLength': 27, 'AnswerLength': 72},
+  {'Category': 'Office_Products', 'ReviewLength': 397, 'QuestionLength': 28, 'AnswerLength': 68},
+  {'Category': 'Patio_Lawn_and_Garden', 'ReviewLength': 335, 'QuestionLength': 28, 'AnswerLength': 74},
+  {'Category': 'Pet_Supplies', 'ReviewLength': 202, 'QuestionLength': 28, 'AnswerLength': 78},
+  {'Category': 'Sports_and_Outdoors', 'ReviewLength': 190, 'QuestionLength': 26, 'AnswerLength': 64},
+  {'Category': 'Tools_and_Home_Improvement', 'ReviewLength': 240, 'QuestionLength': 27, 'AnswerLength': 68},
+  {'Category': 'Toys_and_Games', 'ReviewLength': 213, 'QuestionLength': 26, 'AnswerLength': 55},
+  {'Category': 'Video_Games', 'ReviewLength': 462, 'QuestionLength': 26, 'AnswerLength': 56}
+]

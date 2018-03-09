@@ -12,6 +12,7 @@ import string
 import constants as C
 import string
 from tqdm import tqdm
+import preprocess as P
 
 
 def filepath(category, key):
@@ -23,10 +24,12 @@ def filepath(category, key):
         raise 'Unexpected key'
     return path
 
+
 def parse(path):
     g = gzip.open(path, 'rb')
     for l in g:
         yield eval(l)
+
 
 def getDF(path):
     i = 0
@@ -35,6 +38,7 @@ def getDF(path):
         df[i] = d
         i += 1
     return pd.DataFrame.from_dict(df, orient='index')
+
 
 def create_qa_review_tables(category):
     qa, reviews = [getDF(filepath(category, key)) for key in [C.QA, C.REVIEWS]]
@@ -57,9 +61,11 @@ def create_qa_review_tables(category):
     with open('%s/%s.pickle' % (C.DATA_PATH, category), 'wb') as f:
         pickle.dump((qa_table, reviews), f)
 
+
 def tables_from_category(category):
     with open('%s/%s.pickle' % (C.DATA_PATH, category), 'rb') as f:
         return pickle.load(f, encoding='latin1')
+
 
 def convertRowToReviewJson(row):
     json = {}
@@ -68,6 +74,7 @@ def convertRowToReviewJson(row):
     json['summary'] = row['summary']
     return json
 
+
 def save_tables_for_all_categories():
     """Processes .tar.gz files for all the categories
     and saves qa & reviews tables in a .pickle format
@@ -75,8 +82,10 @@ def save_tables_for_all_categories():
     for category in C.CATEGORIES:
         create_qa_review_tables(category)
 
+
 def token_count(line):
     return len(line.split(' '))
+
 
 def get_category_stats(category):
     qa_table, reviews_table = tables_from_category(category)
@@ -120,6 +129,7 @@ def get_category_stats(category):
         'Num Duplicate Questions': num_dupl_questions,
     }
 
+
 def data_stats():
     rows = []
     categories = C.CATEGORIES
@@ -137,6 +147,7 @@ def data_stats():
         'Avg Answers Per Question',
         'Num Duplicate Questions',
     ], index=categories)
+
 
 # get question with the most helpful review and random answer
 def save_qa_pairs_train_test(category, train_ratio):
@@ -177,6 +188,7 @@ def save_qa_pairs_train_test(category, train_ratio):
 
     return qardata
 
+
 def create_ngram_freq_array(category, n):
     qa_table, reviews_table = tables_from_category(category)
     reviews = list(reviews_table['reviewText'].unique())
@@ -215,3 +227,44 @@ def create_ngram_freq_array(category, n):
 
 #save_qa_pairs_train_test(ELECTRONICS, 0.8)
 #save_qa_pairs_train_test(TOYS_AND_GAMES, 0.8)
+
+
+def getLengths(row):
+    reviewsList = row['reviewsList']
+    reviewsLengthList = []
+    for review in reviewsList:
+        tokens = review['text'].split()
+        reviewsLengthList.append(len(tokens))
+    
+    questionsList = row['questionsList']
+    questionsLengthList = []
+    answersLengthList = []
+    
+    for question in questionsList:
+        tokens = question['text'].split()
+        questionsLengthList.append(len(tokens))
+        
+        answersList = question['answers']
+        for answer in answersList:
+            tokens = answer['text'].split()
+            answersLengthList.append(len(tokens))
+    
+    return (reviewsLengthList, questionsLengthList, answersLengthList)
+
+
+def generate_length_lists(category):
+    df = P.get_raw_dataframe(category)
+    df['lengthsList'] = df[['reviewsList', 'questionsList']].apply(getLengths, axis=1)
+    reviewsLengthList = []
+    questionsLengthList = []
+    answersLengthList = []
+
+    for (r, q, a) in df['lengthsList']:
+        reviewsLengthList.extend(r)
+        questionsLengthList.extend(q)
+        answersLengthList.extend(a)
+
+    return (reviewsLengthList, questionsLengthList, answersLengthList)
+
+
+

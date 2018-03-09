@@ -14,6 +14,7 @@ import data_utils as D
 # convert reviews row to json
 def reviewToJson(row):
   json = {}
+
   text = row[C.REVIEW_TEXT]
   matchIdx = text.find("\n\n\n\n")
   json[C.TEXT] = text[0:matchIdx] if matchIdx != -1 else text
@@ -81,8 +82,102 @@ def generate_raw_data_all_categories():
     generate_raw_data(category)
 
 
-def raw_dataframe(category):
+def get_raw_dataframe(category):
     with open('%s/%s.pickle' % (C.JSON_DATA_PATH, category), 'rb') as f:
         return pd.read_pickle(f)
+
+
+def filterReviews(reviewLength, reviewsList):
+    filteredReviewsList = []
+    
+    for review in reviewsList:
+        tokens = review['text'].split()
+        if len(tokens) <= reviewLength:
+            filteredReviewsList.append(review)
+    
+    if len(filteredReviewsList) == 0:
+        return "NA"
+    else:
+        return filteredReviewsList
+
+
+def filterQuestions(questionLength, answerLength, questionsList):
+    filteredQuestionsList = []
+    
+    for question in questionsList:
+        tokens = question['text'].split()
+        if len(tokens) <= questionLength:
+            filteredAnswersList = []
+            
+            answersList = question['answers']
+            
+            for answer in answersList:
+                tokens = answer['text'].split()
+                if len(tokens) <= answerLength:
+                    filteredAnswersList.append(answer)
+            
+            if len(filteredAnswersList) != 0:
+                question['answers'] = filteredAnswersList
+                filteredQuestionsList.append(question)
+    
+    if len(filteredQuestionsList) == 0:
+        return "NA"
+    else:
+        return filteredQuestionsList
+
+
+def filter_raw_data(category, reviewLength, questionLength, answerLength):
+  df = get_raw_dataframe(category)
+
+  df['reviewsList'] = df['reviewsList'].apply(lambda x: filterReviews(reviewLength, x))
+  df.drop(df.index[df['reviewsList'] == "NA"])
+
+  df['questionsList'] = df['questionsList'].apply(lambda x: filterQuestions(questionLength, answerLength, x))
+  df.drop(df.index[df['questionsList'] == "NA"])
+
+  with open('%s/full-%s.pickle' % (C.INPUT_DATA_PATH, category), 'wb') as f:
+    df.to_pickle(f)
+
+
+def filter_raw_data_all_categories():
+
+  for item in C.LENGTH_DICT:
+    filter_raw_data(item['Category'], item['ReviewLength'], item['QuestionLength'], item['AnswerLength'])
+
+
+def get_filter_dataframe(category):
+    with open('%s/full-%s.pickle' % (C.INPUT_DATA_PATH, category), 'rb') as f:
+        return pd.read_pickle(f)
+
+
+def generate_split_data(category):
+  pd = get_filter_dataframe(category)
+  length = len(pd)
+
+  indexes = range(0, length)
+  random.shuffle(indexes)
+
+  train = (int)(length*60.0/100)
+  val = (int)(length*20.0/100)
+  test = (int)(length*20.0/100)
+
+  train_pd = pd.iloc[indexes[0 : train]]
+  val_pd = pd.iloc[indexes[train : train+val]]
+  test_pd = pd.iloc[indexes[train+val : train+val+test]]
+
+  with open('%s/train-%s.pickle' % (C.INPUT_DATA_PATH, category), 'wb') as f:
+    train_pd.to_pickle(f)
+
+  with open('%s/val-%s.pickle' % (C.INPUT_DATA_PATH, category), 'wb') as f:
+    val_pd.to_pickle(f)
+
+  with open('%s/test-%s.pickle' % (C.INPUT_DATA_PATH, category), 'wb') as f:
+    test_pd.to_pickle(f)
+
+
+def generate_split_data_all_categories(category):
+  for category in CATEGORIES:
+    generate_split_data(category)
+
 
 
