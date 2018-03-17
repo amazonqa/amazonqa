@@ -45,23 +45,25 @@ class AnswersCorpus(object):
 		tokens = 0
 		for questionsList in data[C.QUESTIONS_LIST]:
 			for question in questionsList:
-				for answer in question[C.ANSWERS]:
-					line = answer[C.TEXT]
-					words = '<SOS>' + line.split() + '<EOS>'
-					tokens += len(words)
-					for word in words:
-						self.dicitionary.add_word(word)
+				if 'answers' in question:
+					for answer in question[C.ANSWERS]:
+						line = answer[C.TEXT]
+						words = ['<SOS>'] + line.split() + ['<EOS>']
+						tokens += len(words)
+						for word in words:
+							self.dicitionary.add_word(word)
 
 		ids = torch.LongTensor(tokens)
 		token = 0
 
 		for questionsList in data[C.QUESTIONS_LIST]:
 			for question in questionsList:
-				for answer in question[C.ANSWERS]:
-					line = answer[C.TEXT]
-					words = '<SOS>' + line.split() + '<EOS>'
-					for word in words:
-						ids[token]= self.dicitionary.word2idx[word]
-						token += 1
+				if 'answers' in question:
+					for answer in question[C.ANSWERS]:
+						line = answer[C.TEXT]
+						words = ['<SOS>'] + line.split() + ['<EOS>']
+						for word in words:
+							ids[token]= self.dicitionary.word2idx[word]
+							token += 1
 
 		return ids
