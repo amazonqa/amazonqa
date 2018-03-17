@@ -4,7 +4,7 @@ import constants as C
 import pandas as pd
 
 
-class Dicitionary(object):
+class Dictionary(object):
 	def __init__(self):
 		# word2idx - map word with index
 		self.word2idx = {}
@@ -24,13 +24,13 @@ class Dicitionary(object):
 
 class AnswersCorpus(object):
 	def __init__(self, category):
-		self.dicitionary = Dicitionary()
+		self.dictionary = Dictionary()
 
 		train_path = '%s/train-%s.pickle' % (C.INPUT_DATA_PATH, category)
 		self.train = self.tokenize(train_path)
 
-		val_path = '%s/val-%s.pickle' % (C.INPUT_DATA_PATH, category)
-		self.val = self.tokenize(val_path)
+		valid_path = '%s/val-%s.pickle' % (C.INPUT_DATA_PATH, category)
+		self.valid = self.tokenize(valid_path)
 
 		test_path = '%s/test-%s.pickle' % (C.INPUT_DATA_PATH, category)
 		self.test = self.tokenize(test_path)
@@ -51,7 +51,7 @@ class AnswersCorpus(object):
 						words = ['<SOS>'] + line.split() + ['<EOS>']
 						tokens += len(words)
 						for word in words:
-							self.dicitionary.add_word(word)
+							self.dictionary.add_word(word)
 
 		ids = torch.LongTensor(tokens)
 		token = 0
@@ -63,7 +63,7 @@ class AnswersCorpus(object):
 						line = answer[C.TEXT]
 						words = ['<SOS>'] + line.split() + ['<EOS>']
 						for word in words:
-							ids[token]= self.dicitionary.word2idx[word]
+							ids[token]= self.dictionary.word2idx[word]
 							token += 1
 
 		return ids
