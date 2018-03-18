@@ -4,11 +4,12 @@ import gzip
 import numpy as np
 import nltk
 from nltk.corpus import stopwords
-import random
 import string
 import constants as C
 import data_utils as D
 from tqdm import tqdm
+
+np.random.seed(2018)
 
 # convert reviews row to json
 def reviewToJson(row):
