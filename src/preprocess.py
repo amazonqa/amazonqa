@@ -153,7 +153,7 @@ def generate_split_data(category):
   pd = get_filter_dataframe(category)
   length = len(pd)
 
-  indexes = range(0, length)
+  indexes = np.array(range(0, length))
   random.shuffle(indexes)
 
   train = (int)(length*60.0/100)
@@ -174,9 +174,6 @@ def generate_split_data(category):
     test_pd.to_pickle(f)
 
 
-def generate_split_data_all_categories(category):
-  for category in CATEGORIES:
+def generate_split_data_all_categories():
+  for category in C.CATEGORIES:
     generate_split_data(category)
-
-
-
