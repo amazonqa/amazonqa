@@ -4,11 +4,12 @@ import gzip
 import numpy as np
 import nltk
 from nltk.corpus import stopwords
-import random
 import string
 import constants as C
 import data_utils as D
 from tqdm import tqdm
+
+np.random.seed(2018)
 
 # convert reviews row to json
 def reviewToJson(row):
@@ -154,7 +155,7 @@ def generate_split_data(category):
   length = len(pd)
 
   indexes = list(range(0, length))
-  random.shuffle(indexes)
+  np.random.shuffle(indexes)
 
   train = (int)(length*60.0/100)
   val = (int)(length*20.0/100)
