@@ -42,3 +42,8 @@ Sources - [Pytorch Word Level Language Model Example](https://github.com/pytorch
 * [Dynamic Coattention Networks For Question Answering](https://arxiv.org/abs/1611.01604)
 * [Machine Comprehension Using Match-LSTM and Answer Pointer](https://arxiv.org/abs/1608.07905)
 * [Query Focused Abstractive Summarization](https://arxiv.org/abs/1801.07704)
+
+## Interpretability 
+* [Rationalizing Neural Predictions](https://arxiv.org/abs/1606.04155)
+* [The Mythos of Model Interpretability](https://arxiv.org/abs/1606.03490)
+* [Towards A Rigorous Science of Interpretable Machine Learning](https://arxiv.org/abs/1702.08608)
