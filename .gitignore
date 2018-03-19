@@ -1,7 +1,9 @@
 data/*
 *__pycache__*
 src/naive_baseline/log*
-*.py.sw*
+*.swp
+*.swo
 *.json.gz
 __init__.pyc
 *pyc
+*.pickle

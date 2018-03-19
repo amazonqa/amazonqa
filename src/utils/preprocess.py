@@ -139,11 +139,10 @@ def filter_raw_data(category, reviewLength, questionLength, answerLength):
     df.to_pickle(f)
 
 
-def filter_raw_data_all_categories():
-
-  for item in C.LENGTH_DICT:
-    filter_raw_data(item['Category'], item['ReviewLength'], item['QuestionLength'], item['AnswerLength'])
-
+def filter_raw_data_all_categories(percentile):
+  dict = pickle.load(open('lengths_' + str(percentile) + '.pickle', 'rb'))
+  for cat in C.CATEGORIES:
+    filter_raw_data(cat, dict[cat + '#ReviewLength'], dict[cat + '#QuestionLength'], dict[cat + '#AnswerLength'])
 
 def get_filter_dataframe(category):
     with open('%s/full-%s.pickle' % (C.INPUT_DATA_PATH, category), 'rb') as f:
