@@ -17,8 +17,8 @@ Sources - [Pytorch Word Level Language Model Example](https://github.com/pytorch
 * In the first cell, change percentile to desired (Integer between [1, 100])
 * Run all the cells
 * In an ipython notebook- 
-** run src/utils/preprocessing.py 
-** run the method filter\_raw\_data\_all\_categories(percentile)
+  * run src/utils/preprocessing.py 
+  * run the method filter\_raw\_data\_all\_categories(percentile)
 * the train-val-test splits would be pickled in data/input
 * 95%ile is uploaded on the [drive] (https://drive.google.com/open?id=1e7JvTLbQObfV_MrdbgGdnxeuH0cMN_xP)
 
