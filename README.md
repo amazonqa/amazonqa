@@ -27,6 +27,7 @@ Sources - [Pytorch Word Level Language Model Example](https://github.com/pytorch
 ## Community/Opinion QA
 * [Addressing Complex and Subjective Product-Related Queries with Customer Reviews](https://dl.acm.org/citation.cfm?id=2883044)
 * [Modeling Ambiguity, Subjectivity, and Diverging Viewpoints in Opinion Question Answering Systems](https://arxiv.org/abs/1610.08095)
+    * [Slide deck](https://cseweb.ucsd.edu/~m5wan/paper/icdm16_mwan_slides.pdf)
 * [Answering opinion questions on products by exploiting hierarchical organization of consumer reviews](https://dl.acm.org/citation.cfm?id=2390996)
 * [A survey of Community Question Answering](https://arxiv.org/abs/1705.04009)
 * [Answer Selection in Community Question Answering by Normalizing Support Answers](https://link.springer.com/chapter/10.1007/978-3-319-73618-1_57)
@@ -40,3 +41,4 @@ Sources - [Pytorch Word Level Language Model Example](https://github.com/pytorch
 * [S-Net: From Answer Extraction to Answer Generation for Machine Reading Comprehension](https://arxiv.org/abs/1706.04815)
 * [Dynamic Coattention Networks For Question Answering](https://arxiv.org/abs/1611.01604)
 * [Machine Comprehension Using Match-LSTM and Answer Pointer](https://arxiv.org/abs/1608.07905)
+* [Query Focused Abstractive Summarization](https://arxiv.org/abs/1801.07704)
