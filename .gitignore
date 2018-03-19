@@ -7,3 +7,4 @@ src/naive_baseline/log*
 __init__.pyc
 *pyc
 *.pickle
+*.log
