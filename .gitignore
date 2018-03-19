@@ -3,5 +3,5 @@ data/*
 src/naive_baseline/log*
 *.py.sw*
 *.json.gz
-*__init__*
+__init__.pyc
 *pyc
