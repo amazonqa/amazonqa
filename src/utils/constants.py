@@ -36,6 +36,9 @@ CATEGORIES = [
   VIDEO_GAMES,
 ]
 
+SOS = 'SOS'
+EOS = 'EOS'
+
 QA = 'QA'
 REVIEWS = 'Reviews'
 
@@ -44,6 +47,7 @@ ASIN = 'asin'
 REVIEW_TEXT = 'reviewText'
 REVIEW_TIME = 'reviewTime'
 REVIEWS_LIST = 'reviewsList'
+REVIEW_IDS_LIST = 'reviewIdsList'
 
 QUESTION_TEXT = 'questionText'
 QUESTION_TIME = 'questionTime'
@@ -51,16 +55,19 @@ QUESTION_TYPE = 'questionType'
 
 QUESTIONS = 'questions'
 QUESTIONS_LIST = 'questionsList'
+QUESTION_IDS_LIST = 'questionIdsList'
 
 ANSWER_TEXT = 'answerText'
 ANSWER_TIME = 'answerTime'
 ANSWERS = 'answers'
+ANSWER_IDS_LIST = 'answerIdsList'
 
 HELPFUL = 'helpful'
 UNHELPFUL = 'unhelpful'
 TIME = 'time'
 TEXT = 'text'
 TYPE = 'type'
+IDS = 'ids'
 
 REVIEW_COLUMNS = [
   REVIEW_TEXT,
@@ -68,14 +75,13 @@ REVIEW_COLUMNS = [
   REVIEW_TIME
 ]
 
-QA_DATA_PATH = '../../data/answers_multiple'
-REVIEWS_DATA_PATH = '../../data/reviews_small'
-JSON_DATA_PATH = '../../data/json_data'
-NN_DATA_PATH = '../../data/nn'
+QA_DATA_PATH = '../data/answers_multiple'
+REVIEWS_DATA_PATH = '../data/reviews_small'
+JSON_DATA_PATH = '../data/json_data'
+NN_DATA_PATH = '../data/nn'
 INPUT_DATA_PATH = '../../data/input'
 
-"""
-#90%ile
+
 LENGTH_DICT = [
   {'Category': 'Automotive', 'ReviewLength': 185, 'QuestionLength': 27, 'AnswerLength': 66},
   {'Category': 'Baby', 'ReviewLength': 219, 'QuestionLength': 28, 'AnswerLength': 64},
@@ -95,4 +101,3 @@ LENGTH_DICT = [
   {'Category': 'Toys_and_Games', 'ReviewLength': 213, 'QuestionLength': 26, 'AnswerLength': 55},
   {'Category': 'Video_Games', 'ReviewLength': 462, 'QuestionLength': 26, 'AnswerLength': 56}
 ]
-"""
