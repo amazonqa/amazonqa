@@ -79,7 +79,7 @@ QA_DATA_PATH = '../data/answers_multiple'
 REVIEWS_DATA_PATH = '../data/reviews_small'
 JSON_DATA_PATH = '../data/json_data'
 NN_DATA_PATH = '../data/nn'
-INPUT_DATA_PATH = '../../data/input'
+INPUT_DATA_PATH = '../../data/90_input'
 
 
 LENGTH_DICT = [
