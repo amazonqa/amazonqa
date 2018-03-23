@@ -11,13 +11,13 @@ from dataloader import AmazonDataLoader
 
 
 category = "Video_Games"
-mode = "1"
+mode = "3"
 
-dataset = AmazonDataset(category, mode)
+test_dataset = AmazonDataset(category, mode, 'test')
 
 batch_size = 2
-train_loader = AmazonDataLoader(dataset.train[0:4], mode, batch_size)
+test_loader = AmazonDataLoader(test_dataset, mode, batch_size)
 
-for batch_idx, data in enumerate(train_loader):
+for batch_idx, data in enumerate(test_loader):
     print(batch_idx, data)
 
