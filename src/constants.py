@@ -1,3 +1,12 @@
+import torch
+
+# Global constants
+USE_CUDA = torch.cuda.is_available()
+
+# Types of RNN Cells
+RNN_CELL_LSTM = 'lstm'
+RNN_CELL_GRU = 'gru'
+
 # Types of languages models
 LM_ANSWERS = 'LM_A'
 LM_QUESTION_ANSWERS = 'LM_QA'
