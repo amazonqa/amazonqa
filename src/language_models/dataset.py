@@ -97,30 +97,31 @@ class AmazonDataset(object):
 
         final_data = []
         for index, row in data.iterrows():
+            tuples = []
             questionIdsList = row[C.QUESTION_IDS_LIST]
+
             for question in questionIdsList:
-                tup = ()
+                questionIds = question[C.IDS]
 
                 for answer in question[C.ANSWER_IDS_LIST]:
-                    if self.mode is not "1":
-                        ids = question[C.IDS]
-                        tup += (ids,)
+                    answerIds = answer[C.IDS]
 
-                    ids = answer[C.IDS]
                     if self.mode is "1":
-                        final_data.append(ids)
+                        tuples.append((answerIds,))
                     else:
-                        final_data.append(tup + (ids,))
+                        tuples.append((answerIds, questionIds))
 
             if self.mode is "3":
                 reviewsList = row[C.REVIEW_IDS_LIST]
                 reviewIds = []
 
-                for review in reviewsList[0:2]:
+                for review in reviewsList[0:10]:
                     ids = review[C.IDS]
                     reviewIds.append(ids)
 
-                for i in range(len(final_data)):
-                    final_data[i] += (reviewIds)
+                for i in range(len(tuples)):
+                    tuples[i] = tuples[i] + (reviewIds,)
+
+            final_data.extend(tuples)
 
         return final_data

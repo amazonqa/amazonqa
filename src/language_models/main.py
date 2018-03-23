@@ -11,7 +11,7 @@ from dataloader import AmazonDataLoader
 
 
 category = "Video_Games"
-mode = "1"
+mode = "3"
 
 dataset = AmazonDataset(category, mode)
 
