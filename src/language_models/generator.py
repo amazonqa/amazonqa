@@ -1,7 +1,7 @@
 ###############################################################################
-# Language Modeling on Penn Tree Bank
+# Language Modeling on Amazon Review Dataset
 #
-# This file generates new sentences sampled from the language model
+# This file generates new answers sampled from the language model
 #
 ###############################################################################
 
@@ -12,7 +12,7 @@ from torch.autograd import Variable
 
 import data
 
-parser = argparse.ArgumentParser(description='PyTorch Wikitext-2 Language Model')
+parser = argparse.ArgumentParser(description='PyTorch ExplicableQA Language Model')
 
 # Model parameters.
 parser.add_argument('--data', type=str, default='Video_Games',
