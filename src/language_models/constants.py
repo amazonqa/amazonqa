@@ -47,7 +47,6 @@ ASIN = 'asin'
 REVIEW_TEXT = 'reviewText'
 REVIEW_TIME = 'reviewTime'
 REVIEWS_LIST = 'reviewsList'
-REVIEW_IDS_LIST = 'reviewIdsList'
 
 QUESTION_TEXT = 'questionText'
 QUESTION_TIME = 'questionTime'
@@ -55,19 +54,16 @@ QUESTION_TYPE = 'questionType'
 
 QUESTIONS = 'questions'
 QUESTIONS_LIST = 'questionsList'
-QUESTION_IDS_LIST = 'questionIdsList'
 
 ANSWER_TEXT = 'answerText'
 ANSWER_TIME = 'answerTime'
 ANSWERS = 'answers'
-ANSWER_IDS_LIST = 'answerIdsList'
 
 HELPFUL = 'helpful'
 UNHELPFUL = 'unhelpful'
 TIME = 'time'
 TEXT = 'text'
 TYPE = 'type'
-IDS = 'ids'
 
 REVIEW_COLUMNS = [
   REVIEW_TEXT,

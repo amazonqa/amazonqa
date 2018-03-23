@@ -12,12 +12,12 @@ class AmazonDataLoader(object):
 
     def sortByLength(self, item):
         if self.mode is "1":
-            answer = self.dataset.answers[item]
+            answer = self.dataset.answerIds[item]
             return len(answer)
 
         elif self.mode is "2":
             assert(len(item) == 2)
-            answer = self.dataset.answers[item[0]]
+            answer = self.dataset.answerIds[item[0]]
             return len(answer)
 
         elif self.mode is "3":
@@ -25,7 +25,7 @@ class AmazonDataLoader(object):
             reviewIds = item[2]
             max_len = 0
             for reviewId in reviewIds:
-                review = self.dataset.reviews[reviewId]
+                review = self.dataset.reviewIds[reviewId]
                 max_len = max(max_len, len(review))
             return max_len
 
@@ -41,8 +41,7 @@ class AmazonDataLoader(object):
     def pad_answers(self, answerIds):
         batch_data = []
         for answerId in answerIds:
-            tokens = self.dataset.tokenize(self.dataset.answers[answerId])
-            ids = self.dataset.vocab.indices_from_sequence(tokens)
+            ids = self.dataset.answerIds[answerId]
             batch_data.append(ids)
 
         lengths = np.array([len(item) for item in batch_data])
@@ -58,8 +57,7 @@ class AmazonDataLoader(object):
     def pad_questions(self, questionIds):
         batch_data = []
         for questionId in questionIds:
-            tokens = self.dataset.tokenize(self.dataset.questions[questionId])
-            ids = self.dataset.vocab.indices_from_sequence(tokens)
+            ids = self.dataset.questionIds[questionId]
             batch_data.append(ids)
 
         lengths = np.array([len(item) for item in batch_data])
@@ -76,8 +74,7 @@ class AmazonDataLoader(object):
         for reviewIds in reviewIdsList:
             reviews = []
             for reviewId in reviewIds:
-                tokens = self.dataset.tokenize(self.dataset.reviews[reviewId])
-                ids = self.dataset.vocab.indices_from_sequence(tokens)
+                ids = self.dataset.reviewIds[reviewId]
                 reviews.append(ids)
             review_data.append(reviews)
 
