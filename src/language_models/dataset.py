@@ -1,14 +1,14 @@
 import os
 import torch
-import constants as C
+import src.constants as C
 import pandas as pd
 from vocabulary import Vocabulary
 import string
 
 class AmazonDataset(object):
 
-    def __init__(self, category, mode, data_type):
-        self.mode = mode
+    def __init__(self, category, model, data_type):
+        self.model = model
         self.vocab = Vocabulary(10000)
 
         self.topReviewsCount = 10
@@ -64,8 +64,8 @@ class AmazonDataset(object):
                         self.answers.append(text)
                         answerId += 1
 
-                        if self.mode is "1":
-                            tuples.append((answerId)) #check why zip(*a) doesnt work
+                        if self.model == C.LM_ANSWERS:
+                            tuples.append((answerId,)) #check why zip(*a) doesnt work
                         else:
                             tuples.append((answerId, questionId))
 
@@ -77,11 +77,11 @@ class AmazonDataset(object):
                 self.reviews.append(text)
                 reviewId += 1
 
-                if self.mode is "3":
+                if self.model == C.LM_QUESTION_ANSWERS_REVIEWS:
                     if len(reviewIds) < self.topReviewsCount:
                         reviewIds.append(reviewId)
 
-            if self.mode is "3":
+            if self.model == C.LM_QUESTION_ANSWERS_REVIEWS:
                 for i in range(len(tuples)):
                     tuples[i] = tuples[i] + (reviewIds,)
 

@@ -7,20 +7,27 @@ import numpy as np
 from operator import itemgetter, attrgetter
 from torch.utils.data import Dataset, DataLoader
 
+import src.constants as C
 
 class AmazonDataLoader(object):
 
+    def __init__(self, dataset, model, batch_size):
+        self.dataset = dataset
+        self.batch_size = batch_size
+        self.model = model
+        self.dataset.data = sorted(self.dataset.data, key=self.sortByLength, reverse=True)
+
     def sortByLength(self, item):
-        if self.mode is "1":
+        if self.model == C.LM_ANSWERS:
             answer = self.dataset.answers[item]
             return len(answer)
 
-        elif self.mode is "2":
+        elif self.model == C.LM_QUESTION_ANSWERS:
             assert(len(item) == 2)
             answer = self.dataset.answers[item[0]]
             return len(answer)
 
-        elif self.mode is "3":
+        elif self.model == C.LM_QUESTION_ANSWERS_REVIEWS:
             assert(len(item) == 3)
             reviewIds = item[2]
             max_len = 0
@@ -28,15 +35,8 @@ class AmazonDataLoader(object):
                 review = self.dataset.reviews[reviewId]
                 max_len = max(max_len, len(review))
             return max_len
-
-
-    def __init__(self, dataset, mode, batch_size):
-        self.dataset = dataset
-        self.batch_size = batch_size
-        self.mode = mode
-
-        self.dataset.data = sorted(self.dataset.data, key=self.sortByLength, reverse=True)
-
+        else:
+            raise 'Unknown Model %s' % self.model
 
     def pad_answers(self, answerIds):
         batch_data = []

@@ -9,11 +9,11 @@ import nltk
 from nltk.corpus import stopwords
 import random
 import string
-import constants as C
 import string
 from tqdm import tqdm
 import preprocess as P
 
+import src.constants as C
 
 def filepath(category, key):
     if key == C.QA:
