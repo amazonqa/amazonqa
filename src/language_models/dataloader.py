@@ -12,12 +12,12 @@ class AmazonDataLoader(object):
 
     def sortByLength(self, item):
         if self.mode is "1":
-            answer = self.dataset.answerIds[item]
+            answer = self.answersDict[item]
             return len(answer)
 
         elif self.mode is "2":
             assert(len(item) == 2)
-            answer = self.dataset.answerIds[item[0]]
+            answer = self.answersDict[item[0]]
             return len(answer)
 
         elif self.mode is "3":
@@ -25,23 +25,24 @@ class AmazonDataLoader(object):
             reviewIds = item[2]
             max_len = 0
             for reviewId in reviewIds:
-                review = self.dataset.reviewIds[reviewId]
+                review = self.reviewsDict[reviewId]
                 max_len = max(max_len, len(review))
             return max_len
 
 
-    def __init__(self, dataset, mode, batch_size):
-        self.dataset = dataset
+    def __init__(self, data, mode, batch_size):
+        self.answersDict, self.questionsDict, self.reviewsDict, self.data = data
+
         self.batch_size = batch_size
         self.mode = mode
 
-        self.dataset.data = sorted(self.dataset.data, key=self.sortByLength, reverse=True)
+        self.data = sorted(self.data, key=self.sortByLength, reverse=True)
 
 
     def pad_answers(self, answerIds):
         batch_data = []
         for answerId in answerIds:
-            ids = self.dataset.answerIds[answerId]
+            ids = self.answersDict[answerId]
             batch_data.append(ids)
 
         lengths = np.array([len(item) for item in batch_data])
@@ -57,7 +58,7 @@ class AmazonDataLoader(object):
     def pad_questions(self, questionIds):
         batch_data = []
         for questionId in questionIds:
-            ids = self.dataset.questionIds[questionId]
+            ids = self.questionsDict[questionId]
             batch_data.append(ids)
 
         lengths = np.array([len(item) for item in batch_data])
@@ -74,7 +75,7 @@ class AmazonDataLoader(object):
         for reviewIds in reviewIdsList:
             reviews = []
             for reviewId in reviewIds:
-                ids = self.dataset.reviewIds[reviewId]
+                ids = self.reviewsDict[reviewId]
                 reviews.append(ids)
             review_data.append(reviews)
 
@@ -109,7 +110,7 @@ class AmazonDataLoader(object):
 
 
     def __iter__(self):
-        self.num_batches = len(self.dataset.data) // self.batch_size
+        self.num_batches = len(self.data) // self.batch_size
         indices = np.arange(self.num_batches)
         np.random.shuffle(indices)
 
@@ -117,7 +118,7 @@ class AmazonDataLoader(object):
             start = index * self.batch_size
             end = (index + 1) * self.batch_size
 
-            batch_data = self.dataset.data[start:end]
+            batch_data = self.data[start:end]
             assert(self.batch_size == len(batch_data))
 
             if self.mode is "1":
