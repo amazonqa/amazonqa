@@ -1,6 +1,8 @@
 """Decoder for LM
 """
 
+import numpy as np
+import torch
 import torch.nn as nn
 
 from src.language_models.base_rnn import BaseRNN
@@ -18,9 +20,9 @@ class Decoder(BaseRNN):
         self.out = nn.Linear(h_size, vocab_size)
         self.log_softmax = nn.LogSoftmax(dim=1)
 
+        self.output_seq_lengths = None
         self.decoder_outputs = None
         self.output_seq = None
-        self.output_seq_lengths = np.ones(batch_size) * max_len
 
     def softmax_from_input(self, input, hidden):
         batch_size, output_size = input.size()
@@ -56,8 +58,13 @@ class Decoder(BaseRNN):
         return symbols
 
     def forward(self, input_seqs, hidden_intial, teacher_forcing):
+        batch_size = input_seqs.size(0)
         hidden = hidden_intial
-        
+
+        self.output_seq_lengths = np.ones(batch_size) * self.max_len
+        self.decoder_outputs = []
+        self.output_seq = []
+
         if teacher_forcing:
             # input is a sequence, excluding the last token
             # i.e input <=> batch_size * (seq_len - 1) * h_size
@@ -71,7 +78,7 @@ class Decoder(BaseRNN):
             input = input_seqs[:, 0].unsqueeze(1)
             for idx in range(self.max_len):
                 output, hidden = self.softmax_from_input(input, hidden)
-                symbol = self.symbol_from_softmax(idx, output.squeeze(1))
-                decoder_input = symbol
+                input = self.symbol_from_softmax(idx, output.squeeze(1))
 
+        self.output_seq = torch.cat(self.output_seq, 1)
         return self.output_seq, self.output_seq_lengths
