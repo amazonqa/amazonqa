@@ -12,6 +12,17 @@ LM_ANSWERS = 'LM_A'
 LM_QUESTION_ANSWERS = 'LM_QA'
 LM_QUESTION_ANSWERS_REVIEWS = 'LM_QAR'
 
+# Special tokens
+PAD_TOKEN = '<PAD>'
+EOS_TOKEN = '<EOS>'
+SOS_TOKEN = '<SOS>'
+UNK_TOKEN = '<UNK>'
+
+PAD_INDEX = 0
+EOS_INDEX = 1
+SOS_INDEX = 2
+UNK_INDEX = 3
+
 # Paths
 QA_DATA_PATH = 'data/answers_multiple'
 REVIEWS_DATA_PATH = 'data/reviews_small'
