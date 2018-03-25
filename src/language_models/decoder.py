@@ -1,0 +1,77 @@
+"""Decoder for LM
+"""
+
+import torch.nn as nn
+
+from src.language_models.base_rnn import BaseRNN
+import src.constants as C
+
+class Decoder(BaseRNN):
+    """Decoder for answers
+    """
+
+    def __init__(self, vocab_size, h_size, max_len, rnn_cell=C.RNN_CELL_LSTM, n_layers=1):
+        super(Decoder, self).__init__(vocab_size, h_size, max_len, rnn_cell, n_layers)
+
+        self.embedding = nn.Embedding(vocab_size, h_size)
+        self.rnn = self.rnn_cell(h_size, h_size, n_layers, batch_first=True)
+        self.out = nn.Linear(h_size, vocab_size)
+        self.log_softmax = nn.LogSoftmax(dim=1)
+
+        self.decoder_outputs = None
+        self.output_seq = None
+        self.output_seq_lengths = np.ones(batch_size) * max_len
+
+    def softmax_from_input(self, input, hidden):
+        batch_size, output_size = input.size()
+        embedded = self.embedding(input)
+
+        # RNN output: batch_size * seq_size * h_size
+        output, hidden = self.rnn(embedded, hidden)
+
+        # Softmax: batch_size * seq_size * vocab_size
+        # Is contiguous necessary?
+        softmax = self.log_softmax(
+            self.out(output.contiguous().view(-1, self.h_size))
+        ).view(batch_size, output_size, -1)
+        return softmax, hidden
+
+    def symbol_from_softmax(self, idx, softmax_idx):
+        """Returns the decoded symbol from softmax
+        Idx is the index in the sequence
+        softmax_idx is the softmax for idx of shape: batch_size x vocab_size
+        output is symbols of shape: batch_size x 1
+        """
+        symbols = softmax_idx.topk(1)[1]
+
+        # Update decoded symbols to 
+        self.decoder_outputs.append(softmax_idx)
+        self.output_seq.append(symbols)
+
+        # If the current index is less than the output seq length AND current symbol is EOS, 
+        # then update the output seq len to current index
+        is_eos = (idx < self.output_seq_lengths) & (symbols.data.cpu().squeeze().numpy() == C.EOS_INDEX)
+        self.output_seq_lengths[is_eos] = len(self.output_seq)
+
+        return symbols
+
+    def forward(self, input_seqs, hidden_intial, teacher_forcing):
+        hidden = hidden_intial
+        
+        if teacher_forcing:
+            # input is a sequence, excluding the last token
+            # i.e input <=> batch_size * (seq_len - 1) * h_size
+            # output & hidden are of the same shape
+            input = input_seqs[:, :-1]
+            output, hidden = self.softmax_from_input(input_seqs[:, :-1], hidden)
+
+            for idx in range(output.size(1)):
+                self.symbol_from_softmax(idx, output[:, idx, :])
+        else:
+            input = input_seqs[:, 0].unsqueeze(1)
+            for idx in range(self.max_len):
+                output, hidden = self.softmax_from_input(input, hidden)
+                symbol = self.symbol_from_softmax(idx, output.squeeze(1))
+                decoder_input = symbol
+
+        return self.output_seq, self.output_seq_lengths
