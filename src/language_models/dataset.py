@@ -7,18 +7,47 @@ import string
 
 class AmazonDataset(object):
 
-    def __init__(self, category, model, data_type):
+    def __init__(self, category, model):
         self.model = model
-        self.vocab = Vocabulary(10000)
 
-        self.topReviewsCount = 10
+        self.topReviewsCount = 5
 
-        self.reviews = []
-        self.questions = []
-        self.answers = []
+        train_path = '%s/train-%s.pickle' % (C.INPUT_DATA_PATH, category)
+        self.vocab = self.create_vocab(train_path)
+        self.train = self.get_data(train_path)
 
-        path = '%s/%s-%s.pickle' % (C.INPUT_DATA_PATH, data_type, category)
-        self.data = self.get_data(path)
+        val_path = '%s/val-%s.pickle' % (C.INPUT_DATA_PATH, category)
+        self.val = self.get_data(val_path)
+
+        test_path = '%s/test-%s.pickle' % (C.INPUT_DATA_PATH, category)
+        self.test = self.get_data(test_path)
+
+
+    def create_vocab(self, train_path):
+        vocab = Vocabulary(100000)
+        assert os.path.exists(train_path)
+
+        with open(train_path, 'rb') as f:
+            dataFrame = pd.read_pickle(f)
+            f.close()
+
+        for index, row in dataFrame.iterrows():
+            tuples = []
+            questionsList = row[C.QUESTIONS_LIST]
+            for question in questionsList:
+                if C.TEXT in question:
+                    text = question[C.TEXT]
+                    vocab.add_sequence(self.tokenize(text))
+
+                    for answer in question[C.ANSWERS]:
+                        text = answer[C.TEXT]
+                        vocab.add_sequence(self.tokenize(text))
+
+            reviewsList = row[C.REVIEWS_LIST]
+            for review in reviewsList:
+                text = review[C.TEXT]
+                vocab.add_sequence(self.tokenize(text))
+        return vocab
 
 
     def tokenize(self, text):
@@ -37,31 +66,35 @@ class AmazonDataset(object):
 
 
     def get_data(self, path):
-        assert os.path.exists(path)
-
-        with open(path, 'rb') as f:
-            data = pd.read_pickle(f)
+        answersDict = []
+        questionsDict = []
+        reviewsDict = []
 
         questionId = -1
         reviewId = -1
         answerId = -1
+        data = []
 
-        final_data = []
+        assert os.path.exists(path)
 
-        for index, row in data.iterrows():
+        with open(path, 'rb') as f:
+            dataFrame = pd.read_pickle(f)
+            f.close()
+
+        for index, row in dataFrame.iterrows():
             tuples = []
-            questionsList = row['questionsList']
+            questionsList = row[C.QUESTIONS_LIST]
             for question in questionsList:
-                if 'text' in question:
-                    text = question['text']
-                    self.vocab.add_sequence(self.tokenize(text))
-                    self.questions.append(text)
+                if C.TEXT in question:
+                    text = question[C.TEXT]
+                    ids = self.vocab.indices_from_sequence(self.tokenize(text))
+                    questionsDict.append(ids)
                     questionId += 1
 
-                    for answer in question['answers']:
-                        text = answer['text']
-                        self.vocab.add_sequence(self.tokenize(text))
-                        self.answers.append(text)
+                    for answer in question[C.ANSWERS]:
+                        text = answer[C.TEXT]
+                        ids = self.vocab.indices_from_sequence(self.tokenize(text))
+                        answersDict.append(ids)
                         answerId += 1
 
                         if self.model == C.LM_ANSWERS:
@@ -69,26 +102,26 @@ class AmazonDataset(object):
                         else:
                             tuples.append((answerId, questionId))
 
-            reviewsList = row['reviewsList']
-            reviewIds = []
+            reviewsList = row[C.REVIEWS_LIST]
+            reviewsDictList = []
             for review in reviewsList:
-                text = review['text']
-                self.vocab.add_sequence(self.tokenize(text))
-                self.reviews.append(text)
+                text = review[C.TEXT]
+                ids = self.vocab.indices_from_sequence(self.tokenize(text))
+                reviewsDict.append(ids)
                 reviewId += 1
 
                 if self.model == C.LM_QUESTION_ANSWERS_REVIEWS:
-                    if len(reviewIds) < self.topReviewsCount:
-                        reviewIds.append(reviewId)
+                    if len(reviewsDictList) < self.topReviewsCount:
+                        reviewsDictList.append(reviewId)
 
             if self.model == C.LM_QUESTION_ANSWERS_REVIEWS:
                 for i in range(len(tuples)):
-                    tuples[i] = tuples[i] + (reviewIds,)
+                    tuples[i] = tuples[i] + (reviewsDictList,)
 
-            final_data.extend(tuples)
+            data.extend(tuples)
 
-        assert(len(self.answers) == answerId+1)
-        assert(len(self.questions) == questionId+1)
-        assert(len(self.reviews) == reviewId+1)
+        assert(len(answersDict) == answerId+1)
+        assert(len(questionsDict) == questionId+1)
+        assert(len(reviewsDict) == reviewId+1)
 
-        return final_data
+        return (answersDict, questionsDict, reviewsDict, data)

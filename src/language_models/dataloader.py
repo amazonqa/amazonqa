@@ -11,20 +11,22 @@ import src.constants as C
 
 class AmazonDataLoader(object):
 
-    def __init__(self, dataset, model, batch_size):
-        self.dataset = dataset
+    def __init__(self, data, mode, batch_size):
+        self.answersDict, self.questionsDict, self.reviewsDict, self.data = data
+
         self.batch_size = batch_size
-        self.model = model
-        self.dataset.data = sorted(self.dataset.data, key=self.sortByLength, reverse=True)
+        self.mode = mode
+
+        self.data = sorted(self.data, key=self.sortByLength, reverse=True)
 
     def sortByLength(self, item):
         if self.model == C.LM_ANSWERS:
-            answer = self.dataset.answers[item]
+            answer = self.answersDict[item]
             return len(answer)
 
         elif self.model == C.LM_QUESTION_ANSWERS:
             assert(len(item) == 2)
-            answer = self.dataset.answers[item[0]]
+            answer = self.answersDict[item[0]]
             return len(answer)
 
         elif self.model == C.LM_QUESTION_ANSWERS_REVIEWS:
@@ -32,17 +34,17 @@ class AmazonDataLoader(object):
             reviewIds = item[2]
             max_len = 0
             for reviewId in reviewIds:
-                review = self.dataset.reviews[reviewId]
+                review = self.reviewsDict[reviewId]
                 max_len = max(max_len, len(review))
             return max_len
         else:
             raise 'Unknown Model %s' % self.model
 
+
     def pad_answers(self, answerIds):
         batch_data = []
         for answerId in answerIds:
-            tokens = self.dataset.tokenize(self.dataset.answers[answerId])
-            ids = self.dataset.vocab.indices_from_sequence(tokens)
+            ids = self.answersDict[answerId]
             batch_data.append(ids)
 
         lengths = np.array([len(item) for item in batch_data])
@@ -58,8 +60,7 @@ class AmazonDataLoader(object):
     def pad_questions(self, questionIds):
         batch_data = []
         for questionId in questionIds:
-            tokens = self.dataset.tokenize(self.dataset.questions[questionId])
-            ids = self.dataset.vocab.indices_from_sequence(tokens)
+            ids = self.questionsDict[questionId]
             batch_data.append(ids)
 
         lengths = np.array([len(item) for item in batch_data])
@@ -76,8 +77,7 @@ class AmazonDataLoader(object):
         for reviewIds in reviewIdsList:
             reviews = []
             for reviewId in reviewIds:
-                tokens = self.dataset.tokenize(self.dataset.reviews[reviewId])
-                ids = self.dataset.vocab.indices_from_sequence(tokens)
+                ids = self.reviewsDict[reviewId]
                 reviews.append(ids)
             review_data.append(reviews)
 
@@ -112,7 +112,7 @@ class AmazonDataLoader(object):
 
 
     def __iter__(self):
-        self.num_batches = len(self.dataset.data) // self.batch_size
+        self.num_batches = len(self.data) // self.batch_size
         indices = np.arange(self.num_batches)
         np.random.shuffle(indices)
 
@@ -120,7 +120,7 @@ class AmazonDataLoader(object):
             start = index * self.batch_size
             end = (index + 1) * self.batch_size
 
-            batch_data = self.dataset.data[start:end]
+            batch_data = self.data[start:end]
             assert(self.batch_size == len(batch_data))
 
             if self.mode is "1":
