@@ -123,7 +123,6 @@ DECAY_START_EPOCH = 'decay_start_epoch'
 LR_DECAY = 'lr_decay'
 GLOBAL_NORM_MAX = 'global_norm_max'
 VOCAB_SIZE = 'vocab_size'
-TRAIN_LINES = 'train_lines'
 
 TEACHER_FORCING_RATIO = 'teacher_forcing_ratio'
 OUTPUT_MAX_LEN = 'output_max_len'
