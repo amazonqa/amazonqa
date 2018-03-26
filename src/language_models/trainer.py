@@ -178,7 +178,10 @@ def _set_random_seeds(seed):
 
 def _batch_loss(criterion, outputs, target_lengths, targets):
     loss = 0
-    for idx, output in enumerate(outputs):
+    print(target_lengths, targets)
+    print(targets.data.max())
+    for idx in range(targets.size(1)):
+        output = outputs[idx]
         loss += criterion(output, targets[:, idx])
     return loss / len(outputs)
 

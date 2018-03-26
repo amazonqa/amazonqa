@@ -16,14 +16,12 @@ def main():
     print(model, mode, category)
     params = utils.get_model_params(model)
 
-    dataset = AmazonDataset(category, model)
+    dataset = AmazonDataset(category, model, params[C.VOCAB_SIZE])
 
     if mode == C.TRAIN_TYPE:
         train_loader = AmazonDataLoader(dataset.train, model, params[C.BATCH_SIZE])
         dev_loader = AmazonDataLoader(dataset.val, model, params[C.BATCH_SIZE])
 
-        train_loader = AmazonDataLoader(dataset.train, model, params[C.BATCH_SIZE])
-        dev_loader = AmazonDataLoader(dataset.val, model, params[C.BATCH_SIZE])
         trainer = Trainer(
             train_loader,
             params,
