@@ -25,7 +25,7 @@ class AmazonDataset(object):
 
 
     def create_vocab(self, train_path):
-        vocab = Vocabulary(1000000) #change it to params
+        vocab = Vocabulary(C.MAX_VOCAB_SIZE) #change it to params
         assert os.path.exists(train_path)
 
         with open(train_path, 'rb') as f:
@@ -87,14 +87,14 @@ class AmazonDataset(object):
             questionsList = row[C.QUESTIONS_LIST]
             for question in questionsList:
                 if C.TEXT in question:
-                    text = self.vocab.SOS_token_name + question[C.TEXT] + self.vocab.EOS_token_name
-                    ids = self.vocab.indices_from_sequence(self.tokenize(text))
+                    text = C.SOS_TOKEN + question[C.TEXT] + C.EOS_TOKEN
+                    ids = self.vocab.indices_from_token_list(self.tokenize(text))
                     questionsDict.append(ids)
                     questionId += 1
 
                     for answer in question[C.ANSWERS]:
-                        text = self.vocab.SOS_token_name + answer[C.TEXT] + self.vocab.EOS_token_name
-                        ids = self.vocab.indices_from_sequence(self.tokenize(text))
+                        text = C.SOS_TOKEN + answer[C.TEXT] + C.EOS_TOKEN
+                        ids = self.vocab.indices_from_token_list(self.tokenize(text))
                         answersDict.append(ids)
                         answerId += 1
 
@@ -106,8 +106,8 @@ class AmazonDataset(object):
             reviewsList = row[C.REVIEWS_LIST]
             reviewsDictList = []
             for review in reviewsList:
-                text = self.vocab.SOS_token_name + review[C.TEXT] + self.vocab.EOS_token_name
-                ids = self.vocab.indices_from_sequence(self.tokenize(text))
+                text = C.SOS_TOKEN + review[C.TEXT] + C.EOS_TOKEN
+                ids = self.vocab.indices_from_token_list(self.tokenize(text))
                 reviewsDict.append(ids)
                 reviewId += 1
 

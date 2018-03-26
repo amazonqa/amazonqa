@@ -22,8 +22,6 @@ def main():
         train_loader = AmazonDataLoader(dataset.train, model, params[C.BATCH_SIZE])
         dev_loader = AmazonDataLoader(dataset.val, model, params[C.BATCH_SIZE])
 
-        train_loader = AmazonDataLoader(dataset.train, model, params[C.BATCH_SIZE])
-        dev_loader = AmazonDataLoader(dataset.val, model, params[C.BATCH_SIZE])
         trainer = Trainer(
             train_loader,
             params,
