@@ -38,7 +38,7 @@ class LM(nn.Module):
         answer_seqs,
         teacher_forcing
     ):
-        if self.model = C.LM_ANSWERS:
+        if self.model == C.LM_ANSWERS:
             d_hidden = None
         elif self.model == C.LM_QUESTION_ANSWERS:
             _, d_hidden = self.encoder(answer_seqs)

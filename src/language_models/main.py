@@ -5,7 +5,8 @@ import argparse
 
 from language_models import utils
 from language_models.trainer import Trainer
-from language_models.data_utils import DataLoader
+from language_models.dataloader import AmazonDataLoader
+from language_models.dataset import AmazonDataset
 import constants as C
 
 RANDOM_SEED = 1
@@ -14,14 +15,16 @@ def main():
     model, mode = _params()
     params = utils.get_model_params(model)
 
+    dataset = AmazonDataset(category, model)
+
     if MODE == C.TRAIN_TYPE:
-        train_loader = DataLoader(
+        train_loader = AmazonDataLoader(
             data_type,
             model_type,
             params,
             random_seed=RANDOM_SEED
         )
-        dev_loader = DataLoader(
+        dev_loader = AmazonDataLoader(
             data_type,
             model_type,
             params,
@@ -33,13 +36,17 @@ def main():
             train_loader,
             params,
             dev_loader=dev_loader,
-            random_seed=1,
             random_seed=RANDOM_SEED,
             vocab=vocab
         )
         loss = trainer.train()
     else:
         pass
+
+	train_loader = AmazonDataLoader(dataset.train, model, batch_size)
+	val_loader = AmazonDataLoader(dataset.val, model, batch_size)
+	test_loader = AmazonDataLoader(dataset.test, model, batch_size)
+
 
 def _params():
     parser = argparse.ArgumentParser()
