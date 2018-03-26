@@ -52,9 +52,7 @@ class Trainer:
 
         self.model_name = params[C.MODEL_NAME]
         self.optimizer = None
-        self.params = None
 
-        self.vocabs = None
 
     def train_batch(self, 
             quesion_seqs,
@@ -64,10 +62,9 @@ class Trainer:
         ):
         self.optimizer.zero_grad()
 
-        answer_seqs = _var(answer_seqs)
+        answer_seqs, target_seqs = _var(answer_seqs), _var(answer_seqs)
         quesion_seqs = None if self.model_name == C.LM_ANSWERS else _var(quesion_seqs)
         review_seqs = map(_var, review_seqs) if self.model_name == C.LM_QUESTION_ANSWERS_REVIEWS else None
-        target_seqs = _var(answer_seqs)
 
         # run forward pass
         teacher_forcing = np.random.random() < self.params[C.TEACHER_FORCING_RATIO]
@@ -75,6 +72,7 @@ class Trainer:
             quesion_seqs,
             review_seqs,
             answer_seqs,
+            target_seqs,
             teacher_forcing
         )
 
@@ -95,8 +93,10 @@ class Trainer:
             for batch_itr, inputs in tqdm(enumerate(self.dataloader)):
                 if self.model_name == C.LM_ANSWERS:
                     answer_seqs, answer_lengths = inputs
+                    quesion_seqs, review_seqs = None, None
                 elif self.model_name == C.LM_QUESTION_ANSWERS:
                     (answer_seqs, answer_lengths), quesion_seqs = inputs
+                    review_seqs = None
                 elif self.model_name == C.LM_QUESTION_ANSWERS:
                     (answer_seqs, answer_lengths), quesion_seqs, review_seqs = inputs
                 else:
@@ -137,6 +137,7 @@ class Trainer:
                 quesion_seqs,
                 review_seqs,
                 answer_seqs,
+                target_seqs,
                 False
             )
 
@@ -196,5 +197,5 @@ def _print_info(epoch, losses, perplexities, corpus):
     print('Epoch = %d, [%s] Perplexity = %.2f', (epoch, corpus, np.mean(np.array(perplexities))))
 
 def _var(variable):
-    dtype = torch.cuda.FloatTensor if USE_CUDA else torch.FloatTensor
+    dtype = torch.cuda.LongTensor if USE_CUDA else torch.LongTensor
     return Variable(torch.LongTensor(variable).type(dtype))

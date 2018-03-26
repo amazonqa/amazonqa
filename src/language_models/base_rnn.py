@@ -12,6 +12,7 @@ class BaseRNN(nn.Module):
         self.rnn_cell = {C.RNN_CELL_LSTM: nn.LSTM, C.RNN_CELL_GRU: nn.GRU}[rnn_cell]
         self.n_layers = n_layers
         self.dropout = nn.Dropout(p=dropout_p)
+        self.dropout_p = dropout_p
 
     def forward(self, *args, **kwargs):
         raise NotImplementedError()
