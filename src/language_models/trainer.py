@@ -50,7 +50,7 @@ class Trainer:
         self.perplexity = []
         self.criterion = nn.NLLLoss()
 
-        self.model = None
+        self.model_name = params[C.MODEL_NAME]
         self.optimizer = None
         self.params = None
 
@@ -65,8 +65,8 @@ class Trainer:
         self.optimizer.zero_grad()
 
         answer_seqs = _var(answer_seqs)
-        quesion_seqs = None if self.model == C.LM_ANSWERS else _var(quesion_seqs)
-        review_seqs = map(_var, review_seqs) if self.model == C.LM_QUESTION_ANSWERS_REVIEWS else None
+        quesion_seqs = None if self.model_name == C.LM_ANSWERS else _var(quesion_seqs)
+        review_seqs = map(_var, review_seqs) if self.model_name == C.LM_QUESTION_ANSWERS_REVIEWS else None
         target_seqs = _var(answer_seqs)
 
         # run forward pass
@@ -93,14 +93,14 @@ class Trainer:
         for epoch in tqdm(range(self.params[C.EPOCHS])):
             print('Epoch: %d', epoch)
             for batch_itr, inputs in tqdm(enumerate(self.dataloader)):
-                if self.model == C.LM_ANSWERS:
+                if self.model_name == C.LM_ANSWERS:
                     answer_seqs, answer_lengths = inputs
-                elif self.model == C.LM_QUESTION_ANSWERS:
+                elif self.model_name == C.LM_QUESTION_ANSWERS:
                     (answer_seqs, answer_lengths), quesion_seqs = inputs
-                elif self.model == C.LM_QUESTION_ANSWERS:
+                elif self.model_name == C.LM_QUESTION_ANSWERS:
                     (answer_seqs, answer_lengths), quesion_seqs, review_seqs = inputs
                 else:
-                    raise 'Unimplemented model: %s' % self.model
+                    raise 'Unimplemented model: %s' % self.model_name
                 loss = self.train_batch(
                     quesion_seqs,
                     review_seqs,
@@ -120,18 +120,18 @@ class Trainer:
     def eval(self):
         dev_losses, dev_perplexities = [], []
         for batch_itr, inputs in tqdm(enumerate(self.dataloader)):
-            if self.model == C.LM_ANSWERS:
+            if self.model_name == C.LM_ANSWERS:
                 answer_seqs, answer_lengths = inputs
-            elif self.model == C.LM_QUESTION_ANSWERS:
+            elif self.model_name == C.LM_QUESTION_ANSWERS:
                 (answer_seqs, answer_lengths), quesion_seqs = inputs
-            elif self.model == C.LM_QUESTION_ANSWERS:
+            elif self.model_name == C.LM_QUESTION_ANSWERS:
                 (answer_seqs, answer_lengths), quesion_seqs, review_seqs = inputs
             else:
-                raise 'Unimplemented model: %s' % self.model
+                raise 'Unimplemented model: %s' % self.model_name
 
             answer_seqs = _var(answer_seqs)
-            quesion_seqs = None if self.model == C.LM_ANSWERS else _var(quesion_seqs)
-            review_seqs = map(_var, review_seqs) if self.model == C.LM_QUESTION_ANSWERS_REVIEWS else None
+            quesion_seqs = None if self.model_name == C.LM_ANSWERS else _var(quesion_seqs)
+            review_seqs = map(_var, review_seqs) if self.model_name == C.LM_QUESTION_ANSWERS_REVIEWS else None
             target_seqs = _var(answer_seqs)
             outputs, _, _ = self.model(
                 quesion_seqs,
