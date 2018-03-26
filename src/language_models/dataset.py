@@ -7,10 +7,11 @@ import string
 
 class AmazonDataset(object):
 
-    def __init__(self, category, model):
+    def __init__(self, category, model, max_vocab_size):
         self.model = model
 
         self.topReviewsCount = 5
+        self.max_vocab_size = max_vocab_size
 
         train_path = '%s/train-%s.pickle' % (C.INPUT_DATA_PATH, category)
         self.vocab = self.create_vocab(train_path)
@@ -25,7 +26,7 @@ class AmazonDataset(object):
 
 
     def create_vocab(self, train_path):
-        vocab = Vocabulary(C.MAX_VOCAB_SIZE) #change it to params
+        vocab = Vocabulary(C.MAX_VOCAB_SIZE)
         assert os.path.exists(train_path)
 
         with open(train_path, 'rb') as f:
