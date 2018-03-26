@@ -11,17 +11,18 @@ import src.constants as C
 
 class AmazonDataLoader(object):
 
-    def __init__(self, data, mode, batch_size):
+    def __init__(self, data, model, batch_size):
         self.answersDict, self.questionsDict, self.reviewsDict, self.data = data
 
         self.batch_size = batch_size
-        self.mode = mode
+        self.model = model
 
         self.data = sorted(self.data, key=self.sortByLength, reverse=True)
 
     def sortByLength(self, item):
         if self.model == C.LM_ANSWERS:
-            answer = self.answersDict[item]
+            assert(len(item) == 1)
+            answer = self.answersDict[item[0]]
             return len(answer)
 
         elif self.model == C.LM_QUESTION_ANSWERS:
@@ -123,19 +124,19 @@ class AmazonDataLoader(object):
             batch_data = self.data[start:end]
             assert(self.batch_size == len(batch_data))
 
-            if self.mode is "1":
-                answerIds = batch_data
-                paded_answers = self.pad_answers(answerIds)
+            if self.model == C.LM_ANSWERS:
+                [answerIds] = zip(*batch_data)
+                paded_answers = self.pad_answers(list(answerIds))
                 yield (paded_answers)
 
-            elif self.mode is "2":
-                answerIds, questionIds = zip(*batch_data)
+            elif self.model == C.LM_QUESTION_ANSWERS:
+                [answerIds, questionIds] = zip(*batch_data)
                 paded_answers = self.pad_answers(list(answerIds))
                 padded_questions = self.pad_questions(list(questionIds))
                 yield (paded_answers, padded_questions)
 
-            elif self.mode is "3":
-                answerIds, questionIds, reviewIds = zip(*batch_data)
+            elif self.model == C.LM_QUESTION_ANSWERS_REVIEWS:
+                [answerIds, questionIds, reviewIds] = zip(*batch_data)
                 paded_answers = self.pad_answers(list(answerIds))
                 padded_questions = self.pad_questions(list(questionIds))
                 padded_reviews = self.pad_reviews(list(reviewIds))

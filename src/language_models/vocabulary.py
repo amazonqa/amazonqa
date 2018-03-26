@@ -1,3 +1,5 @@
+import src.constants as C
+
 class Vocabulary(object):
     """
     A Vocabulary stores a set of words in the corpus mapped to unique integer IDs.
@@ -13,14 +15,15 @@ class Vocabulary(object):
     Args: size(int): maximum number of words allowed in this vocabulary
     """
     def __init__(self, max_vocab_size):
-        self.PAD_token_name = "<PAD>"
-        self.UNK_token_name = "<UNK>"
-        self.SOS_token_name = "<SOS>"
-        self.EOS_token_name = "<EOS>"
-        self.PAD_token_id = 0
-        self.UNK_token_id = 1
-        self.SOS_token_id = 2
-        self.EOS_token_id = 3
+        self.PAD_token_name = C.PAD_TOKEN
+        self.EOS_token_name = C.EOS_TOKEN
+        self.SOS_token_name = C.SOS_TOKEN
+        self.UNK_token_name = C.UNK_TOKEN
+
+        self.PAD_token_id = C.PAD_INDEX
+        self.EOS_token_id = C.EOS_INDEX
+        self.SOS_token_id = C.SOS_INDEX
+        self.UNK_token_id = C.UNK_INDEX
 
         self._reserved = set([self.PAD_token_name, self.UNK_token_name, \
                 self.SOS_token_name, self.EOS_token_name])
