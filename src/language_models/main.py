@@ -22,6 +22,6 @@ val_loader = AmazonDataLoader(dataset.val, model, batch_size)
 test_loader = AmazonDataLoader(dataset.test, model, batch_size)
 
 for batch_idx, data in enumerate(test_loader):
-    paded_answers = data
+    paded_answers, padded_questions = data
     print(batch_idx)
 

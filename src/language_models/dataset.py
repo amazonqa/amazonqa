@@ -24,7 +24,7 @@ class AmazonDataset(object):
 
 
     def create_vocab(self, train_path):
-        vocab = Vocabulary(C.MAX_VOCAB_SIZE)
+        vocab = Vocabulary(1000000) #change it to params
         assert os.path.exists(train_path)
 
         with open(train_path, 'rb') as f:

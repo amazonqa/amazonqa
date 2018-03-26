@@ -53,9 +53,8 @@ class AmazonDataLoader(object):
 
         padded_data = np.array(
             [np.pad(item, (0, max_len - len(item)), 'constant') for item in batch_data])
-        padded_data = torch.from_numpy(padded_data)
 
-        return (padded_data)
+        return (padded_data, lengths)
 
 
     def pad_questions(self, questionIds):
@@ -69,7 +68,7 @@ class AmazonDataLoader(object):
 
         padded_data = np.array(
             [np.pad(item, (0, max_len - len(item)), 'constant') for item in batch_data])
-        padded_data = torch.from_numpy(padded_data)
+        padded_data = _reverse(padded_data)
 
         return (padded_data)
 
@@ -105,7 +104,7 @@ class AmazonDataLoader(object):
 
             padded_batch_data = np.array(
                 [np.pad(item, (0, max_len - len(item)), 'constant') for item in batch_data])
-            padded_batch_data = torch.from_numpy(padded_batch_data)
+            padded_data = _reverse(padded_data)
 
             padded_data.append(padded_batch_data)
 
@@ -145,3 +144,6 @@ class AmazonDataLoader(object):
 
     def __len__(self):
         return self.num_batches
+
+def _reverse(array):
+    return array[:, ::-1]
