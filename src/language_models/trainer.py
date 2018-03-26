@@ -36,7 +36,7 @@ class Trainer:
         self.dataloader = dataloader
         self.vocab = vocab
         self.model = LM(
-            params[C.VOCAB_SIZE],
+            self.vocab.get_vocab_size(),
             params[C.HDIM],
             params[C.OUTPUT_MAX_LEN],
             params[C.H_LAYERS],
@@ -182,6 +182,7 @@ def _batch_loss(criterion, outputs, target_lengths, targets):
     #print(targets.size(), len(outputs))
     for idx in range(targets.size(1)-1):
         output = outputs[idx]
+        #print(output, targets[:,idx])
         loss += criterion(output, targets[:, idx])
     return loss / len(outputs)
 

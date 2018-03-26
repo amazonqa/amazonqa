@@ -139,7 +139,7 @@ SAVED_VOCAB_FILENAME = 'vocab.pkl'
 LM_MODELS = [LM_ANSWERS, LM_QUESTION_ANSWERS, LM_QUESTION_ANSWERS_REVIEWS]
 LM_HP = {
     EPOCHS:                       [10,      10,     10],
-    BATCH_SIZE:                   [2,     128,    128],
+    BATCH_SIZE:                   [16,     128,    128],
     DROPOUT:                      [0.5,     0.5,    0.5],
     LR:                           [0.01,    0.01,   0.01],
     HDIM:                         [64,     128,    128],
@@ -147,7 +147,7 @@ LM_HP = {
     DECAY_START_EPOCH:            [5,       5,      5],
     LR_DECAY:                     [0.5,     0.5,    0.5],
     GLOBAL_NORM_MAX:              [5,       5,      5],
-    VOCAB_SIZE:                   [9996,  9996, 9996],
+    VOCAB_SIZE:                   [10000,  9996, 9996],
     TEACHER_FORCING_RATIO:        [0.1,     0.1,    0.1],
     OUTPUT_MAX_LEN:               [200,    200,   200],
     MODEL_NAME:                   ['ANSWERS', 'QUESTION_ANSWERS', 'QUESTION_ANSWERS_REVIEWS']
