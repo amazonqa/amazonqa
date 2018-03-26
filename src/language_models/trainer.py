@@ -157,7 +157,7 @@ class Trainer:
 
         model_filename = '%s/%s' % (save_dir, C.SAVED_MODEL_FILENAME)
         params_filename = '%s/%s' % (save_dir, C.SAVED_PARAMS_FILENAME)
-        vocab_filename = '%s/%s' & (save_dir, C.SAVED_VOCAB_FILENAME)
+        vocab_filename = '%s/%s' % (save_dir, C.SAVED_VOCAB_FILENAME)
 
         torch.save(self.model.state_dict(), model_filename)
         with open(params_filename, 'w') as fp:
