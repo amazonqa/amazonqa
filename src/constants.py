@@ -140,13 +140,13 @@ LM_HP = {
     BATCH_SIZE:                   [128,     128,    128],
     DROPOUT:                      [0.5,     0.5,    0.5],
     LR:                           [0.01,    0.01,   0.01],
-    HDIM:                         [512,     512,    512],
+    HDIM:                         [128,     128,    128],
     H_LAYERS:                     [3,       3,      3],
     DECAY_START_EPOCH:            [5,       5,      5],
     LR_DECAY:                     [0.5,     0.5,    0.5],
     GLOBAL_NORM_MAX:              [5,       5,      5],
-    VOCAB_SIZE:                   [100000,  100000, 100000],
+    VOCAB_SIZE:                   [1000,  1000, 1000],
     TEACHER_FORCING_RATIO:        [0.1,     0.1,    0.1],
-    OUTPUT_MAX_LEN:               [1000,    1000,   1000],
+    OUTPUT_MAX_LEN:               [100,    100,   100],
     MODEL_NAME:                   ['ANSWERS', 'QUESTION_ANSWERS', 'QUESTION_ANSWERS_REVIEWS']
 }

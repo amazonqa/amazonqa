@@ -27,7 +27,7 @@ class Decoder(BaseRNN):
     def softmax_from_input(self, input, hidden):
         batch_size, output_size = input.size()
         embedded = self.embedding(input)
-        embedded = self.dropout(embedded)
+        #embedded = self.dropout(embedded)
 
         # RNN output: batch_size * seq_size * h_size
         output, hidden = self.rnn(embedded, hidden)
