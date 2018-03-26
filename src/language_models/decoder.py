@@ -5,15 +5,15 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from src.language_models.base_rnn import BaseRNN
-import src.constants as C
+from language_models.base_rnn import BaseRNN
+import constants as C
 
 class Decoder(BaseRNN):
     """Decoder for answers
     """
 
-    def __init__(self, vocab_size, h_size, max_len, rnn_cell=C.RNN_CELL_LSTM, n_layers=1):
-        super(Decoder, self).__init__(vocab_size, h_size, max_len, rnn_cell, n_layers)
+    def __init__(self, vocab_size, h_size, max_len, dropout_p, n_layers=1, rnn_cell=C.RNN_CELL_LSTM):
+        super(Decoder, self).__init__(vocab_size, h_size, max_len, rnn_cell, n_layers, dropout_p)
 
         self.embedding = nn.Embedding(vocab_size, h_size)
         self.rnn = self.rnn_cell(h_size, h_size, n_layers, batch_first=True)
@@ -27,9 +27,10 @@ class Decoder(BaseRNN):
     def softmax_from_input(self, input, hidden):
         batch_size, output_size = input.size()
         embedded = self.embedding(input)
+        embedded = self.dropout(embedded)
 
         # RNN output: batch_size * seq_size * h_size
-        output, hidden = self.rnn(embedded, hidden)
+        output, hidden = self.rnn(embedded, hidden, dropout=self.dropout_p)
 
         # Softmax: batch_size * seq_size * vocab_size
         # Is contiguous necessary?
@@ -57,8 +58,8 @@ class Decoder(BaseRNN):
 
         return symbols
 
-    def forward(self, input_seqs, hidden_intial, teacher_forcing):
-        batch_size = input_seqs.size(0)
+    def forward(self, target_seqs, hidden_intial, teacher_forcing):
+        batch_size = target_seqs.size(0)
         hidden = hidden_intial
 
         self.output_seq_lengths = np.ones(batch_size) * self.max_len
@@ -69,16 +70,15 @@ class Decoder(BaseRNN):
             # input is a sequence, excluding the last token
             # i.e input <=> batch_size * (seq_len - 1) * h_size
             # output & hidden are of the same shape
-            input = input_seqs[:, :-1]
-            output, hidden = self.softmax_from_input(input_seqs[:, :-1], hidden)
+            output, hidden = self.softmax_from_input(target_seqs[:, :-1], hidden)
 
             for idx in range(output.size(1)):
                 self.symbol_from_softmax(idx, output[:, idx, :])
         else:
-            input = input_seqs[:, 0].unsqueeze(1)
+            input = target_seqs[:, 0].unsqueeze(1)
             for idx in range(self.max_len):
                 output, hidden = self.softmax_from_input(input, hidden)
                 input = self.symbol_from_softmax(idx, output.squeeze(1))
 
         self.output_seq = torch.cat(self.output_seq, 1)
-        return self.output_seq, self.output_seq_lengths
+        return self.decoder_outputs, self.output_seq, self.output_seq_lengths
