@@ -1,27 +1,52 @@
-# coding: utf-8
-import argparse
-import time
-import math
-import torch
-import torch.nn as nn
-from torch.autograd import Variable
+"""Run different seq2seq models
+"""
 
-from dataset import AmazonDataset
-from dataloader import AmazonDataLoader
+import argparse
+
+from language_models import utils
+from language_models.trainer import Trainer
+from language_models.data_utils import DataLoader
 import constants as C
 
+RANDOM_SEED = 1
 
-category = C.VIDEO_GAMES
-model = C.LM_QUESTION_ANSWERS_REVIEWS
+def main():
+    model, mode = _params()
+    params = utils.get_model_params(model)
 
-dataset = AmazonDataset(category, model)
+    if MODE == C.TRAIN_TYPE:
+        train_loader = DataLoader(
+            data_type,
+            model_type,
+            params,
+            random_seed=RANDOM_SEED
+        )
+        dev_loader = DataLoader(
+            data_type,
+            model_type,
+            params,
+            src_vocab=train_loader.src_vocab,
+            dst_vocab=train_loader.src_vocab,
+            random_seed=RANDOM_SEED
+        )
+        trainer = Trainer(
+            train_loader,
+            params,
+            dev_loader=dev_loader,
+            random_seed=1,
+            random_seed=RANDOM_SEED,
+            vocab=vocab
+        )
+        loss = trainer.train()
+    else:
+        pass
 
-batch_size = 100
-train_loader = AmazonDataLoader(dataset.train, model, batch_size)
-val_loader = AmazonDataLoader(dataset.val, model, batch_size)
-test_loader = AmazonDataLoader(dataset.test, model, batch_size)
+def _params():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--model', dest='model', type=str, default=C.LM_ANSWERS)
+    parser.add_argument('--mode', dest='mode', type=str, default=C.TRAIN_TYPE)
+    args = parser.parse_args()
+    return args.model_type, args.mode
 
-for batch_idx, data in enumerate(test_loader):
-    paded_answers, padded_questions = data
-    print(batch_idx)
-
+if __name__ == '__main__':
+    main()
