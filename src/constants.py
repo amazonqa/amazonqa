@@ -103,3 +103,42 @@ REVIEW_COLUMNS = [
   HELPFUL,
   REVIEW_TIME
 ]
+
+
+"""
+Default Hyperparameters for LM MODELS
+"""
+
+# Hyperparameter constants
+EPOCHS = 'epochs'
+BATCH_SIZE = 'batch_size'
+DROPOUT = 'dropout'
+LR = 'lr'
+HDIM = 'hdim'
+H_LAYERS = 'h_layers'
+DECAY_START_EPOCH = 'decay_start_epoch'
+LR_DECAY = 'lr_decay'
+GLOBAL_NORM_MAX = 'global_norm_max'
+VOCAB_SIZE = 'vocab_size'
+TRAIN_LINES = 'train_lines'
+
+TEACHER_FORCING_RATIO = 'teacher_forcing_ratio'
+OUTPUT_MAX_LEN = 'output_max_len'
+MODEL_NAME = 'model_name'
+
+# DIRS/FILENAMES
+BASE_PATH = 'MT/saved_models'
+SAVED_MODEL_FILENAME = 'model.pt'
+SAVED_PARAMS_FILENAME = 'params.json'
+SAVED_VOCAB_FILENAME = 'vocab.pkl'
+
+LM_MODELS = [LM_ANSWERS, LM_QUESTION_ANSWERS, LM_QUESTION_ANSWERS_REVIEWS]
+LM_HP = {
+    EPOCHS:         [10,    10,     10],
+    BATCH_SIZE:     [128,   128,    128],
+}
+
+E2E_H   = {EPOCHS:8, BATCH_SIZE:128, HDIM:1000, DROPOUT:0.2, LR:0.35, \
+        DECAY_START_EPOCH:6, LR_DECAY:0.5, GLOBAL_NORM_MAX:5., \
+        H_LAYERS:2, SRC_VOCAB_SIZE:2e5, DST_VOCAB_SIZE:4e4, \
+        TRAIN_LINES:4e6}
