@@ -130,7 +130,7 @@ OUTPUT_MAX_LEN = 'output_max_len'
 MODEL_NAME = 'model_name'
 
 # DIRS/FILENAMES
-BASE_PATH = 'MT/saved_models'
+BASE_PATH = 'language_models/saved_models'
 SAVED_MODEL_FILENAME = 'model.pt'
 SAVED_PARAMS_FILENAME = 'params.json'
 SAVED_VOCAB_FILENAME = 'vocab.pkl'

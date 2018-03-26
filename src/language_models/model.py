@@ -32,7 +32,7 @@ class LM(nn.Module):
 
         self.decoder = Decoder(vocab_size, h_size, max_len, n_layers, dropout_p)
 
-    def forward(self, 
+    def forward(self,
         question_seqs,
         review_seqs,
         answer_seqs,
@@ -41,11 +41,11 @@ class LM(nn.Module):
         if self.model = C.LM_ANSWERS:
             d_hidden = None
         elif self.model == C.LM_QUESTION_ANSWERS:
-            _, d_hidden = self.encoder(input_seqs)
+            _, d_hidden = self.encoder(answer_seqs)
         elif self.model == C.LM_QUESTION_ANSWERS_REVIEWS:
-            _, question_hidden = self.encoder(input_seqs)
+            _, question_hidden = self.encoder(question_seqs)
             reviews_hidden = [self.encoder(seq)[1] for seq in review_seqs]
-            d_hidden = map(_mean, zip(*reviews_hidden))
+            reviews_hidden = map(_mean, zip(*reviews_hidden))
         else:
             raise 'Unimplemented model: %s' % self.model
 
