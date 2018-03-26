@@ -13,13 +13,12 @@ LM_QUESTION_ANSWERS = 'LM_QA'
 LM_QUESTION_ANSWERS_REVIEWS = 'LM_QAR'
 
 RESERVED_IDS = 4
-MAX_VOCAB_SIZE = 9996
 
 # Special tokens
-PAD_TOKEN = '<PAD>'
-EOS_TOKEN = '<EOS>'
-SOS_TOKEN = '<SOS>'
-UNK_TOKEN = '<UNK>'
+PAD_TOKEN = '\'PAD\''
+EOS_TOKEN = '\'EOS\''
+SOS_TOKEN = '\'SOS\''
+UNK_TOKEN = '\'UNK\''
 
 PAD_INDEX = 0
 EOS_INDEX = 1
@@ -148,7 +147,7 @@ LM_HP = {
     DECAY_START_EPOCH:            [5,       5,      5],
     LR_DECAY:                     [0.5,     0.5,    0.5],
     GLOBAL_NORM_MAX:              [5,       5,      5],
-    VOCAB_SIZE:                   [1000,  1000, 1000],
+    VOCAB_SIZE:                   [99996,  99996, 99996],
     TEACHER_FORCING_RATIO:        [0.1,     0.1,    0.1],
     OUTPUT_MAX_LEN:               [100,    100,   100],
     MODEL_NAME:                   ['ANSWERS', 'QUESTION_ANSWERS', 'QUESTION_ANSWERS_REVIEWS']

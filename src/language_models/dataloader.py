@@ -53,7 +53,6 @@ class AmazonDataLoader(object):
 
         padded_data = np.array(
             [np.pad(item, (0, max_len - len(item)), 'constant') for item in batch_data])
-        print(lengths)
         return (padded_data, lengths)
 
 

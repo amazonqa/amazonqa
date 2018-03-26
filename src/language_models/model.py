@@ -39,7 +39,7 @@ class LM(nn.Module):
         target_seqs,
         teacher_forcing
     ):
-        print(question_seqs, review_seqs, answer_seqs, target_seqs)
+        #print(question_seqs, review_seqs, answer_seqs, target_seqs)
         if self.model == C.LM_ANSWERS:
             d_hidden = None
         elif self.model == C.LM_QUESTION_ANSWERS:

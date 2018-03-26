@@ -22,6 +22,10 @@ def main():
         train_loader = AmazonDataLoader(dataset.train, model, params[C.BATCH_SIZE])
         dev_loader = AmazonDataLoader(dataset.val, model, params[C.BATCH_SIZE])
 
+        #for batch_idx, data in enumerate(train_loader):
+        #    answs, lengths = data
+        #    print(dataset.vocab.token_list_from_indices(answs[0]), lengths[0])
+
         trainer = Trainer(
             train_loader,
             params,

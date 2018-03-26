@@ -63,6 +63,7 @@ class Trainer:
         self.optimizer.zero_grad()
 
         answer_seqs, target_seqs = _var(answer_seqs), _var(answer_seqs)
+
         quesion_seqs = None if self.model_name == C.LM_ANSWERS else _var(quesion_seqs)
         review_seqs = map(_var, review_seqs) if self.model_name == C.LM_QUESTION_ANSWERS_REVIEWS else None
 
@@ -178,8 +179,6 @@ def _set_random_seeds(seed):
 
 def _batch_loss(criterion, outputs, target_lengths, targets):
     loss = 0
-    print(target_lengths, targets)
-    print(targets.data.max())
     for idx in range(targets.size(1)):
         output = outputs[idx]
         loss += criterion(output, targets[:, idx])
