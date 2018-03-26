@@ -142,8 +142,3 @@ LM_HP = {
     EPOCHS:         [10,    10,     10],
     BATCH_SIZE:     [128,   128,    128],
 }
-
-E2E_H   = {EPOCHS:8, BATCH_SIZE:128, HDIM:1000, DROPOUT:0.2, LR:0.35, \
-        DECAY_START_EPOCH:6, LR_DECAY:0.5, GLOBAL_NORM_MAX:5., \
-        H_LAYERS:2, SRC_VOCAB_SIZE:2e5, DST_VOCAB_SIZE:4e4, \
-        TRAIN_LINES:4e6}
