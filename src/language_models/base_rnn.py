@@ -1,7 +1,7 @@
 """Base RNN Cells
 """
 import torch.nn as nn
-import src.constants as C
+import constants as C
 
 class BaseRNN(nn.Module):
     def __init__(self, vocab_size, h_size, max_len, rnn_cell, n_layers, dropout_p):

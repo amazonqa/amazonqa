@@ -1,4 +1,4 @@
-import src.constants as C
+import constants as C
 
 class Vocabulary(object):
     """

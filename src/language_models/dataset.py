@@ -1,6 +1,6 @@
 import os
 import torch
-import src.constants as C
+import constants as C
 import pandas as pd
 from vocabulary import Vocabulary
 import string

@@ -8,7 +8,7 @@ from torch.autograd import Variable
 
 from dataset import AmazonDataset
 from dataloader import AmazonDataLoader
-import src.constants as C
+import constants as C
 
 
 category = C.VIDEO_GAMES

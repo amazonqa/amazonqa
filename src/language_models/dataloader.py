@@ -7,7 +7,7 @@ import numpy as np
 from operator import itemgetter, attrgetter
 from torch.utils.data import Dataset, DataLoader
 
-import src.constants as C
+import constants as C
 
 class AmazonDataLoader(object):
 
