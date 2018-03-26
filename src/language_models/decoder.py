@@ -71,6 +71,7 @@ class Decoder(BaseRNN):
             # output & hidden are of the same shape
             output, hidden = self.softmax_from_input(target_seqs[:, :-1], hidden)
 
+            #print(output.size())
             for idx in range(output.size(1)):
                 self.symbol_from_softmax(idx, output[:, idx, :])
         else:

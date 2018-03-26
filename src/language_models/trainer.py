@@ -76,7 +76,7 @@ class Trainer:
             target_seqs,
             teacher_forcing
         )
-
+        #print(target_seqs.size())
         # loss and gradient computation
         loss = _batch_loss(self.criterion, outputs, answer_lengths, target_seqs)
         loss.backward()
@@ -111,8 +111,8 @@ class Trainer:
                 self.loss.append(loss)
                 self.perplexity.append(_perplexity_from_loss(loss))
                 if batch_itr % self.print_every == 0:
-                    print('Loss at batch %d = %.2f', (batch_itr, self.loss[-1]))
-                    print('Perplexity at batch %d = %.2f', (batch_itr, self.perplexity[-1]))
+                    print('Loss at batch %d = %.2f' % (batch_itr, self.loss[-1]))
+                    print('Perplexity at batch %d = %.2f' % (batch_itr, self.perplexity[-1]))
             if epoch % self.save_model_every == 0:
                 self.save_model()
             if epoch == self.params[C.DECAY_START_EPOCH]:
@@ -179,7 +179,8 @@ def _set_random_seeds(seed):
 
 def _batch_loss(criterion, outputs, target_lengths, targets):
     loss = 0
-    for idx in range(targets.size(1)):
+    #print(targets.size(), len(outputs))
+    for idx in range(targets.size(1)-1):
         output = outputs[idx]
         loss += criterion(output, targets[:, idx])
     return loss / len(outputs)
