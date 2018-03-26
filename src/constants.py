@@ -23,8 +23,6 @@ EOS_INDEX = 1
 SOS_INDEX = 2
 UNK_INDEX = 3
 
-MAX_VOCAB_SIZE = 1000000
-
 # Paths
 QA_DATA_PATH = 'data/answers_multiple'
 REVIEWS_DATA_PATH = 'data/reviews_small'
@@ -139,6 +137,17 @@ SAVED_VOCAB_FILENAME = 'vocab.pkl'
 
 LM_MODELS = [LM_ANSWERS, LM_QUESTION_ANSWERS, LM_QUESTION_ANSWERS_REVIEWS]
 LM_HP = {
-    EPOCHS:         [10,    10,     10],
-    BATCH_SIZE:     [128,   128,    128],
+    EPOCHS:                       [10,      10,     10],
+    BATCH_SIZE:                   [128,     128,    128],
+    DROPOUT:                      [0.5,     0.5,    0.5],
+    LR:                           [0.01,    0.01,   0.01],
+    HDIM:                         [512,     512,    512],
+    H_LAYERS:                     [3,       3,      3],
+    DECAY_START_EPOCH:            [5,       5,      5],
+    LR_DECAY:                     [0.5,     0.5,    0.5],
+    GLOBAL_NORM_MAX:              [5,       5,      5],
+    VOCAB_SIZE:                   [100000,  100000, 100000],
+    TEACHER_FORCING_RATIO:        [0.1,     0.1,    0.1],
+    OUTPUT_MAX_LEN:               [1000,    1000,   1000],
+    MODEL_NAME:                   ['ANSWERS', 'QUESTION_ANSWERS', 'QUESTION_ANSWERS_REVIEWS']
 }
