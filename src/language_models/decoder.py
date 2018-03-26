@@ -12,10 +12,10 @@ class Decoder(BaseRNN):
     """Decoder for answers
     """
 
-    def __init__(self, vocab_size, h_size, max_len, dropout_p, n_layers=1, rnn_cell=C.RNN_CELL_LSTM):
+    def __init__(self, vocab_size, h_size, max_len, dropout_p, n_layers, embedding=None, rnn_cell=C.RNN_CELL_LSTM):
         super(Decoder, self).__init__(vocab_size, h_size, max_len, rnn_cell, n_layers, dropout_p)
 
-        self.embedding = nn.Embedding(vocab_size, h_size)
+        self.embedding = embedding if embedding else nn.Embedding(vocab_size, h_size)
         self.rnn = self.rnn_cell(h_size, h_size, n_layers, batch_first=True)
         self.out = nn.Linear(h_size, vocab_size)
         self.log_softmax = nn.LogSoftmax(dim=1)
@@ -33,7 +33,6 @@ class Decoder(BaseRNN):
         output, hidden = self.rnn(embedded, hidden, dropout=self.dropout_p)
 
         # Softmax: batch_size * seq_size * vocab_size
-        # Is contiguous necessary?
         softmax = self.log_softmax(
             self.out(output.contiguous().view(-1, self.h_size))
         ).view(batch_size, output_size, -1)
