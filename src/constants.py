@@ -104,6 +104,11 @@ REVIEW_COLUMNS = [
   REVIEW_TIME
 ]
 
+"""
+    Modes
+"""
+TRAIN_TYPE = 'train'
+TEST_TYPE = 'test'
 
 """
 Default Hyperparameters for LM MODELS
