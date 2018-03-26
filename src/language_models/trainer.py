@@ -48,7 +48,7 @@ class Trainer:
 
         self.loss = []
         self.perplexity = []
-        self.criterion = nn.NLLLoss()
+        self.criterion = nn.NLLLoss(ignore_index=C.PAD_INDEX)
 
         self.model_name = params[C.MODEL_NAME]
         self.optimizer = None
@@ -177,11 +177,8 @@ def _set_random_seeds(seed):
 
 def _batch_loss(criterion, outputs, target_lengths, targets):
     loss = 0
-    l = np.array(target_lengths)
-    for idx in range(len(target_lengths)):
-        idxes = l > 0
-        loss += criterion(outputs[idx][idxes], targets[idxes, idx])
-        l -= 1
+    for idx, output in enumerate(outputs):
+        loss += criterion(output, targets[:, idx])
     return loss / len(outputs)
 
 def _ensure_path(path):
