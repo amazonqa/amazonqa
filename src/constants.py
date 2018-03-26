@@ -23,6 +23,8 @@ EOS_INDEX = 1
 SOS_INDEX = 2
 UNK_INDEX = 3
 
+MAX_VOCAB_SIZE = 1000000
+
 # Paths
 QA_DATA_PATH = 'data/answers_multiple'
 REVIEWS_DATA_PATH = 'data/reviews_small'
