@@ -36,6 +36,7 @@ class LM(nn.Module):
         question_seqs,
         review_seqs,
         answer_seqs,
+        target_seqs,
         teacher_forcing
     ):
         if self.model == C.LM_ANSWERS:

@@ -16,7 +16,7 @@ class Decoder(BaseRNN):
         super(Decoder, self).__init__(vocab_size, h_size, max_len, rnn_cell, n_layers, dropout_p)
 
         self.embedding = embedding if embedding else nn.Embedding(vocab_size, h_size)
-        self.rnn = self.rnn_cell(h_size, h_size, n_layers, batch_first=True)
+        self.rnn = self.rnn_cell(h_size, h_size, n_layers, dropout=self.dropout_p, batch_first=True)
         self.out = nn.Linear(h_size, vocab_size)
         self.log_softmax = nn.LogSoftmax(dim=1)
 
@@ -30,7 +30,7 @@ class Decoder(BaseRNN):
         embedded = self.dropout(embedded)
 
         # RNN output: batch_size * seq_size * h_size
-        output, hidden = self.rnn(embedded, hidden, dropout=self.dropout_p)
+        output, hidden = self.rnn(embedded, hidden)
 
         # Softmax: batch_size * seq_size * vocab_size
         softmax = self.log_softmax(

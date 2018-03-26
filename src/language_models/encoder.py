@@ -14,7 +14,7 @@ class Encoder(BaseRNN):
         super(Encoder, self).__init__(vocab_size, h_size, max_len, rnn_cell, n_layers, dropout_p)
 
         self.embedding = embedding if embedding else nn.Embedding(vocab_size, h_size)
-        self.rnn = self.rnn_cell(h_size, h_size, n_layers, batch_first=True)
+        self.rnn = self.rnn_cell(h_size, h_size, n_layers, dropout=self.dropout_p, batch_first=True)
 
     def forward(self, input_seqs):
         embedded = self.embedding(input_seqs)
