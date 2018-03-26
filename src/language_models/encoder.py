@@ -10,7 +10,7 @@ class Encoder(BaseRNN):
     """Encoder for questions and reviews
     """
 
-    def __init__(self, vocab_size, h_size, max_len, dropout_p, n_layers, embedding=None, rnn_cell=C.RNN_CELL_LSTM):
+    def __init__(self, vocab_size, h_size, max_len, n_layers, dropout_p, embedding=None, rnn_cell=C.RNN_CELL_LSTM):
         super(Encoder, self).__init__(vocab_size, h_size, max_len, rnn_cell, n_layers, dropout_p)
 
         self.embedding = embedding if embedding else nn.Embedding(vocab_size, h_size)

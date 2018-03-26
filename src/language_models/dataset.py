@@ -21,6 +21,7 @@ class AmazonDataset(object):
 
         test_path = '%s/test-%s.pickle' % (C.INPUT_DATA_PATH, category)
         self.test = self.get_data(test_path)
+        print("Dataset Loaded")
 
 
     def create_vocab(self, train_path):

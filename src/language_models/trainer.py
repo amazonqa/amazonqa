@@ -40,7 +40,8 @@ class Trainer:
             params[C.HDIM],
             params[C.OUTPUT_MAX_LEN],
             params[C.H_LAYERS],
-            params[C.DROPOUT]
+            params[C.DROPOUT],
+            params[C.MODEL_NAME]
         )
 
         if USE_CUDA: self.model = self.model.cuda()

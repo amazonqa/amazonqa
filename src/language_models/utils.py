@@ -15,6 +15,7 @@ def get_model_params(model_type):
     add_arg(parser, float, C.LR, H)
     add_arg(parser, int, C.DECAY_START_EPOCH, H)
     add_arg(parser, float, C.GLOBAL_NORM_MAX, H)
+    add_arg(parser, int, C.OUTPUT_MAX_LEN, H)
     add_arg(parser, int, C.H_LAYERS, H)
     add_arg(parser, int, C.VOCAB_SIZE, H)
     params = vars(parser.parse_args())
