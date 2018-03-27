@@ -34,6 +34,7 @@ class Trainer:
         self.print_every = print_every
         self.params = params
         self.dataloader = dataloader
+        self.dev_loader = dev_loader
         self.vocab = vocab
         self.model = LM(
             self.vocab.get_vocab_size(),
@@ -78,7 +79,7 @@ class Trainer:
         )
         #print(target_seqs.size())
         # loss and gradient computation
-        loss = _batch_loss(self.criterion, outputs, answer_lengths, target_seqs)
+        loss = _batch_loss(self.criterion, outputs, target_seqs)
         loss.backward()
 
         # update parameters
@@ -87,11 +88,11 @@ class Trainer:
         return loss.data[0]
 
     def train(self):
-        self._set_optimizer()
+        self._set_optimizer(0)
 
-        for epoch in tqdm(range(self.params[C.EPOCHS])):
+        for epoch in range(self.params[C.EPOCHS]):
             print('Epoch: %d', epoch)
-            for batch_itr, inputs in tqdm(enumerate(self.dataloader)):
+            for batch_itr, inputs in enumerate(tqdm(self.dataloader)):
                 if self.model_name == C.LM_ANSWERS:
                     answer_seqs, answer_lengths = inputs
                     quesion_seqs, review_seqs = None, None
@@ -116,17 +117,17 @@ class Trainer:
             if epoch % self.save_model_every == 0:
                 self.save_model()
             if epoch == self.params[C.DECAY_START_EPOCH]:
-                self._set_optimizer(lr_decay=self.params[C.LR_DECAY])
+                self._set_optimizer(epoch, lr_decay=self.params[C.LR_DECAY])
 
     def eval(self):
         dev_losses, dev_perplexities = [], []
         for batch_itr, inputs in tqdm(enumerate(self.dataloader)):
             if self.model_name == C.LM_ANSWERS:
-                answer_seqs, answer_lengths = inputs
+                answer_seqs, _ = inputs
             elif self.model_name == C.LM_QUESTION_ANSWERS:
-                (answer_seqs, answer_lengths), quesion_seqs = inputs
+                (answer_seqs, _), quesion_seqs = inputs
             elif self.model_name == C.LM_QUESTION_ANSWERS:
-                (answer_seqs, answer_lengths), quesion_seqs, review_seqs = inputs
+                (answer_seqs, _), quesion_seqs, review_seqs = inputs
             else:
                 raise 'Unimplemented model: %s' % self.model_name
 
@@ -142,7 +143,7 @@ class Trainer:
                 False
             )
 
-            dev_loss = _batch_loss(self.criterion, outputs, answer_lengths, target_seqs)
+            dev_loss = _batch_loss(self.criterion, outputs, target_seqs)
             dev_losses.append(dev_loss.data[0])
             dev_perplexities.append(_perplexity_from_loss(dev_loss.data[0]))
             if batch_itr % self.print_every == 0:
@@ -170,19 +171,23 @@ class Trainer:
         time_str = time.strftime('%Y-%m-%d-%H-%M-%S')
         return '%s/%s/%s' % (C.BASE_PATH, self.params[C.MODEL_NAME], time_str)
 
-    def _set_optimizer(self, lr_decay=1.0):
-        self.optimizer = optim.SGD(self.model.parameters(), lr=self.params[C.LR] * lr_decay)
+    def _set_optimizer(self, epoch, lr_decay=1.0):
+        lr = self.params[C.LR] * lr_decay
+        self.optimizer = optim.SGD(self.model.parameters(), lr=lr)
+        print('Setting Learning Rate = %.3f (Epoch = %d)' % (epoch, lr))
 
 def _set_random_seeds(seed):
     np.random.seed(seed)
     torch.manual_seed(seed)
 
-def _batch_loss(criterion, outputs, target_lengths, targets):
+def _batch_loss(criterion, outputs, targets):
     loss = 0
-    #print(targets.size(), len(outputs))
-    for idx in range(targets.size(1)-1):
+    # If the target is longer than max_output_len in
+    # case of teacher_forcing = True,
+    # then consider only max_output_len steps for loss
+    n = min(len(outputs), targets.size(1) - 1)
+    for idx in range(n):
         output = outputs[idx]
-        #print(output, targets[:,idx])
         loss += criterion(output, targets[:, idx])
     return loss / len(outputs)
 
