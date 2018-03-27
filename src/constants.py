@@ -144,7 +144,7 @@ LM_HP = {
     LR:                           [0.01,    0.01,   0.01],
     HDIM:                         [64,     128,    128],
     H_LAYERS:                     [2,       3,      3],
-    DECAY_START_EPOCH:            [5,       5,      5],
+    DECAY_START_EPOCH:            [10,      10,     10],
     LR_DECAY:                     [0.5,     0.5,    0.5],
     GLOBAL_NORM_MAX:              [5,       5,      5],
     VOCAB_SIZE:                   [10000,  9996, 9996],

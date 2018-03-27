@@ -116,7 +116,7 @@ class Trainer:
             if epoch % self.save_model_every == 0:
                 self.save_model()
             if epoch == self.params[C.DECAY_START_EPOCH]:
-                self.optimizer = self._set_optimizer(lr_decay=self.params[C.LR_DECAY])
+                self._set_optimizer(lr_decay=self.params[C.LR_DECAY])
 
     def eval(self):
         dev_losses, dev_perplexities = [], []
