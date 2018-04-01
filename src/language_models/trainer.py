@@ -287,7 +287,7 @@ def _extract_input_attributes(inputs, model_name):
     elif model_name == C.LM_QUESTION_ANSWERS:
         (answer_seqs, answer_lengths), quesion_seqs = inputs
         review_seqs = None
-    elif model_name == C.LM_QUESTION_ANSWERS:
+    elif model_name == C.LM_QUESTION_ANSWERS_REVIEWS:
         (answer_seqs, answer_lengths), quesion_seqs, review_seqs = inputs
     else:
         raise 'Unimplemented model: %s' % model_name

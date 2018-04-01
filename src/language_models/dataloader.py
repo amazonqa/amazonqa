@@ -104,7 +104,7 @@ class AmazonDataLoader(object):
 
             padded_batch_data = np.array(
                 [np.pad(item, (0, max_len - len(item)), 'constant') for item in batch_data])
-            padded_data = _reverse(padded_data)
+            padded_batch_data = _reverse(padded_batch_data)
 
             padded_data.append(padded_batch_data)
 
