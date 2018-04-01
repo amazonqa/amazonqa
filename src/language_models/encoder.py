@@ -18,5 +18,4 @@ class Encoder(BaseRNN):
 
     def forward(self, input_seqs):
         embedded = self.embedding(input_seqs)
-        #embedded = self.dropout(embedded)
         return self.rnn(embedded)

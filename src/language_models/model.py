@@ -26,11 +26,11 @@ class LM(nn.Module):
         )
         self.reviews_encoder = Encoder(
             vocab_size, h_size,
-            max_len, n_layers, 
+            max_len, n_layers,
             dropout_p, embedding=embedding
         ) if model == C.LM_QUESTION_ANSWERS_REVIEWS else None
 
-        self.decoder = Decoder(vocab_size, h_size, max_len, n_layers, dropout_p)
+        self.decoder = Decoder(vocab_size, 2 * h_size, max_len, n_layers, dropout_p)
 
     def forward(self,
         question_seqs,
@@ -47,7 +47,8 @@ class LM(nn.Module):
         elif self.model == C.LM_QUESTION_ANSWERS_REVIEWS:
             _, question_hidden = self.question_encoder(question_seqs)
             reviews_hidden = [self.reviews_encoder(seq)[1] for seq in review_seqs]
-            reviews_hidden = map(_mean, zip(*reviews_hidden))
+            reviews_hidden = list(map(_mean, zip(*reviews_hidden)))
+            d_hidden = tuple(torch.cat([q_h, r_h], 1) for q_h, r_h in zip(question_hidden, reviews_hidden))
         else:
             raise 'Unimplemented model: %s' % self.model
 
