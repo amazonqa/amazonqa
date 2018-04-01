@@ -22,6 +22,8 @@ def main():
     category = params[C.CATEGORY]
 
     logger = Logger()
+    params[C.LOG_FILENAME] = logger.logfilename
+
     logger.log('\n Model: %s, Mode = %s, Category = %s \n' % (model_name, mode, category))
     dataset = _get_dataset(model_name, category, params, logger)
 

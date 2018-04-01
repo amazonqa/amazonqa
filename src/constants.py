@@ -156,5 +156,6 @@ LM_HP = {
     TEACHER_FORCING_RATIO:        [0.1,     0.1,    0.1],
     OUTPUT_MAX_LEN:               [200,    200,   200],
     MODEL_NAME:                   LM_MODELS,
-    CATEGORY:                     [VIDEO_GAMES] * 3
+    CATEGORY:                     [VIDEO_GAMES] * 3,
+    LOG_FILENAME:                 ['log.log'] * 3
 }

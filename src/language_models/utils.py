@@ -21,6 +21,7 @@ def get_model_params(model_name):
     add_arg(parser, int, C.OUTPUT_MAX_LEN, H)
     add_arg(parser, str, C.CATEGORY, H)
     add_arg(parser, str, C.MODEL_NAME, H)
+    add_arg(parser, str, C.LOG_FILENAME, H)
     return vars(parser.parse_args())
 
 def add_arg(parser, typ, hpstr, H):
