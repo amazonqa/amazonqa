@@ -42,13 +42,15 @@ class AmazonDataset(object):
                     vocab.add_sequence(self.tokenize(text))
 
                     for answer in question[C.ANSWERS]:
-                        text = answer[C.TEXT]
-                        vocab.add_sequence(self.tokenize(text))
+                        if C.TEXT in answer:
+                            text = answer[C.TEXT]
+                            vocab.add_sequence(self.tokenize(text))
 
             reviewsList = row[C.REVIEWS_LIST]
             for review in reviewsList:
-                text = review[C.TEXT]
-                vocab.add_sequence(self.tokenize(text))
+                if C.TEXT in review:
+                    text = review[C.TEXT]
+                    vocab.add_sequence(self.tokenize(text))
         return vocab
 
 
