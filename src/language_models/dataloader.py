@@ -18,6 +18,7 @@ class AmazonDataLoader(object):
         self.model = model
 
         self.data = sorted(self.data, key=self.sortByLength, reverse=True)
+        self.num_batches = len(self.data) // self.batch_size
 
     def sortByLength(self, item):
         if self.model == C.LM_ANSWERS:
@@ -103,7 +104,7 @@ class AmazonDataLoader(object):
 
             padded_batch_data = np.array(
                 [np.pad(item, (0, max_len - len(item)), 'constant') for item in batch_data])
-            padded_data = _reverse(padded_data)
+            padded_batch_data = _reverse(padded_batch_data)
 
             padded_data.append(padded_batch_data)
 
@@ -111,7 +112,6 @@ class AmazonDataLoader(object):
 
 
     def __iter__(self):
-        self.num_batches = len(self.data) // self.batch_size
         indices = np.arange(self.num_batches)
         np.random.shuffle(indices)
 
@@ -145,4 +145,4 @@ class AmazonDataLoader(object):
         return self.num_batches
 
 def _reverse(array):
-    return array[:, ::-1]
+    return np.ascontiguousarray(array[:, ::-1])

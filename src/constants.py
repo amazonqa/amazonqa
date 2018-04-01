@@ -113,7 +113,7 @@ REVIEW_COLUMNS = [
 """
 TRAIN_TYPE = 'train'
 TEST_TYPE = 'test'
-
+DEV_TYPE = 'val'
 """
 Default Hyperparameters for LM MODELS
 """

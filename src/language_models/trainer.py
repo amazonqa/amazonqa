@@ -151,7 +151,7 @@ class Trainer:
 
         return loss.data[0]
 
-    def eval(self):
+    def eval(self, dataloader, mode):
 
         self.model.eval()
         losses, perplexities = [], []
@@ -163,7 +163,7 @@ class Trainer:
 
         compute_loss = mode != C.TEST_TYPE
 
-        for batch_itr, inputs in tqdm(enumerate(self.dataloader)):
+        for batch_itr, inputs in tqdm(enumerate(dataloader)):
             answer_seqs, quesion_seqs, review_seqs, \
                 answer_lengths = _extract_input_attributes(inputs, self.model_name)
 
@@ -184,7 +184,7 @@ class Trainer:
                     self.logger.log('[%s] Perplexity at batch %d = %.2f' % (mode, batch_itr, perplexities[-1]))
 
         if mode == C.DEV_TYPE:
-            _print_info(1, -1, losses, perplexities, mode)
+            _print_info(1, -1, losses, perplexities, mode, self.logger)
         else:
             raise 'Unimplemented mode: %s' % mode
         return
@@ -287,7 +287,7 @@ def _extract_input_attributes(inputs, model_name):
     elif model_name == C.LM_QUESTION_ANSWERS:
         (answer_seqs, answer_lengths), quesion_seqs = inputs
         review_seqs = None
-    elif model_name == C.LM_QUESTION_ANSWERS:
+    elif model_name == C.LM_QUESTION_ANSWERS_REVIEWS:
         (answer_seqs, answer_lengths), quesion_seqs, review_seqs = inputs
     else:
         raise 'Unimplemented model: %s' % model_name
