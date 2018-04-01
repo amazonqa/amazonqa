@@ -15,16 +15,18 @@ from logger import Logger
 RANDOM_SEED = 1
 
 def main():
-    model, mode, category = _params()
-    params = utils.get_model_params(model)
+    args = _params()
+    model_name, mode = args.model_name, args.mode
+    params = utils.get_model_params(model_name)
+    category = params[C.CATEGORY]
 
     logger = Logger()
-    logger.log('\n Model: %s, Mode = %s, Category = %s \n' % (model, mode, category))
-    dataset = _get_dataset(model, category, params, logger)
+    logger.log('\n Model: %s, Mode = %s, Category = %s \n' % (model_name, mode, category))
+    dataset = _get_dataset(model_name, category, params, logger)
 
     if mode == C.TRAIN_TYPE:
-        train_loader = AmazonDataLoader(dataset.train, model, params[C.BATCH_SIZE])
-        dev_loader = AmazonDataLoader(dataset.val, model, params[C.BATCH_SIZE])
+        train_loader = AmazonDataLoader(dataset.train, model_name, params[C.BATCH_SIZE])
+        dev_loader = AmazonDataLoader(dataset.val, model_name, params[C.BATCH_SIZE])
 
         #for batch_idx, data in enumerate(train_loader):
         #    answs, lengths = data
@@ -71,12 +73,10 @@ def _get_dataset(model, category, params, logger):
 
 def _params():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', dest='model', type=str, default=C.LM_ANSWERS)
+    parser.add_argument('--model_name', dest='model_name', type=str, default=C.LM_ANSWERS)
     parser.add_argument('--mode', dest='mode', type=str, default=C.TRAIN_TYPE)
-    parser.add_argument('--category', dest='category', type=str, default=C.VIDEO_GAMES)
-    parser.add_argument('--epoch', dest='epoch', type=int, default=0)
     args, _ = parser.parse_known_args()
-    return args.model, args.mode, args.category
+    return args
 
 if __name__ == '__main__':
     main()

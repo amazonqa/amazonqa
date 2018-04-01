@@ -55,7 +55,7 @@ TOYS_AND_GAMES = 'Toys_and_Games'
 VIDEO_GAMES = 'Video_Games'
 
 # All Categories
-CATEGORY = 'Category'
+CATEGORY = 'category'
 CATEGORIES = [
   AUTOMOTIVE,
   BABY,
