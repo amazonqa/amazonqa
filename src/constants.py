@@ -55,6 +55,7 @@ TOYS_AND_GAMES = 'Toys_and_Games'
 VIDEO_GAMES = 'Video_Games'
 
 # All Categories
+CATEGORY = 'Category'
 CATEGORIES = [
   AUTOMOTIVE,
   BABY,
@@ -154,5 +155,6 @@ LM_HP = {
     VOCAB_SIZE:                   [10000,  9996, 9996],
     TEACHER_FORCING_RATIO:        [0.1,     0.1,    0.1],
     OUTPUT_MAX_LEN:               [200,    200,   200],
-    MODEL_NAME:                   ['ANSWERS', 'QUESTION_ANSWERS', 'QUESTION_ANSWERS_REVIEWS']
+    MODEL_NAME:                   ['ANSWERS', 'QUESTION_ANSWERS', 'QUESTION_ANSWERS_REVIEWS'],
+    CATEGORY:                     [VIDEO_GAMES] * 3
 }

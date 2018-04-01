@@ -4,11 +4,6 @@
 import os
 import argparse
 import pickle
-import json
-import torch
-import tqdm
-import pickle
-from torch.autograd import Variable
 
 from language_models import utils
 from language_models.trainer import Trainer
@@ -54,7 +49,11 @@ def _get_dataset(model, category, params, logger):
 
     used_params = [params[i] for i in [C.VOCAB_SIZE]]
     filename = '_'.join(list(map(str, [model, category, RANDOM_SEED] + used_params)))
-    filename = '%s/%s.pkl' % (C.BASE_PATH, filename)
+    filename = '%s/%s/%s.pkl' % (
+        C.BASE_PATH,
+        params[C.MODEL_NAME],
+        filename
+    )
 
     if os.path.exists(filename):
         logger.log('Loading dataset from file: %s' % filename)

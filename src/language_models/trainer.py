@@ -247,7 +247,7 @@ class Trainer:
 
     def _save_dir(self, time):
         time_str = time.strftime('%Y-%m-%d-%H-%M-%S')
-        return '%s/%s/%s' % (C.BASE_PATH, self.params[C.MODEL_NAME], time_str)
+        return '%s/%s/%s/%s' % (C.BASE_PATH, self.params[C.MODEL_NAME], self.params[C.CATEGORY], time_str)
 
     def _set_optimizer(self, epoch, lr):
         self.optimizer = optim.SGD(self.model.parameters(), lr=lr)
