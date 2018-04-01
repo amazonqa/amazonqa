@@ -9,6 +9,11 @@ class Logger:
         self.logfilename = logfilename
         self.log('', clear=clear_file)
 
+    def log(self, line, clear=False):
+        print(line)
+        with open(self.logfilename, 'w' if clear else 'a') as fp:
+            fp.write('%s\n' % line)
+
 def _log_file_name():
     parser = argparse.ArgumentParser()
     default_name = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
@@ -16,7 +21,3 @@ def _log_file_name():
     args, _ = parser.parse_known_args()
     return vars(args)[C.LOG_FILENAME]
 
-def log(self, line, clear=False):
-    print(line)
-    with open(self.logfilename, 'w' if clear else 'a') as fp:
-        fp.write('%s\n' % line)

@@ -251,7 +251,7 @@ class Trainer:
 
     def _set_optimizer(self, epoch, lr):
         self.optimizer = optim.SGD(self.model.parameters(), lr=lr)
-        logger.log('Setting Learning Rate = %.3f (Epoch = %d)' % (lr, epoch))
+        self.logger.log('Setting Learning Rate = %.3f (Epoch = %d)' % (lr, epoch))
 
 def _set_random_seeds(seed):
     np.random.seed(seed)

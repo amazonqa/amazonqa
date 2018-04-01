@@ -1,22 +1,31 @@
 """Run different seq2seq models
 """
 
+import os
 import argparse
+import pickle
+import json
+import torch
+import tqdm
+import pickle
+from torch.autograd import Variable
 
 from language_models import utils
 from language_models.trainer import Trainer
 from language_models.dataloader import AmazonDataLoader
 from language_models.dataset import AmazonDataset
 import constants as C
+from logger import Logger
 
 RANDOM_SEED = 1
 
 def main():
     model, mode, category = _params()
-    print(model, mode, category)
     params = utils.get_model_params(model)
 
-    dataset = AmazonDataset(category, model, params[C.VOCAB_SIZE])
+    logger = Logger()
+    logger.log('\n Model: %s, Mode = %s, Category = %s \n' % (model, mode, category))
+    dataset = _get_dataset(model, category, params, logger)
 
     if mode == C.TRAIN_TYPE:
         train_loader = AmazonDataLoader(dataset.train, model, params[C.BATCH_SIZE])
@@ -35,14 +44,39 @@ def main():
         )
         trainer.train()
     else:
-        pass
+        raise 'Unimplemented mode: %s' % mode
+
+def _get_dataset(model, category, params, logger):
+    logger.log('Creating dataset for [%s]..' % category.upper())
+
+    if not os.path.exists(C.BASE_PATH):
+        os.makedirs(C.BASE_PATH)
+
+    used_params = [params[i] for i in [C.VOCAB_SIZE]]
+    filename = '_'.join(list(map(str, [model, category, RANDOM_SEED] + used_params)))
+    filename = '%s/%s.pkl' % (C.BASE_PATH, filename)
+
+    if os.path.exists(filename):
+        logger.log('Loading dataset from file: %s' % filename)
+        with open(filename, 'rb') as fp:
+            loader = pickle.load(fp)
+    else:
+        dataset = AmazonDataset(category, model, params[C.VOCAB_SIZE])
+
+        logger.log('Saving dataset in file: %s' % filename)
+        with open(filename, 'wb') as fp:
+            pickle.dump(loader, fp, pickle.HIGHEST_PROTOCOL)
+
+    logger.log('Finished loading dataset for [%s] category and [%s] model..' % (category.upper(), model.upper()))
+    return dataset
 
 def _params():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', dest='model', type=str, default=C.LM_ANSWERS)
     parser.add_argument('--mode', dest='mode', type=str, default=C.TRAIN_TYPE)
     parser.add_argument('--category', dest='category', type=str, default=C.VIDEO_GAMES)
-    args = parser.parse_args()
+    parser.add_argument('--epoch', dest='epoch', type=int, default=0)
+    args, _ = parser.parse_known_args()
     return args.model, args.mode, args.category
 
 if __name__ == '__main__':
