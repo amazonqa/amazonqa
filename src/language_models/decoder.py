@@ -12,11 +12,18 @@ class Decoder(BaseRNN):
     """Decoder for answers
     """
 
-    def __init__(self, vocab_size, h_size, max_len, n_layers, dropout_p, embedding=None, rnn_cell=C.RNN_CELL_LSTM):
-        super(Decoder, self).__init__(vocab_size, h_size, max_len, rnn_cell, n_layers, dropout_p)
+    def __init__(self, vocab_size, h_size, e_size,
+        max_len, n_layers, dropout_p,
+        embedding=None,
+        rnn_cell=C.RNN_CELL_LSTM
+    ):
+        super(Decoder, self).__init__(vocab_size, h_size, e_size,
+            max_len, rnn_cell, n_layers, 
+            dropout_p
+        )
 
-        self.embedding = embedding if embedding else nn.Embedding(vocab_size, h_size)
-        self.rnn = self.rnn_cell(h_size, h_size, n_layers, dropout=self.dropout_p, batch_first=True)
+        self.embedding = embedding if embedding else nn.Embedding(vocab_size, e_size)
+        self.rnn = self.rnn_cell(e_size, h_size, n_layers, dropout=self.dropout_p, batch_first=True)
         self.out = nn.Linear(h_size, vocab_size)
         self.log_softmax = nn.LogSoftmax(dim=1)
 

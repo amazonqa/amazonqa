@@ -39,6 +39,7 @@ class Trainer:
         self.print_every = print_every
         self.params = params
         self.vocab = vocab
+        self.model_name = params[C.MODEL_NAME]
 
         # Data Loaders
         self.dataloader = dataloader
@@ -54,7 +55,8 @@ class Trainer:
         # Model
         self.model = LM(
             self.vocab.get_vocab_size(),
-            params[C.HDIM],
+            self._hsizes(),
+            params[C.EMBEDDING_DIM],
             params[C.OUTPUT_MAX_LEN],
             params[C.H_LAYERS],
             params[C.DROPOUT],
@@ -72,7 +74,6 @@ class Trainer:
         self.perplexity = None
         self.criterion = nn.NLLLoss(ignore_index=C.PAD_INDEX)
 
-        self.model_name = params[C.MODEL_NAME]
         self.optimizer = None
 
         if USE_CUDA:
@@ -248,6 +249,18 @@ class Trainer:
     def _set_optimizer(self, epoch, lr):
         self.optimizer = optim.SGD(self.model.parameters(), lr=lr)
         self.logger.log('Setting Learning Rate = %.3f (Epoch = %d)' % (lr, epoch))
+
+    def _hsizes(self):
+        hsize = self.params[C.HDIM]
+        if self.model_name == C.LM_ANSWERS:
+            hsizes = (None, None, hsize)
+        elif self.model_name == C.LM_QUESTION_ANSWERS:
+            hsizes = (None, hsize, hsize)
+        elif self.model_name == C.LM_QUESTION_ANSWERS_REVIEWS:
+            hsizes = (hsize, hsize, 2 * hsize)
+        else:
+            raise 'Unimplemented model: %s' % self.model_name
+        return hsizes
 
 def _set_random_seeds(seed):
     np.random.seed(seed)

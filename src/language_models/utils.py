@@ -12,6 +12,7 @@ def get_model_params(model_name):
     add_arg(parser, float, C.DROPOUT, H)
     add_arg(parser, float, C.LR, H)
     add_arg(parser, int, C.HDIM, H)
+    add_arg(parser, int, C.EMBEDDING_DIM, H)
     add_arg(parser, int, C.H_LAYERS, H)
     add_arg(parser, int, C.DECAY_START_EPOCH, H)
     add_arg(parser, int, C.LR_DECAY, H)

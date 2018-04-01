@@ -124,6 +124,7 @@ BATCH_SIZE = 'batch_size'
 DROPOUT = 'dropout'
 LR = 'lr'
 HDIM = 'hdim'
+EMBEDDING_DIM = 'embedding_dim'
 H_LAYERS = 'h_layers'
 DECAY_START_EPOCH = 'decay_start_epoch'
 LR_DECAY = 'lr_decay'
@@ -141,21 +142,22 @@ SAVED_PARAMS_FILENAME = 'params.json'
 SAVED_VOCAB_FILENAME = 'vocab.pkl'
 SAVED_ARCHITECTURE_FILENAME = 'architecture.txt'
 
-LM_MODELS = [LM_ANSWERS, LM_QUESTION_ANSWERS, LM_QUESTION_ANSWERS_REVIEWS]
+LM_MODELS =                       [LM_ANSWERS,        LM_QUESTION_ANSWERS, LM_QUESTION_ANSWERS_REVIEWS]
 LM_HP = {
-    EPOCHS:                       [25,      25,     25],
-    BATCH_SIZE:                   [128,    128,    128],
-    DROPOUT:                      [0.2,    0.2,    0.2],
-    LR:                           [0.1,    0.1,    0.1],
-    HDIM:                         [512,    512,    256],
-    H_LAYERS:                     [2,        2,      2],
-    DECAY_START_EPOCH:            [10,      10,      10],
-    LR_DECAY:                     [0.5,     0.5,    0.5],
-    GLOBAL_NORM_MAX:              [5,       5,        5],
-    VOCAB_SIZE:                   [20000,  20000, 20000],
-    TEACHER_FORCING_RATIO:        [0.9,     0.9,    0.9],
-    OUTPUT_MAX_LEN:               [200,     200,    200],
     MODEL_NAME:                   LM_MODELS,
+    EPOCHS:                       [25,                25,                 25],
+    BATCH_SIZE:                   [128,               128,                128],
+    DROPOUT:                      [0.2,               0.2,                0.2],
+    LR:                           [0.1,               0.1,                0.1],
+    HDIM:                         [512,               512,                256],
+    EMBEDDING_DIM:                [512,               512,                512],
+    H_LAYERS:                     [2,                 2,                  2],
+    DECAY_START_EPOCH:            [10,                10,                 10],
+    LR_DECAY:                     [0.5,               0.5,                0.5],
+    GLOBAL_NORM_MAX:              [5,                 5,                  5],
+    VOCAB_SIZE:                   [20000,             20000,              20000],
+    TEACHER_FORCING_RATIO:        [0.9,               0.9,                0.9],
+    OUTPUT_MAX_LEN:               [200,               200,                200],
     CATEGORY:                     [VIDEO_GAMES] * 3,
     LOG_FILENAME:                 ['log.log'] * 3
 }

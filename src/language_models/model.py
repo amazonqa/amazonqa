@@ -13,25 +13,34 @@ from language_models.decoder import Decoder
 
 class LM(nn.Module):
 
-    def __init__(self, vocab_size, h_size, max_len, n_layers, dropout_p, model):
+    def __init__(self, vocab_size, h_size, e_size, max_len, n_layers, dropout_p, model):
         super(LM, self).__init__()
 
-        embedding = nn.Embedding(vocab_size, h_size)
+        r_hsize, q_hsize, a_hsize = h_size
+        embedding = nn.Embedding(vocab_size, e_size)
 
         self.model = model
         self.question_encoder = None if model == C.LM_ANSWERS else Encoder(
-            vocab_size, h_size,
-            max_len, n_layers, 
+            vocab_size, q_hsize, e_size,
+            max_len, n_layers,
             dropout_p, embedding=embedding
         )
         self.reviews_encoder = Encoder(
-            vocab_size, h_size,
+            vocab_size, r_hsize, e_size,
             max_len, n_layers,
             dropout_p, embedding=embedding
         ) if model == C.LM_QUESTION_ANSWERS_REVIEWS else None
 
-        decoder_hsize = 2 * h_size if self.model == C.LM_QUESTION_ANSWERS_REVIEWS else h_size
-        self.decoder = Decoder(vocab_size, h_size, max_len, n_layers, dropout_p)
+        if self.model == C.LM_QUESTION_ANSWERS:
+            assert q_hsize == a_hsize
+        if self.model == C.LM_QUESTION_ANSWERS_REVIEWS:
+            assert a_hsize == q_hsize + r_hsize
+
+        self.decoder = Decoder(
+            vocab_size, a_hsize, e_size,
+            max_len, n_layers,
+            dropout_p, embedding=embedding
+        )
 
     def forward(self,
         question_seqs,
@@ -49,7 +58,14 @@ class LM(nn.Module):
             _, question_hidden = self.question_encoder(question_seqs)
             reviews_hidden = [self.reviews_encoder(seq)[1] for seq in review_seqs]
             reviews_hidden = list(map(_mean, zip(*reviews_hidden)))
-            d_hidden = tuple(torch.cat([q_h, r_h], 1) for q_h, r_h in zip(question_hidden, reviews_hidden))
+            for q_h, r_h in zip(question_hidden, reviews_hidden):
+                print('Q, R hidden size')
+                print(q_h.size())
+                print(r_h.size())
+            d_hidden = tuple(torch.cat([q_h, r_h], 2) for q_h, r_h in zip(question_hidden, reviews_hidden))
+            for i in d_hidden:
+                print('D_hidden size')
+                print(i.size())
         else:
             raise 'Unimplemented model: %s' % self.model
 
@@ -57,3 +73,6 @@ class LM(nn.Module):
 
 def _mean(vars):
     return torch.mean(torch.cat([i.unsqueeze(0) for i in vars], 0), 0)
+
+# def _cat_hidden(h1, h2):
+#     return (torch.cat([h])
