@@ -58,14 +58,7 @@ class LM(nn.Module):
             _, question_hidden = self.question_encoder(question_seqs)
             reviews_hidden = [self.reviews_encoder(seq)[1] for seq in review_seqs]
             reviews_hidden = list(map(_mean, zip(*reviews_hidden)))
-            #for q_h, r_h in zip(question_hidden, reviews_hidden):
-            #   print('Q, R hidden size')
-            #   print(q_h.size())
-            #   print(r_h.size())
             d_hidden = tuple(torch.cat([q_h, r_h], 2) for q_h, r_h in zip(question_hidden, reviews_hidden))
-            #for i in d_hidden:
-            #   print('D_hidden size')
-            #   print(i.size())
         else:
             raise 'Unimplemented model: %s' % self.model
 
