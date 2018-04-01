@@ -146,7 +146,7 @@ LM_MODELS =                       [LM_ANSWERS,        LM_QUESTION_ANSWERS, LM_QU
 LM_HP = {
     MODEL_NAME:                   LM_MODELS,
     EPOCHS:                       [25,                25,                 25],
-    BATCH_SIZE:                   [128,               128,                128],
+    BATCH_SIZE:                   [64,                64,                 64],
     DROPOUT:                      [0.2,               0.2,                0.2],
     LR:                           [0.1,               0.1,                0.1],
     HDIM:                         [512,               512,                256],
@@ -157,7 +157,7 @@ LM_HP = {
     GLOBAL_NORM_MAX:              [5,                 5,                  5],
     VOCAB_SIZE:                   [20000,             20000,              20000],
     TEACHER_FORCING_RATIO:        [0.9,               0.9,                0.9],
-    OUTPUT_MAX_LEN:               [200,               200,                200],
+    OUTPUT_MAX_LEN:               [128,               128,                128],
     CATEGORY:                     [VIDEO_GAMES] * 3,
     LOG_FILENAME:                 ['log.log'] * 3
 }
