@@ -6,6 +6,7 @@ import os
 import pickle
 from datetime import datetime
 from tqdm import tqdm
+import itertools
 
 import numpy as np
 import torch
@@ -24,7 +25,7 @@ class Trainer:
         dataloader, params,
         random_seed=1, 
         save_model_every=1,     # Every Number of epochs to save after
-        print_every=100,        # Every Number of batches to print after
+        print_every=1000,        # Every Number of batches to print after
         test_every=5000,
         dev_loader=None,
         test_loader=None,
@@ -91,7 +92,7 @@ class Trainer:
             self.logger.log('Epoch: %d', epoch)
             for batch_itr, inputs in enumerate(tqdm(self.dataloader)):
                 answer_seqs, quesion_seqs, review_seqs, \
-                    answer_lengths = _extract_input_attributes(inputs)
+                    answer_lengths = _extract_input_attributes(inputs, self.model_name)
                 loss = self.train_batch(
                     quesion_seqs,
                     review_seqs,
@@ -133,11 +134,10 @@ class Trainer:
         teacher_forcing = np.random.random() < self.params[C.TEACHER_FORCING_RATIO]
 
         # run forward pass
-        loss, _ = self._forward_pass(self,
+        loss, _ = self._forward_pass(
             quesion_seqs,
             review_seqs,
             answer_seqs,
-            target_seqs,
             teacher_forcing
         )
 
@@ -165,13 +165,12 @@ class Trainer:
 
         for batch_itr, inputs in tqdm(enumerate(self.dataloader)):
             answer_seqs, quesion_seqs, review_seqs, \
-                answer_lengths = _extract_input_attributes(inputs)
+                answer_lengths = _extract_input_attributes(inputs, self.model_name)
 
-            loss, _ = self._forward_pass(self,
+            loss, _ = self._forward_pass(
                 quesion_seqs,
                 review_seqs,
                 answer_seqs,
-                target_seqs,
                 False,
                 compute_loss=compute_loss
             )
@@ -194,12 +193,10 @@ class Trainer:
             quesion_seqs,
             review_seqs,
             answer_seqs,
-            target_seqs,
             teacher_forcing,
             compute_loss=True
         ):
-
-        answer_seqs, target_seqs = _var(answer_seqs), _var(answer_seqs)
+        target_seqs, answer_seqs  = _var(answer_seqs), _var(answer_seqs)
         quesion_seqs = None if self.model_name == C.LM_ANSWERS else _var(quesion_seqs)
         review_seqs = map(_var, review_seqs) if self.model_name == C.LM_QUESTION_ANSWERS_REVIEWS else None
 
@@ -232,22 +229,21 @@ class Trainer:
         vocab_filename = '%s/%s' % (self.save_dir, C.SAVED_VOCAB_FILENAME)
         architecture_filename = '%s/%s' % (self.save_dir, C.SAVED_ARCHITECTURE_FILENAME)
 
-        self.logger.log('Saving params...')
+        self.logger.log('Saving params in file: %s' % params_filename)
         with open(params_filename, 'w') as fp:
             json.dump(self.params, fp, indent=4, sort_keys=True)
 
-        self.logger.log('Saving vocab...')
+        self.logger.log('Saving vocab in file: %s' % vocab_filename)
         with open(vocab_filename, 'wb') as fp:
-            vocabs = (self.dataloader.src_vocab, self.dataloader.dst_vocab)
-            pickle.dump(vocabs, fp, pickle.HIGHEST_PROTOCOL)
+            pickle.dump(self.vocab, fp, pickle.HIGHEST_PROTOCOL)
 
-        self.logger.log('Saving architecture...')
+        self.logger.log('Saving architecturein file: %s' % architecture_filename)
         with open(architecture_filename, 'w') as fp:
             fp.write(str(self.model))
 
     def _save_dir(self, time):
         time_str = time.strftime('%Y-%m-%d-%H-%M-%S')
-        return '%s/%s/%s/%s' % (C.BASE_PATH, self.params[C.MODEL_NAME], self.params[C.CATEGORY], time_str)
+        return '%s/%s/%s/%s' % (C.BASE_PATH, self.params[C.CATEGORY], self.params[C.MODEL_NAME], time_str)
 
     def _set_optimizer(self, epoch, lr):
         self.optimizer = optim.SGD(self.model.parameters(), lr=lr)
@@ -284,16 +280,16 @@ def _var(variable):
     dtype = torch.cuda.LongTensor if USE_CUDA else torch.LongTensor
     return Variable(torch.LongTensor(variable).type(dtype))
 
-def _extract_input_attributes(inputs):
-    if self.model_name == C.LM_ANSWERS:
+def _extract_input_attributes(inputs, model_name):
+    if model_name == C.LM_ANSWERS:
         answer_seqs, answer_lengths = inputs
         quesion_seqs, review_seqs = None, None
-    elif self.model_name == C.LM_QUESTION_ANSWERS:
+    elif model_name == C.LM_QUESTION_ANSWERS:
         (answer_seqs, answer_lengths), quesion_seqs = inputs
         review_seqs = None
-    elif self.model_name == C.LM_QUESTION_ANSWERS:
+    elif model_name == C.LM_QUESTION_ANSWERS:
         (answer_seqs, answer_lengths), quesion_seqs, review_seqs = inputs
     else:
-        raise 'Unimplemented model: %s' % self.model_name
+        raise 'Unimplemented model: %s' % model_name
 
     return answer_seqs, quesion_seqs, review_seqs, answer_lengths

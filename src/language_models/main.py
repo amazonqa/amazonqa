@@ -18,6 +18,7 @@ def main():
     args = _params()
     model_name, mode = args.model_name, args.mode
     params = utils.get_model_params(model_name)
+    params[C.MODEL_NAME] = model_name
     category = params[C.CATEGORY]
 
     logger = Logger()
@@ -37,7 +38,8 @@ def main():
             params,
             dev_loader=dev_loader,
             random_seed=RANDOM_SEED,
-            vocab=dataset.vocab
+            vocab=dataset.vocab,
+            logger=logger
         )
         trainer.train()
     else:
@@ -46,27 +48,27 @@ def main():
 def _get_dataset(model, category, params, logger):
     logger.log('Creating dataset for [%s]..' % category.upper())
 
-    if not os.path.exists(C.BASE_PATH):
-        os.makedirs(C.BASE_PATH)
+    base_path = '%s/%s' % (C.BASE_PATH, params[C.CATEGORY])
+    if not os.path.exists(base_path):
+        os.makedirs(base_path)
 
     used_params = [params[i] for i in [C.VOCAB_SIZE]]
     filename = '_'.join(list(map(str, [model, category, RANDOM_SEED] + used_params)))
-    filename = '%s/%s/%s.pkl' % (
-        C.BASE_PATH,
-        params[C.MODEL_NAME],
+    filename = '%s/%s.pkl' % (
+        base_path,
         filename
     )
 
     if os.path.exists(filename):
         logger.log('Loading dataset from file: %s' % filename)
         with open(filename, 'rb') as fp:
-            loader = pickle.load(fp)
+            dataset = pickle.load(fp)
     else:
         dataset = AmazonDataset(category, model, params[C.VOCAB_SIZE])
 
         logger.log('Saving dataset in file: %s' % filename)
         with open(filename, 'wb') as fp:
-            pickle.dump(loader, fp, pickle.HIGHEST_PROTOCOL)
+            pickle.dump(dataset, fp, pickle.HIGHEST_PROTOCOL)
 
     logger.log('Finished loading dataset for [%s] category and [%s] model..' % (category.upper(), model.upper()))
     return dataset
