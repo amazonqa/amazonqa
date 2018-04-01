@@ -113,7 +113,7 @@ REVIEW_COLUMNS = [
 """
 TRAIN_TYPE = 'train'
 TEST_TYPE = 'test'
-
+DEV_TYPE = 'val'
 """
 Default Hyperparameters for LM MODELS
 """
@@ -153,7 +153,7 @@ LM_HP = {
     LR_DECAY:                     [0.5,     0.5,    0.5],
     GLOBAL_NORM_MAX:              [5,       5,      5],
     VOCAB_SIZE:                   [10000,  9996, 9996],
-    TEACHER_FORCING_RATIO:        [0.1,     0.1,    0.1],
+    TEACHER_FORCING_RATIO:        [0.9,     0.1,    0.1],
     OUTPUT_MAX_LEN:               [200,    200,   200],
     MODEL_NAME:                   LM_MODELS,
     CATEGORY:                     [VIDEO_GAMES] * 3,

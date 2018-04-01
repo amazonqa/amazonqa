@@ -18,6 +18,7 @@ class AmazonDataLoader(object):
         self.model = model
 
         self.data = sorted(self.data, key=self.sortByLength, reverse=True)
+        self.num_batches = len(self.data) // self.batch_size
 
     def sortByLength(self, item):
         if self.model == C.LM_ANSWERS:
@@ -111,7 +112,6 @@ class AmazonDataLoader(object):
 
 
     def __iter__(self):
-        self.num_batches = len(self.data) // self.batch_size
         indices = np.arange(self.num_batches)
         np.random.shuffle(indices)
 

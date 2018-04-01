@@ -25,7 +25,7 @@ class Trainer:
         dataloader, params,
         random_seed=1, 
         save_model_every=1,     # Every Number of epochs to save after
-        print_every=1000,        # Every Number of batches to print after
+        print_every=300,        # Every Number of batches to print after
         test_every=5000,
         dev_loader=None,
         test_loader=None,
@@ -151,7 +151,7 @@ class Trainer:
 
         return loss.data[0]
 
-    def eval(self):
+    def eval(self, dataloader, mode):
 
         self.model.eval()
         losses, perplexities = [], []
@@ -163,7 +163,7 @@ class Trainer:
 
         compute_loss = mode != C.TEST_TYPE
 
-        for batch_itr, inputs in tqdm(enumerate(self.dataloader)):
+        for batch_itr, inputs in tqdm(enumerate(dataloader)):
             answer_seqs, quesion_seqs, review_seqs, \
                 answer_lengths = _extract_input_attributes(inputs, self.model_name)
 
