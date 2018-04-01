@@ -45,7 +45,9 @@ class Trainer:
             params[C.MODEL_NAME]
         )
 
-        if USE_CUDA: self.model = self.model.cuda()
+        if USE_CUDA:
+            self.model = self.model.cuda()
+            self.criterion = self.criterion.cuda()
 
         self.loss = []
         self.perplexity = []

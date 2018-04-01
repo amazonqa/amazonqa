@@ -3,6 +3,9 @@ import torch
 # Global constants
 USE_CUDA = torch.cuda.is_available()
 
+# Other names
+LOG_FILENAME = 'logfile'
+
 # Types of RNN Cells
 RNN_CELL_LSTM = 'lstm'
 RNN_CELL_GRU = 'gru'
