@@ -190,8 +190,8 @@ def _batch_loss(criterion, outputs, targets):
     n = min(len(outputs), targets.size(1) - 1)
     for idx in range(n):
         output = outputs[idx]
-        loss += criterion(output, targets[:, idx])
-    return loss / len(outputs)
+        loss += criterion(output, targets[:, idx + 1])
+    return loss / n if n > 0 else 0
 
 def _ensure_path(path):
     if not os.path.exists(path):
