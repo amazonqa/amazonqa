@@ -145,4 +145,4 @@ class AmazonDataLoader(object):
         return self.num_batches
 
 def _reverse(array):
-    return array[:, ::-1]
+    return np.ascontiguousarray(array[:, ::-1])
