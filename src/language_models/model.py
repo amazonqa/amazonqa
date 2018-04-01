@@ -30,7 +30,8 @@ class LM(nn.Module):
             dropout_p, embedding=embedding
         ) if model == C.LM_QUESTION_ANSWERS_REVIEWS else None
 
-        self.decoder = Decoder(vocab_size, 2 * h_size, max_len, n_layers, dropout_p)
+        decoder_hsize = 2 * h_size if self.model == C.LM_QUESTION_ANSWERS_REVIEWS else h_size
+        self.decoder = Decoder(vocab_size, h_size, max_len, n_layers, dropout_p)
 
     def forward(self,
         question_seqs,
