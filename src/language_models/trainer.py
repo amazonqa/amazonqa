@@ -25,7 +25,7 @@ class Trainer:
         dataloader, params,
         random_seed=1, 
         save_model_every=1,     # Every Number of epochs to save after
-        print_every=320,        # Every Number of batches to print after
+        print_every=1000,        # Every Number of batches to print after
         test_every=5000,
         dev_loader=None,
         test_loader=None,
