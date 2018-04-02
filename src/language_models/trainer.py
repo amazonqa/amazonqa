@@ -65,11 +65,16 @@ class Trainer:
 
         # Optimizer and loss metrics
         self.optimizer = None
+        self.criterion = nn.NLLLoss(ignore_index=C.PAD_INDEX)
+        self.optimizer = None
+
+        # loss and perplexity
         self.loss = None
         self.perplexity = None
-        self.criterion = nn.NLLLoss(ignore_index=C.PAD_INDEX)
-
-        self.optimizer = None
+        self.min_loss = np.inf
+        self.min_perplexity = np.inf
+        self.min_dev_loss = np.inf
+        self.min_dev_perpexity = np.inf
 
         if USE_CUDA:
             if self.model:
@@ -88,10 +93,11 @@ class Trainer:
         # self.test_loader = list(self.test_loader)[:5]
 
         for epoch in range(self.params[C.EPOCHS]):
+
+            self.logger.log('\n  --- STARTING EPOCH : %d --- \n' % epoch)
             # refresh loss, perplexity 
             self.loss, self.perplexity = [], []
 
-            self.logger.log('Epoch: %d' % epoch)
             for batch_itr, inputs in enumerate(tqdm(self.dataloader)):
                 answer_seqs, quesion_seqs, review_seqs, \
                     answer_lengths = _extract_input_attributes(inputs, self.model_name)
@@ -104,10 +110,10 @@ class Trainer:
                 self.loss.append(loss)
                 self.perplexity.append(_perplexity_from_loss(loss))
 
-                if batch_itr % self.print_every == 0:
-                    self.logger.log('\n[Training] Loss at batch %d = %.2f' % (batch_itr, self.loss[-1]))
-                    self.logger.log('[Training] Perplexity at batch %d = %.2f' % (batch_itr, self.perplexity[-1]))
-                    _print_info(epoch, batch_itr, self.loss, self.perplexity, 'Training', self.logger)
+                if batch_itr > 0 and batch_itr % self.print_every == 0:
+                    self.logger.log('\nMean [TRAIN] Loss for batch %d = %.2f' % (batch_itr, self.loss[-1]))
+                    self.logger.log('Mean [TRAIN] Perplexity for batch %d = %.2f' % (batch_itr, self.perplexity[-1]))
+                    self._print_info(epoch, batch_itr, self.loss, self.perplexity, C.TRAIN_TYPE, self.logger)
 
             # Save model
             if epoch % self.save_model_every == 0:
@@ -115,7 +121,7 @@ class Trainer:
             if epoch >= self.params[C.DECAY_START_EPOCH]:
                 lr *= self.params[C.LR_DECAY]
                 self._set_optimizer(epoch, lr=lr)
-            _print_info(epoch, -1, self.loss, self.perplexity, 'Training (EPOCH COMPLETED)', self.logger)
+            self._print_info(epoch, None, self.loss, self.perplexity, C.TRAIN_TYPE, self.logger)
 
             # Eval on dev and test sets
             self.logger.log('Evaluating on DEV and TEST at end of epoch: %d' % epoch)
@@ -186,9 +192,9 @@ class Trainer:
                 losses.append(loss.data[0])
                 perplexities.append(_perplexity_from_loss(loss.data[0]))
 
-                if batch_itr % self.print_every == 0:
-                    self.logger.log('\n[%s] Loss at batch %d = %.2f' % (mode, batch_itr, losses[-1]))
-                    self.logger.log('[%s] Perplexity at batch %d = %.2f' % (mode, batch_itr, perplexities[-1]))
+                if batch_itr > 0 and batch_itr % self.print_every == 0:
+                    self.logger.log('\nMean [%s] Loss for batch %d = %.2f' % (mode, batch_itr, losses[-1]))
+                    self.logger.log('Mean [%s] Perplexity for batch %d = %.2f' % (mode, batch_itr, perplexities[-1]))
 
             if mode == C.TEST_TYPE:
                 output_seq = output_seq.data.cpu().numpy()
@@ -202,7 +208,7 @@ class Trainer:
                         fp.write(' '.join(tokens) + '\n')
 
         if mode == C.DEV_TYPE:
-            _print_info(1, -1, losses, perplexities, mode, self.logger)
+            self._print_info(0, None, losses, perplexities, mode, self.logger)
         elif mode == C.TEST_TYPE:
             self.logger.log('Saving generated answers to file {0}'.format(output_filename))
         else:
@@ -269,6 +275,31 @@ class Trainer:
         self.optimizer = optim.SGD(self.model.parameters(), lr=lr)
         self.logger.log('Setting Learning Rate = %.3f (Epoch = %d)' % (lr, epoch))
 
+    def _print_info(self, epoch, batch, losses, perplexities, corpus, logger):
+        loss = np.mean(np.array(losses))
+        perplexity = _perplexity_from_loss(loss)
+        corpus = corpus.upper()
+
+        if batch is not None:
+            logger.log('Epoch = %d, Batch = %d, [%s] Loss Running Mean = %.2f' % (epoch, batch, corpus, loss))
+            logger.log('Epoch = %d, Batch = %d, [%s] Perplexity Running Mean = %.2f' % (epoch, batch, corpus, perplexity))
+        else:
+            if corpus == C.TRAIN_TYPE.upper():
+                logger.log('\n-- END OF EPOCH --: %d' % epoch)
+
+            logger.log('\nMean [%s] Loss = %.2f for epoch = %d' % (corpus, loss, epoch))
+            logger.log('Mean [%s] Perplexity = %.2f for epoch = %d' % (corpus, perplexity, epoch))
+
+            if corpus == C.TRAIN_TYPE.upper():
+                self.min_loss = min(loss, self.min_loss)
+                self.min_perplexity = min(perplexity, self.min_perplexity)
+                logger.log('Best [%s] Loss = %.2f, Best [%s] Perplexity = %.2f' % (corpus, self.min_loss, corpus, self.min_perplexity))
+            if corpus == C.DEV_TYPE.upper():
+                self.min_dev_loss = min(loss, self.min_dev_loss)
+                self.min_dev_perpexity = min(perplexity, self.min_dev_perpexity )
+    
+            logger.log('\n')
+
 def _set_random_seeds(seed):
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -290,11 +321,6 @@ def _ensure_path(path):
 
 def _perplexity_from_loss(loss):
     return np.exp(loss)
-
-def _print_info(epoch, batch, losses, perplexities, corpus, logger):
-    logger.log('Epoch = %d, Batch = %d, [%s] Loss = %.2f' % (epoch, batch, corpus, np.mean(np.array(losses))))
-    logger.log('Epoch = %d, Batch = %d, [%s] Perplexity = %.2f' % (epoch, batch, corpus, np.mean(np.array(perplexities))))
-    logger.log('\n')
 
 def _var(variable):
     dtype = torch.cuda.LongTensor if USE_CUDA else torch.LongTensor
