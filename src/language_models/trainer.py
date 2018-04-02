@@ -25,11 +25,9 @@ class Trainer:
         dataloader, params,
         random_seed=1, 
         save_model_every=1,     # Every Number of epochs to save after
-        print_every=1000,        # Every Number of batches to print after
-        test_every=5000,
+        print_every=1000,       # Every Number of batches to print after
         dev_loader=None,
         test_loader=None,
-        ref_filename=None,
         vocab=None,
         logger=None
     ):
@@ -46,22 +44,19 @@ class Trainer:
         self.dev_loader = dev_loader
         self.test_loader = test_loader
 
-        # Reference file for evaluation
-        self.ref_filename = ref_filename
-
         # Logger
         self.logger = logger
 
         # Model
         self.model = LM(
             self.vocab.get_vocab_size(),
-            self._hsizes(),
+            hsizes(params[C.HDIM], self.model_name),
             params[C.EMBEDDING_DIM],
             params[C.OUTPUT_MAX_LEN],
             params[C.H_LAYERS],
             params[C.DROPOUT],
             params[C.MODEL_NAME]
-        )
+        ) if self.dataloader else None
         self.logger.log('MODEL : %s' % self.model)
         self.logger.log('PARAMS: %s' % self.params)
 
@@ -77,7 +72,8 @@ class Trainer:
         self.optimizer = None
 
         if USE_CUDA:
-            self.model = self.model.cuda()
+            if self.model:
+                self.model = self.model.cuda()
             self.criterion = self.criterion.cuda()
 
 
@@ -117,8 +113,13 @@ class Trainer:
             _print_info(epoch, -1, self.loss, self.perplexity, 'Training (EPOCH COMPLETED)', self.logger)
 
             # Eval on dev and test sets
-            self.logger.log('Evaluating on DEV at end of epoch: %d' % epoch)
+            self.logger.log('Evaluating on DEV and TEST at end of epoch: %d' % epoch)
             self.eval(self.dev_loader, C.DEV_TYPE)
+            self.eval(
+                self.test_loader,
+                C.TEST_TYPE,
+                output_filename=self._output_filename(epoch)
+            )
 
     def train_batch(self, 
             quesion_seqs,
@@ -135,7 +136,7 @@ class Trainer:
         teacher_forcing = np.random.random() < self.params[C.TEACHER_FORCING_RATIO]
 
         # run forward pass
-        loss, _ = self._forward_pass(
+        loss, _, _ = self._forward_pass(
             quesion_seqs,
             review_seqs,
             answer_seqs,
@@ -152,7 +153,7 @@ class Trainer:
 
         return loss.data[0]
 
-    def eval(self, dataloader, mode):
+    def eval(self, dataloader, mode, output_filename=None):
 
         self.model.eval()
         losses, perplexities = [], []
@@ -168,7 +169,7 @@ class Trainer:
             answer_seqs, quesion_seqs, review_seqs, \
                 answer_lengths = _extract_input_attributes(inputs, self.model_name)
 
-            loss, _ = self._forward_pass(
+            loss, output_seq, output_lengths = self._forward_pass(
                 quesion_seqs,
                 review_seqs,
                 answer_seqs,
@@ -184,8 +185,21 @@ class Trainer:
                     self.logger.log('\n[%s] Loss at batch %d = %.2f' % (mode, batch_itr, losses[-1]))
                     self.logger.log('[%s] Perplexity at batch %d = %.2f' % (mode, batch_itr, perplexities[-1]))
 
+            if mode == C.TEST_TYPE:
+                output_seq = output_seq.data.cpu().numpy()
+                with open(output_filename, 'a') as fp:
+                    for seq_itr, length in enumerate(output_lengths):
+                        length = int(length)
+                        seq = output_seq[seq_itr, :length]
+                        if seq[-1] == C.EOS_INDEX:
+                            seq = seq[:-1]
+                        tokens = self.vocab.token_list_from_indices(seq)
+                        fp.write(' '.join(tokens) + '\n')
+
         if mode == C.DEV_TYPE:
             _print_info(1, -1, losses, perplexities, mode, self.logger)
+        elif mode == C.TEST_TYPE:
+            self.logger.log('Saving generated answers to file {0}'.format(output_filename))
         else:
             raise 'Unimplemented mode: %s' % mode
         return
@@ -202,7 +216,7 @@ class Trainer:
         review_seqs = map(_var, review_seqs) if self.model_name == C.LM_QUESTION_ANSWERS_REVIEWS else None
 
         # run forward pass
-        outputs, _, _ = self.model(
+        outputs, output_seq, output_lengths = self.model(
             quesion_seqs,
             review_seqs,
             answer_seqs,
@@ -213,16 +227,16 @@ class Trainer:
         # loss and gradient computation
         loss = _batch_loss(self.criterion, outputs, target_seqs)  if compute_loss else None
 
-        return loss, outputs
+        return loss, output_seq, output_lengths
 
     def save_model(self, epoch):
         model_filename = '%s/%s_%d' % (self.save_dir, C.SAVED_MODEL_FILENAME, epoch)
         self.logger.log('Saving model (Epochs = %s)...' % epoch)
         torch.save(self.model.state_dict(), model_filename)
 
-    def _output_filename(self, epoch, batch_itr):
+    def _output_filename(self, epoch):
         _ensure_path(self.save_dir)
-        return '%s/output_%d_%d.txt' % (self.save_dir, epoch, batch_itr)
+        return '%s/generated_answers_%d.txt' % (self.save_dir, epoch)
 
     def save_metadata(self):
         _ensure_path(self.save_dir)
@@ -238,7 +252,7 @@ class Trainer:
         with open(vocab_filename, 'wb') as fp:
             pickle.dump(self.vocab, fp, pickle.HIGHEST_PROTOCOL)
 
-        self.logger.log('Saving architecturein file: %s' % architecture_filename)
+        self.logger.log('Saving architecture in file: %s' % architecture_filename)
         with open(architecture_filename, 'w') as fp:
             fp.write(str(self.model))
 
@@ -249,18 +263,6 @@ class Trainer:
     def _set_optimizer(self, epoch, lr):
         self.optimizer = optim.SGD(self.model.parameters(), lr=lr)
         self.logger.log('Setting Learning Rate = %.3f (Epoch = %d)' % (lr, epoch))
-
-    def _hsizes(self):
-        hsize = self.params[C.HDIM]
-        if self.model_name == C.LM_ANSWERS:
-            hsizes = (None, None, hsize)
-        elif self.model_name == C.LM_QUESTION_ANSWERS:
-            hsizes = (None, hsize, hsize)
-        elif self.model_name == C.LM_QUESTION_ANSWERS_REVIEWS:
-            hsizes = (hsize, hsize, 2 * hsize)
-        else:
-            raise 'Unimplemented model: %s' % self.model_name
-        return hsizes
 
 def _set_random_seeds(seed):
     np.random.seed(seed)
@@ -306,3 +308,14 @@ def _extract_input_attributes(inputs, model_name):
         raise 'Unimplemented model: %s' % model_name
 
     return answer_seqs, quesion_seqs, review_seqs, answer_lengths
+
+def hsizes(hdim, model_name):
+    if model_name == C.LM_ANSWERS:
+        sizes = (None, None, hdim)
+    elif model_name == C.LM_QUESTION_ANSWERS:
+        sizes = (None, hdim, hdim)
+    elif model_name == C.LM_QUESTION_ANSWERS_REVIEWS:
+        sizes = (hdim, hdim, 2 * hdim)
+    else:
+        raise 'Unimplemented model: %s' % self.model_name
+    return sizes

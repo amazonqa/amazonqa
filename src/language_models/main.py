@@ -6,7 +6,7 @@ import argparse
 import pickle
 
 from language_models import utils
-from language_models.trainer import Trainer
+from language_models.trainer import Trainer, hsizes
 from language_models.dataloader import AmazonDataLoader
 from language_models.dataset import AmazonDataset
 import constants as C
@@ -30,6 +30,7 @@ def main():
     if mode == C.TRAIN_TYPE:
         train_loader = AmazonDataLoader(dataset.train, model_name, params[C.BATCH_SIZE])
         dev_loader = AmazonDataLoader(dataset.val, model_name, params[C.BATCH_SIZE])
+        test_loader = AmazonDataLoader(dataset.test, model_name, params[C.BATCH_SIZE])
 
         #for batch_idx, data in enumerate(train_loader):
         #    answs, lengths = data
@@ -39,11 +40,75 @@ def main():
             train_loader,
             params,
             dev_loader=dev_loader,
+            dev_loader=test_loader,
             random_seed=RANDOM_SEED,
             vocab=dataset.vocab,
             logger=logger
         )
         trainer.train()
+
+    elif mode in [C.DEV_TYPE, C.TEST_TYPE]:
+
+        # Load saved params and vocabs
+        input_path, epoch, output_file = args.input_path, args.epoch, args.output_file
+        params_filename = '%s/%s' % (input_path, C.SAVED_PARAMS_FILENAME)
+        vocab_filename = '%s/%s' % (input_path, C.SAVED_VOCAB_FILENAME)
+
+        logger.log('Loading params..')
+        params = json.load(open('%s/params.json' % input_path, 'r'))
+
+        logger.log('Loading vocab..')
+        vocab = pickle.load(open('%s/%s' % input_path, 'rb'))
+
+        model_name = params[C.MODEL_NAME]
+        dataset = _get_dataset(
+            model_name,
+            params[C.CATEGORY],
+            params,
+            logger
+        )
+
+        loader = AmazonDataLoader(
+            dataset.val if mode == C.DEV_TYPE else dataset.test,
+            model_name,
+            params[C.BATCH_SIZE]
+        )
+
+        # Load model
+        logger.log('Loading saved model..')
+        model = LM(
+            vocab.get_vocab_size(),
+            hsizes(params[C.HDIM], model_name),
+            params[C.EMBEDDING_DIM],
+            params[C.OUTPUT_MAX_LEN],
+            params[C.H_LAYERS],
+            params[C.DROPOUT],
+            params[C.MODEL_NAME]
+        )
+        use_cuda = torch.cuda.is_available()
+        map_location = None if use_cuda else 'cpu' # assuming the model was saved from a gpu machine
+        model_filename = '%s/%s_%d' % (input_path, C.SAVED_MODEL_FILENAME, epoch)
+        model.load_state_dict(torch.load(model_filename, map_location=map_location))
+
+        if use_cuda:
+            model.cuda()
+
+        # Instantiate trainer with saved model
+        logger.log('Instantiating trainer..')
+        trainer = Trainer(
+            None,
+            params,
+            dev_loader=loader,
+            test_loader=loader,
+            random_seed=RANDOM_SEED
+        )
+        logger.log('Adding model to trainer..')
+        trainer.model = model
+
+        # Evaluation on test set
+        logger.log('Total number of [%s] batches: %d' % len(list(loader)))
+        trainer.eval(test_loader, mode, output_filename=output_file)
+
     else:
         raise 'Unimplemented mode: %s' % mode
 
