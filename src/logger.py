@@ -10,6 +10,7 @@ class Logger:
         self.log('', clear=clear_file)
 
     def log(self, line, clear=False):
+        assert clear in [True, False]
         print(line)
         with open(self.logfilename, 'w' if clear else 'a') as fp:
             fp.write('%s\n' % line)

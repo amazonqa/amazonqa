@@ -82,11 +82,16 @@ class Trainer:
         self._set_optimizer(0, lr)
         self.save_metadata()
 
+        # For Debuging
+        # self.dataloader = list(self.dataloader)[:10]
+        # self.dev_loader = list(self.dev_loader)[:5]
+        # self.test_loader = list(self.test_loader)[:5]
+
         for epoch in range(self.params[C.EPOCHS]):
             # refresh loss, perplexity 
             self.loss, self.perplexity = [], []
 
-            self.logger.log('Epoch: %d', epoch)
+            self.logger.log('Epoch: %d' % epoch)
             for batch_itr, inputs in enumerate(tqdm(self.dataloader)):
                 answer_seqs, quesion_seqs, review_seqs, \
                     answer_lengths = _extract_input_attributes(inputs, self.model_name)
