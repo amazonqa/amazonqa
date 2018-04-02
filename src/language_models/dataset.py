@@ -42,13 +42,15 @@ class AmazonDataset(object):
                     vocab.add_sequence(self.tokenize(text))
 
                     for answer in question[C.ANSWERS]:
-                        text = answer[C.TEXT]
-                        vocab.add_sequence(self.tokenize(text))
+                        if C.TEXT in answer:
+                            text = answer[C.TEXT]
+                            vocab.add_sequence(self.tokenize(text))
 
             reviewsList = row[C.REVIEWS_LIST]
             for review in reviewsList:
-                text = review[C.TEXT]
-                vocab.add_sequence(self.tokenize(text))
+                if C.TEXT in review:
+                    text = review[C.TEXT]
+                    vocab.add_sequence(self.tokenize(text))
         return vocab
 
 
@@ -94,27 +96,29 @@ class AmazonDataset(object):
                     questionId += 1
 
                     for answer in question[C.ANSWERS]:
-                        text = answer[C.TEXT]
-                        ids = self.vocab.indices_from_token_list(self.tokenize(text))
-                        answersDict.append(ids)
-                        answerId += 1
+                        if C.TEXT in answer:
+                            text = answer[C.TEXT]
+                            ids = self.vocab.indices_from_token_list(self.tokenize(text))
+                            answersDict.append(ids)
+                            answerId += 1
 
-                        if self.model == C.LM_ANSWERS:
-                            tuples.append((answerId,)) #check why zip(*a) doesnt work
-                        else:
-                            tuples.append((answerId, questionId))
+                            if self.model == C.LM_ANSWERS:
+                                tuples.append((answerId,)) #check why zip(*a) doesnt work
+                            else:
+                                tuples.append((answerId, questionId))
 
             reviewsList = row[C.REVIEWS_LIST]
             reviewsDictList = []
             for review in reviewsList:
-                text = review[C.TEXT]
-                ids = self.vocab.indices_from_token_list(self.tokenize(text))
-                reviewsDict.append(ids)
-                reviewId += 1
+                if C.TEXT in review:
+                    text = review[C.TEXT]
+                    ids = self.vocab.indices_from_token_list(self.tokenize(text))
+                    reviewsDict.append(ids)
+                    reviewId += 1
 
-                if self.model == C.LM_QUESTION_ANSWERS_REVIEWS:
-                    if len(reviewsDictList) < self.topReviewsCount:
-                        reviewsDictList.append(reviewId)
+                    if self.model == C.LM_QUESTION_ANSWERS_REVIEWS:
+                        if len(reviewsDictList) < self.topReviewsCount:
+                            reviewsDictList.append(reviewId)
 
             if self.model == C.LM_QUESTION_ANSWERS_REVIEWS:
                 for i in range(len(tuples)):
