@@ -3,8 +3,9 @@ import torch
 # Global constants
 USE_CUDA = torch.cuda.is_available()
 
-# Other names
+# Logs related names
 LOG_FILENAME = 'logfile'
+LOG_DIR = 'log_files'
 
 # Types of RNN Cells
 RNN_CELL_LSTM = 'lstm'
@@ -33,7 +34,7 @@ QA_DATA_PATH = 'data/answers_multiple'
 REVIEWS_DATA_PATH = 'data/reviews_small'
 JSON_DATA_PATH = 'data/json_data'
 NN_DATA_PATH = 'data/nn'
-INPUT_DATA_PATH = '../data/input'
+INPUT_DATA_PATH = 'data/input'
 
 # Types of categories
 AUTOMOTIVE = 'Automotive'
