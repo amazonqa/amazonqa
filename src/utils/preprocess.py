@@ -71,7 +71,6 @@ def generate_raw_data(category):
   qa = qa[[C.ASIN, C.QUESTIONS_LIST]]
 
   qa_reviews = pd.merge(qa, reviews, on=[C.ASIN, C.ASIN])
-  #qa_reviews_json = qa_reviews.to_json()
 
   with open('%s/%s.pickle' % (C.JSON_DATA_PATH, category), 'wb') as f:
     qa_reviews.to_pickle(f)
@@ -87,74 +86,12 @@ def get_raw_dataframe(category):
         return pd.read_pickle(f)
 
 
-def filterReviews(reviewLength, reviewsList):
-    filteredReviewsList = []
-    
-    for review in reviewsList:
-        tokens = review['text'].split()
-        if len(tokens) <= reviewLength:
-            filteredReviewsList.append(review)
-    
-    if len(filteredReviewsList) == 0:
-        return "NA"
-    else:
-        return filteredReviewsList
-
-
-def filterQuestions(questionLength, answerLength, questionsList):
-    filteredQuestionsList = []
-    
-    for question in questionsList:
-        tokens = question['text'].split()
-        if len(tokens) <= questionLength:
-            filteredAnswersList = []
-            
-            answersList = question['answers']
-            
-            for answer in answersList:
-                tokens = answer['text'].split()
-                if len(tokens) <= answerLength:
-                    filteredAnswersList.append(answer)
-            
-            if len(filteredAnswersList) != 0:
-                question['answers'] = filteredAnswersList
-                filteredQuestionsList.append(question)
-    
-    if len(filteredQuestionsList) == 0:
-        return "NA"
-    else:
-        return filteredQuestionsList
-
-
-def filter_raw_data(category, reviewLength, questionLength, answerLength):
-  df = get_raw_dataframe(category)
-
-  df['reviewsList'] = df['reviewsList'].apply(lambda x: filterReviews(reviewLength, x))
-  df.drop(df.index[df['reviewsList'] == "NA"])
-
-  df['questionsList'] = df['questionsList'].apply(lambda x: filterQuestions(questionLength, answerLength, x))
-  df.drop(df.index[df['questionsList'] == "NA"])
-
-  with open('%s/full-%s.pickle' % (C.INPUT_DATA_PATH, category), 'wb') as f:
-    df.to_pickle(f)
-
-
-def filter_raw_data_all_categories(percentile):
-  dict = pickle.load(open('lengths_' + str(percentile) + '.pickle', 'rb'))
-  for cat in C.CATEGORIES:
-    filter_raw_data(cat, dict[cat + '#ReviewLength'], dict[cat + '#QuestionLength'], dict[cat + '#AnswerLength'])
-
-def get_filter_dataframe(category):
-    with open('%s/full-%s.pickle' % (C.INPUT_DATA_PATH, category), 'rb') as f:
-        return pd.read_pickle(f)
-
-
 def generate_split_data(category):
-  pd = get_filter_dataframe(category)
+  pd = get_raw_dataframe(category)
   length = len(pd)
 
   indexes = np.array(range(0, length))
-  random.shuffle(indexes)
+  np.random.shuffle(indexes)
 
   train = (int)(length*60.0/100)
   val = (int)(length*20.0/100)
