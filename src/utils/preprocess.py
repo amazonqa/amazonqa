@@ -114,3 +114,9 @@ def generate_split_data(category):
 def generate_split_data_all_categories():
   for category in C.CATEGORIES:
     generate_split_data(category)
+
+
+def get_split_dataframe(category, split):
+    with open('%s/%s-%s.pickle' % (C.INPUT_DATA_PATH, split, category), 'rb') as f:
+        return pd.read_pickle(f)
+
