@@ -11,6 +11,8 @@ class AmazonDataset(object):
         self.model = model
 
         self.topReviewsCount = 5
+        self.max_review_length = 200
+
         self.max_vocab_size = max_vocab_size
 
         train_path = '%s/train-%s.pickle' % (C.INPUT_DATA_PATH, category)
@@ -37,20 +39,19 @@ class AmazonDataset(object):
             tuples = []
             questionsList = row[C.QUESTIONS_LIST]
             for question in questionsList:
-                if C.TEXT in question:
-                    text = question[C.TEXT]
-                    vocab.add_sequence(self.tokenize(text))
+                text = question[C.TEXT]
+                vocab.add_sequence(self.tokenize(text))
 
-                    for answer in question[C.ANSWERS]:
-                        if C.TEXT in answer:
-                            text = answer[C.TEXT]
-                            vocab.add_sequence(self.tokenize(text))
+                for answer in question[C.ANSWERS]:
+                    text = answer[C.TEXT]
+                    vocab.add_sequence(self.tokenize(text))
 
             reviewsList = row[C.REVIEWS_LIST]
             for review in reviewsList:
-                if C.TEXT in review:
-                    text = review[C.TEXT]
-                    vocab.add_sequence(self.tokenize(text))
+                text = review[C.TEXT]
+                tokens = self.tokenize(text)
+                if len(tokens) < self.max_review_length:
+                    vocab.add_sequence(tokens)
         return vocab
 
 
@@ -80,6 +81,7 @@ class AmazonDataset(object):
         data = []
 
         assert os.path.exists(path)
+        print("Loading Dataset from " + path)
 
         with open(path, 'rb') as f:
             dataFrame = pd.read_pickle(f)
@@ -89,30 +91,29 @@ class AmazonDataset(object):
             tuples = []
             questionsList = row[C.QUESTIONS_LIST]
             for question in questionsList:
-                if C.TEXT in question:
-                    text = question[C.TEXT]
+                text = question[C.TEXT]
+                ids = self.vocab.indices_from_token_list(self.tokenize(text))
+                questionsDict.append(ids)
+                questionId += 1
+
+                for answer in question[C.ANSWERS]:
+                    text = answer[C.TEXT]
                     ids = self.vocab.indices_from_token_list(self.tokenize(text))
-                    questionsDict.append(ids)
-                    questionId += 1
+                    answersDict.append(ids)
+                    answerId += 1
 
-                    for answer in question[C.ANSWERS]:
-                        if C.TEXT in answer:
-                            text = answer[C.TEXT]
-                            ids = self.vocab.indices_from_token_list(self.tokenize(text))
-                            answersDict.append(ids)
-                            answerId += 1
-
-                            if self.model == C.LM_ANSWERS:
-                                tuples.append((answerId,)) #check why zip(*a) doesnt work
-                            else:
-                                tuples.append((answerId, questionId))
+                    if self.model == C.LM_ANSWERS:
+                        tuples.append((answerId,))
+                    else:
+                        tuples.append((answerId, questionId))
 
             reviewsList = row[C.REVIEWS_LIST]
             reviewsDictList = []
             for review in reviewsList:
-                if C.TEXT in review:
-                    text = review[C.TEXT]
-                    ids = self.vocab.indices_from_token_list(self.tokenize(text))
+                text = review[C.TEXT]
+                tokens = self.tokenize(text)
+                if len(tokens) < self.max_review_length:
+                    ids = self.vocab.indices_from_token_list(tokens)
                     reviewsDict.append(ids)
                     reviewId += 1
 
@@ -130,4 +131,5 @@ class AmazonDataset(object):
         assert(len(questionsDict) == questionId+1)
         assert(len(reviewsDict) == reviewId+1)
 
+        print("Number of samples in the data = %d" % (len(data)))
         return (answersDict, questionsDict, reviewsDict, data)
