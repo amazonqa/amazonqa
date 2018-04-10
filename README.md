@@ -50,7 +50,7 @@ Sources - [Pytorch Word Level Language Model Example](https://github.com/pytorch
 
 ## Getting Started:
 
-Commands to run:
-cd src
-export PYTHONPATH=`pwd`
-nohup python3 -u language_models/main.py --category Electronics --mode train --model_name LM_QAR --logfile Electronics-QAR.logfile --batch_size 10 > Electronics-QAR.out &
+### Commands:
+    cd src
+    export PYTHONPATH=`pwd`
+    nohup python3 -u language_models/main.py --category Electronics --mode train --model_name LM_QAR --logfile Electronics-QAR.logfile --batch_size 10 > Electronics-QAR.out &
