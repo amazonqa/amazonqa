@@ -47,3 +47,10 @@ Sources - [Pytorch Word Level Language Model Example](https://github.com/pytorch
 * [Rationalizing Neural Predictions](https://arxiv.org/abs/1606.04155)
 * [The Mythos of Model Interpretability](https://arxiv.org/abs/1606.03490)
 * [Towards A Rigorous Science of Interpretable Machine Learning](https://arxiv.org/abs/1702.08608)
+
+## Getting Started:
+
+### Commands:
+    cd src
+    export PYTHONPATH=`pwd`
+    nohup python3 -u language_models/main.py --category Electronics --mode train --model_name LM_QAR --logfile Electronics-QAR.logfile --batch_size 10 > Electronics-QAR.out &
