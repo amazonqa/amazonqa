@@ -30,11 +30,10 @@ SOS_INDEX = 2
 UNK_INDEX = 3
 
 # Paths
-QA_DATA_PATH = 'data/answers_multiple'
-REVIEWS_DATA_PATH = 'data/reviews_small'
-JSON_DATA_PATH = 'data/json_data'
-NN_DATA_PATH = 'data/nn'
-INPUT_DATA_PATH = 'data/input'
+QA_DATA_PATH = '../data/answers_multiple'
+REVIEWS_DATA_PATH = '../data/reviews_small'
+JSON_DATA_PATH = '../data/json_data'
+INPUT_DATA_PATH = '../data/input'
 
 # Types of categories
 AUTOMOTIVE = 'Automotive'
@@ -132,6 +131,10 @@ LR_DECAY = 'lr_decay'
 GLOBAL_NORM_MAX = 'global_norm_max'
 VOCAB_SIZE = 'vocab_size'
 
+MAX_QUESTION_LEN = 'max_question_len'
+MAX_ANSWER_LEN = 'max_answer_len'
+MAX_REVIEW_LEN = 'max_review_len'
+
 TEACHER_FORCING_RATIO = 'teacher_forcing_ratio'
 OUTPUT_MAX_LEN = 'output_max_len'
 MODEL_NAME = 'model_name'
@@ -160,5 +163,8 @@ LM_HP = {
     TEACHER_FORCING_RATIO:        [0.9,               0.9,                0.9],
     OUTPUT_MAX_LEN:               [128,               128,                128],
     CATEGORY:                     [VIDEO_GAMES] * 3,
-    LOG_FILENAME:                 ['log.log'] * 3
+    LOG_FILENAME:                 ['log.log'] * 3,
+    MAX_QUESTION_LEN:             [100] * 3,
+    MAX_ANSWER_LEN:               [100] * 3,
+    MAX_REVIEW_LEN:               [200] * 3
 }

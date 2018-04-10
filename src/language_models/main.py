@@ -135,7 +135,7 @@ def _get_dataset(model, category, params, logger):
         with open(filename, 'rb') as fp:
             dataset = pickle.load(fp)
     else:
-        dataset = AmazonDataset(category, model, params[C.VOCAB_SIZE])
+        dataset = AmazonDataset(category, model, params)
 
         logger.log('Saving dataset in file: %s' % filename)
         with open(filename, 'wb') as fp:
