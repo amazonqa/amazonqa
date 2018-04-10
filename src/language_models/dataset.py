@@ -4,6 +4,8 @@ import constants as C
 import pandas as pd
 from vocabulary import Vocabulary
 import string
+from tqdm import tqdm
+
 
 class AmazonDataset(object):
 
@@ -56,7 +58,7 @@ class AmazonDataset(object):
         with open(train_path, 'rb') as f:
             dataFrame = pd.read_pickle(f)
 
-        for index, row in dataFrame.iterrows():
+        for index, row in tqdm(dataFrame.iterrows()):
             questionsList = row[C.QUESTIONS_LIST]
             for question in questionsList:
                 tokens = self.truncate_tokens(question[C.TEXT], self.max_question_len)
@@ -89,7 +91,7 @@ class AmazonDataset(object):
         with open(path, 'rb') as f:
             dataFrame = pd.read_pickle(f)
 
-        for index, row in dataFrame.iterrows():
+        for index, row in tqdm(dataFrame.iterrows()):
             tuples = []
             questionsList = row[C.QUESTIONS_LIST]
             for question in questionsList:
