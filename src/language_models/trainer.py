@@ -24,16 +24,16 @@ class Trainer:
     def __init__(self, 
         dataloader, params,
         random_seed=1, 
-        save_model_every=1,     # Every Number of epochs to save after
+        #save_model_every=1,     # Every Number of epochs to save after
         print_every=1000,       # Every Number of batches to print after
         dev_loader=None,
-        test_loader=None,
+        #test_loader=None,
         vocab=None,
         logger=None
     ):
         _set_random_seeds(random_seed)
 
-        self.save_model_every = save_model_every
+        #self.save_model_every = save_model_every
         self.print_every = print_every
         self.params = params
         self.vocab = vocab
@@ -42,7 +42,7 @@ class Trainer:
         # Data Loaders
         self.dataloader = dataloader
         self.dev_loader = dev_loader
-        self.test_loader = test_loader
+        #self.test_loader = test_loader
 
         # Logger
         self.logger = logger
@@ -92,6 +92,9 @@ class Trainer:
         # self.dev_loader = list(self.dev_loader)[:5]
         # self.test_loader = list(self.test_loader)[:5]
 
+        best_val_loss = None
+        best_epoch = None
+
         for epoch in range(self.params[C.EPOCHS]):
 
             self.logger.log('\n  --- STARTING EPOCH : %d --- \n' % epoch)
@@ -115,22 +118,27 @@ class Trainer:
                     self.logger.log('Mean [TRAIN] Perplexity for batch %d = %.2f' % (batch_itr, self.perplexity[-1]))
                     self._print_info(epoch, batch_itr, self.loss, self.perplexity, C.TRAIN_TYPE, self.logger)
 
-            # Save model
-            if epoch % self.save_model_every == 0:
-                self.save_model(epoch)
-            if epoch >= self.params[C.DECAY_START_EPOCH]:
-                lr *= self.params[C.LR_DECAY]
-                self._set_optimizer(epoch, lr=lr)
-            self._print_info(epoch, None, self.loss, self.perplexity, C.TRAIN_TYPE, self.logger)
-
             # Eval on dev and test sets
             self.logger.log('Evaluating on DEV and TEST at end of epoch: %d' % epoch)
-            self.eval(self.dev_loader, C.DEV_TYPE)
+            val_loss = self.eval(self.dev_loader, C.DEV_TYPE)
             #self.eval(
             #   self.test_loader,
             #   C.TEST_TYPE,
             #   output_filename=self._output_filename(epoch)
             #)
+
+            # Save model
+            if not best_val_loss or (val_loss < best_val_loss):
+                self.save_model(epoch)
+                best_epoch = epoch
+                best_val_loss = val_loss
+            else:
+                self.load_model(best_epoch)
+                lr *= self.params[C.LR_DECAY]
+                self._set_optimizer(epoch, lr=lr)
+
+            self._print_info(epoch, None, self.loss, self.perplexity, C.TRAIN_TYPE, self.logger)
+
 
     def train_batch(self, 
             quesion_seqs,
@@ -163,6 +171,7 @@ class Trainer:
         self.optimizer.step()
 
         return loss.data[0]
+
 
     def eval(self, dataloader, mode, output_filename=None):
 
@@ -213,7 +222,8 @@ class Trainer:
             self.logger.log('Saving generated answers to file {0}'.format(output_filename))
         else:
             raise 'Unimplemented mode: %s' % mode
-        return
+        return losses[-1]
+
 
     def _forward_pass(self,
             quesion_seqs,
@@ -244,6 +254,14 @@ class Trainer:
         model_filename = '%s/%s_%d' % (self.save_dir, C.SAVED_MODEL_FILENAME, epoch)
         self.logger.log('Saving model (Epochs = %s)...' % epoch)
         torch.save(self.model.state_dict(), model_filename)
+
+
+    def load_model(self, epoch):
+        map_location = None if USE_CUDA else lambda storage, loc: storage # assuming the model was saved from a gpu machine
+        model_filename = '%s/%s_%d' % (self.save_dir, C.SAVED_MODEL_FILENAME, epoch)
+        self.logger.log('Loading model (Epochs = %s)...' % epoch)
+        self.model.load_state_dict(torch.load(model_filename, map_location=map_location))
+
 
     def _output_filename(self, epoch):
         _ensure_path(self.save_dir)
