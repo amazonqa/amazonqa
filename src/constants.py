@@ -172,7 +172,7 @@ LM_HP = {
     HDIM:                         [512,               512,                256],
     EMBEDDING_DIM:                [512,               512,                512],
     H_LAYERS:                     [2,                 2,                  2],
-    DECAY_START_EPOCH:            [10,                10,                 10],
+    #DECAY_START_EPOCH:            [10,                10,                 10],
     LR_DECAY:                     [0.5,               0.5,                0.5],
     GLOBAL_NORM_MAX:              [5,                 5,                  5],
     VOCAB_SIZE:                   [20000,             20000,              20000],

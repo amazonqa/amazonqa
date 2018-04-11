@@ -48,6 +48,9 @@ if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description="Test AmazonDataset and AmazonDataLoader")
 	parser.add_argument("--model_name", type=str, default='LM_A')
 	parser.add_argument("--category", type=str, default='Dummy')
+	parser.add_argument("--max_question_len", type=int, default=100)
+	parser.add_argument("--max_answer_len", type=int, default=200)
+	parser.add_argument("--max_review_len", type=int, default=300)
 	args, _ = parser.parse_known_args()
 
 	model_name = args.model_name
@@ -63,7 +66,6 @@ if __name__ == "__main__":
 	for batch_itr, inputs in enumerate(tqdm(train_loader)):
 		answer_seqs, question_seqs, review_seqs, answer_lengths = _extract_input_attributes(inputs, model_name)
 		print("batch number ", batch_itr)
-		assert(len(answer_seqs) == len(question_seqs) == len(review_seqs))
 		
 		for i in range(len(answer_seqs)):
 			print("batch seq number ", i)
@@ -73,7 +75,8 @@ if __name__ == "__main__":
 			if model_name == C.LM_QUESTION_ANSWERS or model_name == C.LM_QUESTION_ANSWERS_REVIEWS:
 				print(" ".join(dataset.vocab.token_list_from_indices(question_seqs[i])))
 			
-			if model_name == C.LM_QUESTION_ANSWERS_REVIEWS:
+		if model_name == C.LM_QUESTION_ANSWERS_REVIEWS:
+			for i in range(len(review_seqs)):
 				for review_seq in review_seqs[i]:
 					print(" ".join(dataset.vocab.token_list_from_indices(review_seq)))
 
