@@ -16,7 +16,6 @@ class AmazonDataLoader(object):
 
         self.batch_size = batch_size
         self.model = model
-
         self.data = sorted(self.data, key=self.sortByLength, reverse=True)
         self.num_batches = len(self.data) // self.batch_size
 
@@ -120,6 +119,7 @@ class AmazonDataLoader(object):
             end = (index + 1) * self.batch_size
 
             batch_data = self.data[start:end]
+            #print(batch_data)
             assert(self.batch_size == len(batch_data))
 
             if self.model == C.LM_ANSWERS:
