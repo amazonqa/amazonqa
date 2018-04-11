@@ -56,7 +56,10 @@ def select_reviews(reviews, select_mode, num_reviews):
         random.shuffle(reviews)
     elif select_mode == C.WILSON:
         for r in range(len(reviews)):
-            reviews[r]['wilson_score'] = wilson_score(reviews[r]['helpful'], reviews[r]['unhelpful'])
+            helpful_count = reviews[r]['helpful']
+            # TODO: the 'unhelpful' key is wrong in the database! should be 'total'
+            unhelpful_count = reviews[r]['unhelpful'] - helpful_count
+            reviews[r]['wilson_score'] = wilson_score(helpful_count, unhelpful_count)
         reviews = sorted(reviews, key=lambda review: review['wilson_score'], reverse=True)
     else: #select_mode == HELPFUL or default 
         reviews = sorted(reviews, key=lambda review: review['helpful'], reverse=True)
