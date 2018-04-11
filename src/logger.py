@@ -2,6 +2,7 @@
 import argparse
 import constants as C
 from datetime import datetime
+import os
 
 class Logger:
 
@@ -20,4 +21,6 @@ def _log_file_name():
     default_name = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
     parser.add_argument('--%s' % C.LOG_FILENAME, dest=C.LOG_FILENAME, type=str, default='%s.log' % default_name)
     args, _ = parser.parse_known_args()
+    if not os.path.exists(C.LOG_DIR):
+        os.makedirs(C.LOG_DIR)
     return C.LOG_DIR + '/'  + vars(args)[C.LOG_FILENAME]

@@ -18,8 +18,8 @@ import constants as C
 RANDOM_SEED = 1
 
 def main():
-    args = _params()
-    model_name, mode = args.model_name, args.mode
+
+    model_name, mode = utils.get_main_params()
     logger = Logger()
 
     if mode == C.TRAIN_TYPE:
@@ -29,7 +29,6 @@ def main():
         category = params[C.CATEGORY]
         dataset = _get_dataset(model_name, category, params, logger)
         logger.log('\n Model: %s, Mode = %s, Category = %s \n' % (model_name, mode, category))
-
         train_loader = AmazonDataLoader(dataset.train, model_name, params[C.BATCH_SIZE])
         dev_loader = AmazonDataLoader(dataset.val, model_name, params[C.BATCH_SIZE])
         test_loader = AmazonDataLoader(dataset.test, model_name, params[C.BATCH_SIZE])
@@ -131,7 +130,7 @@ def _get_dataset(model, category, params, logger):
         with open(filename, 'rb') as fp:
             dataset = pickle.load(fp)
     else:
-        dataset = AmazonDataset(category, model, params)
+        dataset = AmazonDataset(params)
 
         logger.log('Saving dataset in file: %s' % filename)
         with open(filename, 'wb') as fp:
@@ -139,16 +138,6 @@ def _get_dataset(model, category, params, logger):
 
     logger.log('Finished loading dataset for [%s] category and [%s] model..' % (category.upper(), model.upper()))
     return dataset
-
-def _params():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--model_name', dest='model_name', type=str, default=C.LM_ANSWERS)
-    parser.add_argument('--mode', dest='mode', type=str, default=C.TRAIN_TYPE)
-    parser.add_argument('--input_path', dest='input_path', type=str, default=None)
-    parser.add_argument('--epoch', dest='epoch', type=int, default=0)
-    parser.add_argument('--output_file', dest='output_file', type=str, default='output.txt')
-    args, _ = parser.parse_known_args()
-    return args
 
 if __name__ == '__main__':
     main()

@@ -102,12 +102,14 @@ TIME = 'time'
 TEXT = 'text'
 TYPE = 'type'
 
+"""
+TODO: remove if not being used anywhere
 REVIEW_COLUMNS = [
   REVIEW_TEXT,
   HELPFUL,
   REVIEW_TIME
 ]
-
+"""
 """
     Modes
 """
@@ -139,6 +141,15 @@ TEACHER_FORCING_RATIO = 'teacher_forcing_ratio'
 OUTPUT_MAX_LEN = 'output_max_len'
 MODEL_NAME = 'model_name'
 
+REVIEW_SELECT_MODE = 'review_select_mode'
+REVIEW_SELECT_NUM = 'review_select_num'
+"""
+    Review select modes
+"""
+RANDOM = 'random'
+HELPFUL = 'helpful'
+WILSON = 'wilson'
+
 # DIRS/FILENAMES
 BASE_PATH = 'language_models/saved_models'
 SAVED_MODEL_FILENAME = 'model.pt'
@@ -147,8 +158,13 @@ SAVED_VOCAB_FILENAME = 'vocab.pkl'
 SAVED_ARCHITECTURE_FILENAME = 'architecture.txt'
 
 LM_MODELS =                       [LM_ANSWERS,        LM_QUESTION_ANSWERS, LM_QUESTION_ANSWERS_REVIEWS]
+"""
+    WARNING : LM_HP shouldn't be accessed anywhere other than utils.get_model_params()
+"""
 LM_HP = {
     MODEL_NAME:                   LM_MODELS,
+    REVIEW_SELECT_MODE:                  [None,              None,               HELPFUL],
+    REVIEW_SELECT_NUM:            [None,              None,               5],
     EPOCHS:                       [25,                25,                 25],
     BATCH_SIZE:                   [64,                64,                 64],
     DROPOUT:                      [0.2,               0.2,                0.2],

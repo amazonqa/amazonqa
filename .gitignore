@@ -8,3 +8,7 @@ __init__.pyc
 *pyc
 *.pickle
 *.log
+*.patch
+*.ipynb_checkpoints*
+*saved_models*
+*.DS_Store*

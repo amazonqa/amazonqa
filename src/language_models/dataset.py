@@ -5,17 +5,21 @@ import pandas as pd
 from vocabulary import Vocabulary
 import string
 from tqdm import tqdm
-
+import ipdb as pdb
+from language_models import utils
 
 class AmazonDataset(object):
+    def __init__(self, params):
+        self.model = params[C.MODEL_NAME]
 
-    def __init__(self, category, model, params):
+        category = params[C.CATEGORY]
 
         self.max_question_len = params[C.MAX_QUESTION_LEN]
         self.max_answer_len = params[C.MAX_ANSWER_LEN]
         self.max_review_len = params[C.MAX_REVIEW_LEN]
+        self.review_select_num = params[C.REVIEW_SELECT_NUM]
+        self.review_select_mode = params[C.REVIEW_SELECT_MODE]
 
-        self.model = model
         self.max_vocab_size = params[C.VOCAB_SIZE]
 
         train_path = '%s/train-%s.pickle' % (C.INPUT_DATA_PATH, category)
@@ -27,7 +31,6 @@ class AmazonDataset(object):
 
         test_path = '%s/test-%s.pickle' % (C.INPUT_DATA_PATH, category)
         self.test = self.get_data(test_path)
-
 
     def tokenize(self, text):
         punctuations = string.punctuation.replace("\'", '')
@@ -58,7 +61,7 @@ class AmazonDataset(object):
         with open(train_path, 'rb') as f:
             dataFrame = pd.read_pickle(f)
 
-        for index, row in tqdm(dataFrame.iterrows()):
+        for _, row in dataFrame.iterrows():
             questionsList = row[C.QUESTIONS_LIST]
             for question in questionsList:
                 tokens = self.truncate_tokens(question[C.TEXT], self.max_question_len)
@@ -91,7 +94,7 @@ class AmazonDataset(object):
         with open(path, 'rb') as f:
             dataFrame = pd.read_pickle(f)
 
-        for index, row in tqdm(dataFrame.iterrows()):
+        for _, row in tqdm(dataFrame.iterrows()):
             tuples = []
             questionsList = row[C.QUESTIONS_LIST]
             for question in questionsList:
@@ -111,11 +114,9 @@ class AmazonDataset(object):
                     else:
                         tuples.append((answerId, questionId))
 
-
             if self.model == C.LM_QUESTION_ANSWERS_REVIEWS:
                 reviewsList = row[C.REVIEWS_LIST]
-                reviewsList = reviewsList[:5] #TODO Replace with Scoring Module
-                
+                reviewsList = utils.select_reviews(reviewsList, self.review_select_mode, self.review_select_num)
                 reviewsDictList = []
                 for review in reviewsList:
                     tokens = self.truncate_tokens(review[C.TEXT], self.max_review_len)
@@ -135,4 +136,3 @@ class AmazonDataset(object):
         print("Number of samples in the data = %d" % (len(data)))
 
         return (answersDict, questionsDict, reviewsDict, data)
-
