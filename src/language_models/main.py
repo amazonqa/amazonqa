@@ -32,13 +32,13 @@ def main():
 
         train_loader = AmazonDataLoader(dataset.train, model_name, params[C.BATCH_SIZE])
         dev_loader = AmazonDataLoader(dataset.val, model_name, params[C.BATCH_SIZE])
-        test_loader = AmazonDataLoader(dataset.test, model_name, params[C.BATCH_SIZE])
+        #test_loader = AmazonDataLoader(dataset.test, model_name, params[C.BATCH_SIZE])
 
         trainer = Trainer(
             train_loader,
             params,
             dev_loader=dev_loader,
-            test_loader=test_loader,
+            #test_loader=test_loader,
             random_seed=RANDOM_SEED,
             vocab=dataset.vocab,
             logger=logger
@@ -97,7 +97,7 @@ def main():
             None,
             params,
             dev_loader=loader,
-            test_loader=loader,
+            #test_loader=loader,
             random_seed=RANDOM_SEED,
             vocab=vocab,
             logger=logger

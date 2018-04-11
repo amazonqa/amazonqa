@@ -126,11 +126,11 @@ class Trainer:
             # Eval on dev and test sets
             self.logger.log('Evaluating on DEV and TEST at end of epoch: %d' % epoch)
             self.eval(self.dev_loader, C.DEV_TYPE)
-            self.eval(
-                self.test_loader,
-                C.TEST_TYPE,
-                output_filename=self._output_filename(epoch)
-            )
+            #self.eval(
+            #   self.test_loader,
+            #   C.TEST_TYPE,
+            #   output_filename=self._output_filename(epoch)
+            #)
 
     def train_batch(self, 
             quesion_seqs,
