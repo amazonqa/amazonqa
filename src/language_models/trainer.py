@@ -128,7 +128,7 @@ class Trainer:
             #   output_filename=self._output_filename(epoch)
             #)
 
-            self.logger.log("best_val_loss %.3f best_epoch %.3f val_loss %.3f epoch %.3f " 
+            self.logger.log("best_val_loss %s best_epoch %s val_loss %s epoch %s " 
                % (best_val_loss, val_loss, best_epoch, epoch)) 
             # Save model
             if not best_val_loss or (val_loss < best_val_loss):
