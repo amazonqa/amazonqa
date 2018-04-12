@@ -120,13 +120,16 @@ class Trainer:
 
             # Eval on dev and test sets
             self.logger.log('Evaluating on DEV and TEST at end of epoch: %d' % epoch)
-            val_loss = self.eval(self.dev_loader, C.DEV_TYPE)
+            losses = self.eval(self.dev_loader, C.DEV_TYPE)
+            val_loss = np.mean(np.array(losses))
             #self.eval(
             #   self.test_loader,
             #   C.TEST_TYPE,
             #   output_filename=self._output_filename(epoch)
             #)
 
+            self.logger.log("best_val_loss %.3f best_epoch %.3f val_loss %.3f epoch %.3f " 
+               % (best_val_loss, val_loss, best_epoch, epoch)) 
             # Save model
             if not best_val_loss or (val_loss < best_val_loss):
                 self.save_model(epoch)
@@ -222,7 +225,7 @@ class Trainer:
             self.logger.log('Saving generated answers to file {0}'.format(output_filename))
         else:
             raise 'Unimplemented mode: %s' % mode
-        return losses[-1]
+        return losses
 
 
     def _forward_pass(self,
@@ -291,7 +294,7 @@ class Trainer:
 
     def _set_optimizer(self, epoch, lr):
         self.optimizer = optim.SGD(self.model.parameters(), lr=lr)
-        self.logger.log('Setting Learning Rate = %.3f (Epoch = %d)' % (lr, epoch))
+        self.logger.log('Setting Learning Rate = %.9f (Epoch = %d)' % (lr, epoch))
 
     def _print_info(self, epoch, batch, losses, perplexities, corpus, logger):
         loss = np.mean(np.array(losses))
