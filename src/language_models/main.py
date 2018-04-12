@@ -75,7 +75,7 @@ def main():
         logger.log('Loading saved model..')
         model = LM(
             vocab.get_vocab_size(),
-            hsizes(params[C.HDIM], model_name),
+            hsizes(params, model_name),
             params[C.EMBEDDING_DIM],
             params[C.OUTPUT_MAX_LEN],
             params[C.H_LAYERS],

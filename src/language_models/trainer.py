@@ -50,7 +50,7 @@ class Trainer:
         # Model
         self.model = LM(
             self.vocab.get_vocab_size(),
-            hsizes(params[C.HDIM], self.model_name),
+            hsizes(params, self.model_name),
             params[C.EMBEDDING_DIM],
             params[C.OUTPUT_MAX_LEN],
             params[C.H_LAYERS],
@@ -358,13 +358,10 @@ def _extract_input_attributes(inputs, model_name):
 
     return answer_seqs, quesion_seqs, review_seqs, answer_lengths
 
-def hsizes(hdim, model_name):
-    if model_name == C.LM_ANSWERS:
-        sizes = (None, None, hdim)
-    elif model_name == C.LM_QUESTION_ANSWERS:
-        sizes = (None, hdim, hdim)
-    elif model_name == C.LM_QUESTION_ANSWERS_REVIEWS:
-        sizes = (hdim, hdim, 2 * hdim)
-    else:
-        raise 'Unimplemented model: %s' % self.model_name
-    return sizes
+def hsizes(params, model_name):
+    r_hsize, q_hsize, a_hsize = params[C.HDIM_R], params[C.HDIM_Q], params[C.HDIM_A]
+    if model_name == C.LM_QUESTION_ANSWERS:
+        assert a_hsize == q_hsize
+    if model_name == C.LM_QUESTION_ANSWERS_REVIEWS:
+        assert a_hsize == r_hsize + q_hsize
+    return r_hsize, q_hsize, a_hsize

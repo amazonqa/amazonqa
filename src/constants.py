@@ -125,7 +125,9 @@ EPOCHS = 'epochs'
 BATCH_SIZE = 'batch_size'
 DROPOUT = 'dropout'
 LR = 'lr'
-HDIM = 'hdim'
+HDIM_A = 'hdim_a'
+HDIM_Q = 'hdim_q'
+HDIM_R = 'hdim_r'
 EMBEDDING_DIM = 'embedding_dim'
 H_LAYERS = 'h_layers'
 DECAY_START_EPOCH = 'decay_start_epoch'
@@ -163,13 +165,15 @@ LM_MODELS =                       [LM_ANSWERS,        LM_QUESTION_ANSWERS, LM_QU
 """
 LM_HP = {
     MODEL_NAME:                   LM_MODELS,
-    REVIEW_SELECT_MODE:                  [None,              None,               HELPFUL],
+    REVIEW_SELECT_MODE:           [None,              None,               HELPFUL],
     REVIEW_SELECT_NUM:            [None,              None,               5],
     EPOCHS:                       [25,                25,                 25],
     BATCH_SIZE:                   [64,                64,                 64],
     DROPOUT:                      [0.2,               0.2,                0.2],
     LR:                           [0.1,               0.1,                0.1],
-    HDIM:                         [512,               512,                256],
+    HDIM_A:                       [512,               512,                512],
+    HDIM_Q:                       [None,              512,                256],
+    HDIM_R:                       [None,              None,               256],
     EMBEDDING_DIM:                [512,               512,                512],
     H_LAYERS:                     [2,                 2,                  2],
     #DECAY_START_EPOCH:            [10,                10,                 10],
