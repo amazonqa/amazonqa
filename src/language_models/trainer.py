@@ -23,8 +23,8 @@ class Trainer:
 
     def __init__(self, 
         dataloader, params,
-        random_seed=1, 
-        #save_model_every=1,     # Every Number of epochs to save after
+        random_seed=1,
+        save_model_every=1,     # Every Number of epochs to save after
         print_every=1000,       # Every Number of batches to print after
         dev_loader=None,
         #test_loader=None,
@@ -33,7 +33,7 @@ class Trainer:
     ):
         _set_random_seeds(random_seed)
 
-        #self.save_model_every = save_model_every
+        self.save_model_every = save_model_every
         self.print_every = print_every
         self.params = params
         self.vocab = vocab
@@ -92,9 +92,7 @@ class Trainer:
         # self.dev_loader = list(self.dev_loader)[:5]
         # self.test_loader = list(self.test_loader)[:5]
 
-        best_val_loss = None
-        best_epoch = None
-
+        prev_dev_loss = np.inf
         for epoch in range(self.params[C.EPOCHS]):
 
             self.logger.log('\n  --- STARTING EPOCH : %d --- \n' % epoch)
@@ -118,29 +116,28 @@ class Trainer:
                     self.logger.log('Mean [TRAIN] Perplexity for batch %d = %.2f' % (batch_itr, self.perplexity[-1]))
                     self._print_info(epoch, batch_itr, self.loss, self.perplexity, C.TRAIN_TYPE, self.logger)
 
-            # Eval on dev and test sets
-            self.logger.log('Evaluating on DEV and TEST at end of epoch: %d' % epoch)
-            losses = self.eval(self.dev_loader, C.DEV_TYPE)
-            val_loss = np.mean(np.array(losses))
-            #self.eval(
-            #   self.test_loader,
-            #   C.TEST_TYPE,
-            #   output_filename=self._output_filename(epoch)
-            #)
+            # Print train epoch logs
+            self._print_info(epoch, None, self.loss, self.perplexity, C.TRAIN_TYPE, self.logger)
 
-            self.logger.log("best_val_loss %s best_epoch %s val_loss %s epoch %s " 
-               % (best_val_loss, val_loss, best_epoch, epoch)) 
-            # Save model
-            if not best_val_loss or (val_loss < best_val_loss):
+            # Save model periodically
+            if epoch % self.save_model_every == 0:
                 self.save_model(epoch)
-                best_epoch = epoch
-                best_val_loss = val_loss
-            else:
-                self.load_model(best_epoch)
+
+            # Eval on dev set
+            self.logger.log('Evaluating on DEV at end of epoch: %d' % epoch)
+            dev_loss = self.eval(self.dev_loader, C.DEV_TYPE)
+            #self.eval( self.test_loader, C.TEST_TYPE, output_filename=self._output_filename(epoch))
+
+            # Update lr is the val loss increases
+            if dev_loss > prev_dev_loss:
                 lr *= self.params[C.LR_DECAY]
                 self._set_optimizer(epoch, lr=lr)
+            prev_dev_loss = dev_loss
 
-            self._print_info(epoch, None, self.loss, self.perplexity, C.TRAIN_TYPE, self.logger)
+            # Save the best model till now
+            if dev_loss == self.min_dev_loss:
+                # Using epoch = -1 as best epoch
+                self.save_model(-1)
 
 
     def train_batch(self, 
@@ -225,8 +222,7 @@ class Trainer:
             self.logger.log('Saving generated answers to file {0}'.format(output_filename))
         else:
             raise 'Unimplemented mode: %s' % mode
-        return losses
-
+        return np.mean(np.array(losses))
 
     def _forward_pass(self,
             quesion_seqs,
@@ -318,7 +314,7 @@ class Trainer:
             if corpus == C.DEV_TYPE.upper():
                 self.min_dev_loss = min(loss, self.min_dev_loss)
                 self.min_dev_perpexity = min(perplexity, self.min_dev_perpexity )
-    
+                logger.log('Best [%s] Loss = %.2f, Best [%s] Perplexity = %.2f' % (corpus, self.min_dev_loss, corpus, self.min_dev_perpexity))
             logger.log('\n')
 
 def _set_random_seeds(seed):
