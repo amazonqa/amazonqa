@@ -21,6 +21,7 @@ def main():
 
     args = utils.get_main_params()
     model_name, mode = args.model_name, args.mode
+    save_dir = args.save_dir
     logger = Logger()
 
     resume, epoch = args.resume, args.epoch
@@ -48,7 +49,8 @@ def main():
             vocab=dataset.vocab,
             logger=logger,
             resume_training=resume,
-            resume_epoch=epoch if resume else None
+            resume_epoch=epoch if resume else None,
+            save_dir=save_dir
         )
         trainer.train()
 
@@ -107,7 +109,8 @@ def main():
             #test_loader=loader,
             random_seed=RANDOM_SEED,
             vocab=vocab,
-            logger=logger
+            logger=logger,
+            save_dir=save_dir
         )
         logger.log('Adding model to trainer..')
         trainer.model = model

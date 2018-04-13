@@ -14,6 +14,7 @@ def get_main_params():
     parser.add_argument('--input_path', dest='input_path', type=str, default=None)
     parser.add_argument('--epoch', dest='epoch', type=int, default=-1)
     parser.add_argument('--resume', dest='resume', type=int, default=0)
+    parser.add_argument('--save_dir', dest='save_dir', type=str, default=None)
     parser.add_argument('--output_file', dest='output_file', type=str, default='output.txt')
     args, _ = parser.parse_known_args()
     return args
@@ -44,6 +45,8 @@ def get_model_params(model_name):
     add_arg(parser, int, C.MAX_QUESTION_LEN, H)
     add_arg(parser, int, C.MAX_ANSWER_LEN, H)
     add_arg(parser, int, C.MAX_REVIEW_LEN, H)
+    add_arg(parser, int, C.EPOCH, H)
+    add_arg(parser, int, C.RESUME, H)
     return vars(parser.parse_args())
 
 def add_arg(parser, typ, hpstr, H):

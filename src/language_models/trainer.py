@@ -32,6 +32,7 @@ class Trainer:
         logger=None,
         resume_training=False,
         resume_epoch=None,
+        save_dir=None
     ):
         _set_random_seeds(random_seed)
 
@@ -66,9 +67,9 @@ class Trainer:
         if resume_training:
             self.load_model(resume_epoch)
             self.start_epoch = resume_epoch + 1
-
-        # Saving params
-        self.save_dir = self._save_dir(datetime.now())
+            self.save_dir = save_dir
+        else:
+            self.save_dir = self._save_dir(datetime.now())
 
         # Optimizer and loss metrics
         self.optimizer = None

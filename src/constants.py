@@ -152,6 +152,9 @@ RANDOM = 'random'
 HELPFUL = 'helpful'
 WILSON = 'wilson'
 
+RESUME = 'resume'
+EPOCH = 'epoch'
+
 # DIRS/FILENAMES
 BASE_PATH = 'language_models/saved_models'
 SAVED_MODEL_FILENAME = 'model.pt'
@@ -186,5 +189,7 @@ LM_HP = {
     LOG_FILENAME:                 ['log.log'] * 3,
     MAX_QUESTION_LEN:             [100] * 3,
     MAX_ANSWER_LEN:               [100] * 3,
-    MAX_REVIEW_LEN:               [200] * 3
+    MAX_REVIEW_LEN:               [200] * 3,
+    RESUME:                       [0]*3,
+    EPOCH:                        [-1]*3
 }
