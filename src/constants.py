@@ -154,6 +154,7 @@ WILSON = 'wilson'
 
 RESUME = 'resume'
 EPOCH = 'epoch'
+SAVE_DIR = 'save_dir'
 
 # DIRS/FILENAMES
 BASE_PATH = 'language_models/saved_models'
@@ -191,5 +192,6 @@ LM_HP = {
     MAX_ANSWER_LEN:               [100] * 3,
     MAX_REVIEW_LEN:               [200] * 3,
     RESUME:                       [0]*3,
-    EPOCH:                        [-1]*3
+    EPOCH:                        [-1]*3,
+    SAVE_DIR:                     [None]*3
 }

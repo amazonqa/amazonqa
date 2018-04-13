@@ -47,6 +47,7 @@ def get_model_params(model_name):
     add_arg(parser, int, C.MAX_REVIEW_LEN, H)
     add_arg(parser, int, C.EPOCH, H)
     add_arg(parser, int, C.RESUME, H)
+    add_arg(parser, str, C.SAVE_DIR, H)
     return vars(parser.parse_args())
 
 def add_arg(parser, typ, hpstr, H):
