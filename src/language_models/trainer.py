@@ -65,9 +65,9 @@ class Trainer:
         self.logger.log('PARAMS: %s' % self.params)
 
         if resume_training:
+            self.save_dir = save_dir
             self.load_model(resume_epoch)
             self.start_epoch = resume_epoch + 1
-            self.save_dir = save_dir
         else:
             self.save_dir = self._save_dir(datetime.now())
 
