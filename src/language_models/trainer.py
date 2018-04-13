@@ -263,20 +263,15 @@ class Trainer:
         model_filename = '%s/%s_%d' % (self.save_dir, C.SAVED_MODEL_FILENAME, epoch)
         self.logger.log('Saving model (Epochs = %s)...' % epoch)
         torch.save(self.model.state_dict(), model_filename)
-
-        with open(self._optimizer_filename(epoch), 'wb') as fp:
-            pickle.dump(self.optimizer, fp, pickle.HIGHEST_PROTOCOL)
+        torch.save({'optimizer': self.optimizer}, self._optimizer_filename(epoch))
 
     def load_model(self, epoch):
         map_location = None if USE_CUDA else lambda storage, loc: storage # assuming the model was saved from a gpu machine
         model_filename = '%s/%s_%d' % (self.save_dir, C.SAVED_MODEL_FILENAME, epoch)
         self.logger.log('Loading model (Epochs = %s)...' % epoch)
 
-        optimizer_filename = '%s/%s' % (self.save_dir, C.SAVED_OPTIMIZER_FILENAME)
-        with open(self._optimizer_filename(epoch), 'rb') as fp:
-            self.optimizer = pickle.load(fp)
-
         self.model.load_state_dict(torch.load(model_filename, map_location=map_location))
+        self.optimizer = torch.load(self._optimizer_filename(epoch))['optimizer']
 
     def _optimizer_filename(self, epoch):
         return '%s/%s_%d.pt' % (self.save_dir, C.SAVED_OPTIMIZER_FILENAME, epoch)
