@@ -40,6 +40,7 @@ class Trainer:
         self.params = params
         self.vocab = vocab
         self.model_name = params[C.MODEL_NAME]
+        self.start_epoch = 0
 
         # Data Loaders
         self.dataloader = dataloader
@@ -64,6 +65,7 @@ class Trainer:
 
         if resume_training:
             self.load_model(resume_epoch)
+            self.start_epoch = resume_epoch + 1
 
         # Saving params
         self.save_dir = self._save_dir(datetime.now())
@@ -98,7 +100,7 @@ class Trainer:
         # self.test_loader = list(self.test_loader)[:5]
 
         prev_dev_loss = np.inf
-        for epoch in range(self.params[C.EPOCHS]):
+        for epoch in range(self.start_epoch, self.params[C.EPOCHS]):
 
             self.logger.log('\n  --- STARTING EPOCH : %d --- \n' % epoch)
             # refresh loss, perplexity 
