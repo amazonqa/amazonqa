@@ -11,8 +11,12 @@ def get_main_params():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model_name', dest='model_name', type=str, default=C.LM_ANSWERS)
     parser.add_argument('--mode', dest='mode', type=str, default=C.TRAIN_TYPE)
+    parser.add_argument('--input_path', dest='input_path', type=str, default=None)
+    parser.add_argument('--epoch', dest='epoch', type=int, default=-1)
+    parser.add_argument('--resume', dest='resume', type=int, default=0)
+    parser.add_argument('--output_file', dest='output_file', type=str, default='output.txt')
     args, _ = parser.parse_known_args()
-    return args.model_name, args.mode
+    return args
 
 def get_model_params(model_name):
     H = _model_hyperparams(C.LM_MODELS, C.LM_HP)[model_name]

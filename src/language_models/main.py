@@ -19,8 +19,14 @@ RANDOM_SEED = 1
 
 def main():
 
-    model_name, mode = utils.get_main_params()
+    args = utils.get_main_params()
+    model_name, mode = args.model_name, args.mode
     logger = Logger()
+
+    resume, epoch = args.resume, args.epoch
+    if args.resume:
+        assert mode == C.TRAIN_TYPE
+        assert epoch >= 0
 
     if mode == C.TRAIN_TYPE:
         params = utils.get_model_params(model_name)
@@ -40,14 +46,16 @@ def main():
             #test_loader=test_loader,
             random_seed=RANDOM_SEED,
             vocab=dataset.vocab,
-            logger=logger
+            logger=logger,
+            resume_training=resume,
+            resume_epoch=epoch if resume else None
         )
         trainer.train()
 
     elif mode in [C.DEV_TYPE, C.TEST_TYPE]:
 
         # Load saved params and vocabs
-        input_path, epoch, output_file = args.input_path, args.epoch, args.output_file
+        input_path, output_file = args.input_path, args.output_file
         params_filename = '%s/%s' % (input_path, C.SAVED_PARAMS_FILENAME)
         vocab_filename = '%s/%s' % (input_path, C.SAVED_VOCAB_FILENAME)
 

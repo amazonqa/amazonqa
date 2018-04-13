@@ -29,7 +29,9 @@ class Trainer:
         dev_loader=None,
         #test_loader=None,
         vocab=None,
-        logger=None
+        logger=None,
+        resume_training=False,
+        resume_epoch=None,
     ):
         _set_random_seeds(random_seed)
 
@@ -59,6 +61,9 @@ class Trainer:
         ) if self.dataloader else None
         self.logger.log('MODEL : %s' % self.model)
         self.logger.log('PARAMS: %s' % self.params)
+
+        if resume_training:
+            self.load_model(resume_epoch)
 
         # Saving params
         self.save_dir = self._save_dir(datetime.now())
