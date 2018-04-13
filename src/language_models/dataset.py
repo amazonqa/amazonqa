@@ -2,7 +2,7 @@ import os
 import torch
 import constants as C
 import pandas as pd
-from vocabulary import Vocabulary
+from language_models.vocabulary import Vocabulary
 import string
 from tqdm import tqdm
 import ipdb as pdb

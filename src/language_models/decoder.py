@@ -50,7 +50,7 @@ class Decoder(BaseRNN):
         softmax_idx is the softmax for idx of shape: batch_size x vocab_size
         output is symbols of shape: batch_size x 1
         """
-        symbols = softmax_idx.topk(1)[1]
+        symbols = softmax_idx.exp().multinomial()
 
         # Update decoded symbols to 
         self.decoder_outputs.append(softmax_idx)
