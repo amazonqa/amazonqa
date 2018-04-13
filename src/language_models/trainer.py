@@ -133,13 +133,14 @@ class Trainer:
 
             # Eval on dev set
             self.logger.log('Evaluating on DEV at end of epoch: %d' % epoch)
-            dev_loss = self.eval(self.dev_loader, C.DEV_TYPE)
+            dev_loss = self.eval(self.dev_loader, C.DEV_TYPE, epoch=epoch)
             #self.eval( self.test_loader, C.TEST_TYPE, output_filename=self._output_filename(epoch))
 
             # Update lr is the val loss increases
             if dev_loss > prev_dev_loss:
-                lr *= self.params[C.LR_DECAY]
-                self._set_optimizer(epoch, lr=lr)
+                self._decay_lr(epoch, self.params[C.LR_DECAY])
+                # lr *= self.params[C.LR_DECAY]
+                # self._set_optimizer(epoch, lr=lr)
             prev_dev_loss = dev_loss
 
             # Save the best model till now
@@ -181,7 +182,7 @@ class Trainer:
         return loss.data[0]
 
 
-    def eval(self, dataloader, mode, output_filename=None):
+    def eval(self, dataloader, mode, output_filename=None, epoch=0):
 
         self.model.eval()
         losses, perplexities = [], []
@@ -225,7 +226,7 @@ class Trainer:
                         fp.write(' '.join(tokens) + '\n')
 
         if mode == C.DEV_TYPE:
-            self._print_info(0, None, losses, perplexities, mode, self.logger)
+            self._print_info(epoch, None, losses, perplexities, mode, self.logger)
         elif mode == C.TEST_TYPE:
             self.logger.log('Saving generated answers to file {0}'.format(output_filename))
         else:
@@ -297,8 +298,13 @@ class Trainer:
         return '%s/%s/%s/%s' % (C.BASE_PATH, self.params[C.CATEGORY], self.params[C.MODEL_NAME], time_str)
 
     def _set_optimizer(self, epoch, lr):
-        self.optimizer = optim.SGD(self.model.parameters(), lr=lr)
+        self.optimizer = optim.Adam(self.model.parameters(), lr=lr)
         self.logger.log('Setting Learning Rate = %.9f (Epoch = %d)' % (lr, epoch))
+
+    def _decay_lr(self, epoch, decay_factor):
+        self.logger.log('Decaying learning rate by %.3f (Epoch = %d)' % (decay_factor, epoch))
+        for param_group in self.optimizer.param_groups:
+            param_group['lr'] *= decay_factor
 
     def _print_info(self, epoch, batch, losses, perplexities, corpus, logger):
         loss = np.mean(np.array(losses))
