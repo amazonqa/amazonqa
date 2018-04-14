@@ -265,14 +265,17 @@ class Trainer:
         torch.save(self.model.state_dict(), model_filename)
         torch.save({'optimizer': self.optimizer}, self._optimizer_filename(epoch))
 
-    def load_model(self, epoch):
+    def load_model_optimizer(self, epoch):
         map_location = None if USE_CUDA else lambda storage, loc: storage # assuming the model was saved from a gpu machine
         model_filename = '%s/%s_%d' % (self.save_dir, C.SAVED_MODEL_FILENAME, epoch)
         self.logger.log('Loading model (Epochs = %s)...' % epoch)
 
         self.model.load_state_dict(torch.load(model_filename, map_location=map_location))
         self.optimizer = torch.load(self._optimizer_filename(epoch))['optimizer']
-
+        if self.params[C.RESUME_LR] is not None:
+            for param_group in self.optimizer.param_groups:
+                param_group['lr'] *= self.params[C.RESUME_LR]
+            
     def _optimizer_filename(self, epoch):
         return '%s/%s_%d.pt' % (self.save_dir, C.SAVED_OPTIMIZER_FILENAME, epoch)
 

@@ -153,7 +153,8 @@ HELPFUL = 'helpful'
 WILSON = 'wilson'
 
 RESUME = 'resume'
-EPOCH = 'epoch'
+RESUME_EPOCH = 'resume_epoch'
+RESUME_LR = 'resume_lr'
 SAVE_DIR = 'save_dir'
 
 # DIRS/FILENAMES
@@ -193,6 +194,7 @@ LM_HP = {
     MAX_ANSWER_LEN:               [100] * 3,
     MAX_REVIEW_LEN:               [200] * 3,
     RESUME:                       [0]*3,
-    EPOCH:                        [-1]*3,
+    RESUME_EPOCH:                 [-1]*3,
+    RESUME_LR:                    [None]*3, # if resume_lr is none, use optimizers lr  
     SAVE_DIR:                     [None]*3
 }
