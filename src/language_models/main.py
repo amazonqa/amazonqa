@@ -24,7 +24,7 @@ def main():
     save_dir = args.save_dir
     logger = Logger()
 
-    resume, epoch = args.resume, args.resume_epoch
+    resume, epoch = args.resume, args.epoch
     if args.resume:
         assert mode == C.TRAIN_TYPE
         assert epoch >= 0
