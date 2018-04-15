@@ -22,25 +22,17 @@ class AmazonDataLoader(object):
     def sortByLength(self, item):
         if self.model == C.LM_ANSWERS:
             assert(len(item) == 1)
-            answer = self.answersDict[item[0]]
-            return len(answer)
 
         elif self.model == C.LM_QUESTION_ANSWERS:
             assert(len(item) == 2)
-            answer = self.answersDict[item[0]]
-            return len(answer)
 
         elif self.model == C.LM_QUESTION_ANSWERS_REVIEWS:
             assert(len(item) == 3)
-            reviewIds = item[2]
-            max_len = 0
-            for reviewId in reviewIds:
-                review = self.reviewsDict[reviewId]
-                max_len = max(max_len, len(review))
-            return max_len
         else:
             raise 'Unknown Model %s' % self.model
 
+        answer = self.answersDict[item[0]]
+        return len(answer)
 
     def pad_answers(self, answerIds):
         batch_data = []
