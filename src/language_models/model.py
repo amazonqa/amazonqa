@@ -53,7 +53,7 @@ class LM(nn.Module):
         if self.model == C.LM_ANSWERS:
             d_hidden = None
         elif self.model == C.LM_QUESTION_ANSWERS:
-            _, d_hidden = self.question_encoder(answer_seqs)
+            _, d_hidden = self.question_encoder(question_seqs)
         elif self.model == C.LM_QUESTION_ANSWERS_REVIEWS:
             _, question_hidden = self.question_encoder(question_seqs)
             reviews_hidden = [self.reviews_encoder(seq)[1] for seq in review_seqs]
