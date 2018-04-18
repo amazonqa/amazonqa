@@ -7,11 +7,11 @@ import pickle
 import json
 import torch
 
-from language_models import utils
-from language_models.trainer import Trainer, hsizes
-from language_models.dataloader import AmazonDataLoader
-from language_models.dataset import AmazonDataset
-from language_models.model import LM
+import utils
+from trainer import Trainer, hsizes
+from dataloader import AmazonDataLoader
+from dataset import AmazonDataset
+from model import LM
 from logger import Logger
 import constants as C
 

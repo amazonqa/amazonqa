@@ -15,7 +15,7 @@ from torch import optim
 from torch.autograd import Variable
 
 import constants as C
-from language_models.model import LM
+from models.model import LM
 
 USE_CUDA = torch.cuda.is_available()
 

@@ -5,11 +5,11 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from language_models.base_rnn import BaseRNN
+from models.base_rnn import BaseRNN
 import constants as C
 
-from language_models.encoder import Encoder
-from language_models.decoder import Decoder
+from models.encoder import Encoder
+from models.decoder import Decoder
 
 class LM(nn.Module):
 

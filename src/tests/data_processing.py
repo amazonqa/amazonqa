@@ -4,10 +4,10 @@ import pandas as pd
 from tqdm import tqdm
 
 import constants as C
-from language_models.dataloader import AmazonDataLoader
-from language_models.dataset import AmazonDataset
-from language_models.vocabulary import Vocabulary
-from language_models import utils
+from dataloader import AmazonDataLoader
+from dataset import AmazonDataset
+from vocabulary import Vocabulary
+import utils
 
 
 def _extract_input_attributes(inputs, model_name):

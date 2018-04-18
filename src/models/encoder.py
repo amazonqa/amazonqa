@@ -3,7 +3,7 @@
 
 import torch.nn as nn
 
-from language_models.base_rnn import BaseRNN
+from models.base_rnn import BaseRNN
 import constants as C
 
 class Encoder(BaseRNN):

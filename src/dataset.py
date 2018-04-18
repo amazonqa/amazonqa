@@ -2,11 +2,11 @@ import os
 import torch
 import constants as C
 import pandas as pd
-from language_models.vocabulary import Vocabulary
+from vocabulary import Vocabulary
 import string
 from tqdm import tqdm
 import ipdb as pdb
-from language_models import utils
+import utils
 
 class AmazonDataset(object):
     def __init__(self, params):

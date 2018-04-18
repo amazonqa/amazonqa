@@ -157,7 +157,7 @@ RESUME_LR = 'resume_lr'
 SAVE_DIR = 'save_dir'
 
 # DIRS/FILENAMES
-BASE_PATH = 'language_models/saved_models'
+BASE_PATH = 'saved_models'
 SAVED_MODEL_FILENAME = 'model.pt'
 SAVED_PARAMS_FILENAME = 'params.json'
 SAVED_VOCAB_FILENAME = 'vocab.pkl'

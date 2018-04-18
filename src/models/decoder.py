@@ -5,7 +5,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from language_models.base_rnn import BaseRNN
+from models.base_rnn import BaseRNN
 import constants as C
 
 class Decoder(BaseRNN):
