@@ -11,7 +11,7 @@ import utils
 from trainer import Trainer, hsizes
 from dataloader import AmazonDataLoader
 from dataset import AmazonDataset
-from model import LM
+from models.model import LM
 from logger import Logger
 import constants as C
 

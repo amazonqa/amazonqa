@@ -16,8 +16,36 @@ from torch.autograd import Variable
 
 import constants as C
 from models.model import LM
+from loss import Loss
 
 USE_CUDA = torch.cuda.is_available()
+
+class TrainerMetrics:
+
+    def __init__(self, logger):
+        self.train_loss = []
+        self.dev_loss = []
+
+        self.train_perplexity = []
+        self.dev_perplexity = []
+
+        self.logger = logger
+
+    def add_loss(self, loss, mode):
+        epoch_loss = self.loss.epoch_loss()
+        epoch_perplexity = self.loss.epoch_perplexity()
+        
+        if mode == C.TRAIN_TYPE:
+            self.train_loss.append(epoch_loss)
+            self.train_perplexity.append(epoch_perplexity)
+        elif mode == C.DEV_TYPE:
+            self.dev_loss.append(epoch_loss)
+            self.dev_perplexity.append(epoch_perplexity)
+        else:
+            raise 'Unimplemented mode: %s' % mode
+
+    def print_metrics(self, epoch, mode):
+        pass
 
 class Trainer:
 
@@ -73,22 +101,13 @@ class Trainer:
 
         # Optimizer and loss metrics
         self.optimizer = None
-        self.criterion = nn.NLLLoss(ignore_index=C.PAD_INDEX, size_average=False)
-        self.optimizer = None
-
-        # loss and perplexity
-        self.loss = None
-        self.perplexity = None
-        self.min_loss = np.inf
-        self.min_perplexity = np.inf
-        self.min_dev_loss = np.inf
-        self.min_dev_perpexity = np.inf
+        self.loss = Loss()
+        self.metrics = TrainerMetrics(logger)
 
         if USE_CUDA:
             if self.model:
                 self.model = self.model.cuda()
             self.criterion = self.criterion.cuda()
-
 
     def train(self):
         lr = self.params[C.LR]
@@ -107,28 +126,30 @@ class Trainer:
         for epoch in range(self.start_epoch, self.params[C.EPOCHS]):
 
             self.logger.log('\n  --- STARTING EPOCH : %d --- \n' % epoch)
+
             # refresh loss, perplexity 
-            self.loss, self.perplexity = [], []
+            self.loss.reset()
 
             for batch_itr, inputs in enumerate(tqdm(self.dataloader)):
                 answer_seqs, quesion_seqs, review_seqs, \
                     answer_lengths = _extract_input_attributes(inputs, self.model_name)
-                loss = self.train_batch(
+                batch_loss, batch_perplexity = self.train_batch(
                     quesion_seqs,
                     review_seqs,
                     answer_seqs,
                     answer_lengths
                 )
-                self.loss.append(loss)
-                self.perplexity.append(_perplexity_from_loss(loss))
 
                 if batch_itr > 0 and batch_itr % self.print_every == 0:
-                    self.logger.log('\nMean [TRAIN] Loss for batch %d = %.2f' % (batch_itr, self.loss[-1]))
-                    self.logger.log('Mean [TRAIN] Perplexity for batch %d = %.2f' % (batch_itr, self.perplexity[-1]))
-                    self._print_info(epoch, batch_itr, self.loss, self.perplexity, C.TRAIN_TYPE, self.logger)
+                    self.logger.log('\nMean [TRAIN] Loss for batch %d = %.2f' % (batch_itr, batch_loss))
+                    self.logger.log('Mean [TRAIN] Perplexity for batch %d = %.2f' % (batch_itr, batch_perplexity))
+                    # self._print_info(epoch, batch_itr, self.loss, self.perplexity, C.TRAIN_TYPE, self.logger)
+
+            # Compute epoch loss and perplexity
+            self.metrics.add_loss(self.loss, C.TRAIN_TYPE)
 
             # Print train epoch logs
-            self._print_info(epoch, None, self.loss, self.perplexity, C.TRAIN_TYPE, self.logger)
+            # self._print_info(epoch, None, self.loss, self.perplexity, C.TRAIN_TYPE, self.logger)
 
             # Save model periodically
             if epoch % self.save_model_every == 0:
@@ -158,7 +179,6 @@ class Trainer:
             answer_seqs,
             answer_lengths
         ):
-
         # Set model in train mode
         self.model.train(True)
 
@@ -167,12 +187,7 @@ class Trainer:
         teacher_forcing = np.random.random() < self.params[C.TEACHER_FORCING_RATIO]
 
         # run forward pass
-        loss, _, _ = self._forward_pass(
-            quesion_seqs,
-            review_seqs,
-            answer_seqs,
-            teacher_forcing
-        )
+        loss, perplexity, _, _ = self._forward_pass(quesion_seqs, review_seqs, answer_seqs, teacher_forcing)
 
         # gradient computation
         loss.backward()
@@ -182,13 +197,11 @@ class Trainer:
         torch.nn.utils.clip_grad_norm(params, self.params[C.GLOBAL_NORM_MAX])
         self.optimizer.step()
 
-        return loss.data[0]
-
+        return loss.data[0], perplexity
 
     def eval(self, dataloader, mode, output_filename=None, epoch=0):
 
         self.model.eval()
-        losses, perplexities = [], []
 
         if not dataloader:
             raise 'No [%s] Dataset' % mode
@@ -196,26 +209,20 @@ class Trainer:
             self.logger.log('Evaluating on [%s] dataset' % mode)
 
         compute_loss = mode != C.TEST_TYPE
+        if compute_loss:
+            self.loss.reset()
 
         for batch_itr, inputs in tqdm(enumerate(dataloader)):
             answer_seqs, quesion_seqs, review_seqs, \
                 answer_lengths = _extract_input_attributes(inputs, self.model_name)
 
-            loss, output_seq, output_lengths = self._forward_pass(
+            _, _, output_seq, output_lengths = self._forward_pass(
                 quesion_seqs,
                 review_seqs,
                 answer_seqs,
                 False,
                 compute_loss=compute_loss
             )
-
-            if mode == C.DEV_TYPE:
-                losses.append(loss.data[0])
-                perplexities.append(_perplexity_from_loss(loss.data[0]))
-
-                if batch_itr > 0 and batch_itr % self.print_every == 0:
-                    self.logger.log('\nMean [%s] Loss for batch %d = %.2f' % (mode, batch_itr, losses[-1]))
-                    self.logger.log('Mean [%s] Perplexity for batch %d = %.2f' % (mode, batch_itr, perplexities[-1]))
 
             if mode == C.TEST_TYPE:
                 output_seq = output_seq.data.cpu().numpy()
@@ -229,7 +236,8 @@ class Trainer:
                         fp.write(' '.join(tokens) + '\n')
 
         if mode == C.DEV_TYPE:
-            self._print_info(epoch, None, losses, perplexities, mode, self.logger)
+            self.metrics.add_loss(self.loss, C.DEV_TYPE)
+            # self._print_info(epoch, None, losses, perplexities, mode, self.logger)
         elif mode == C.TEST_TYPE:
             self.logger.log('Saving generated answers to file {0}'.format(output_filename))
         else:
@@ -257,9 +265,11 @@ class Trainer:
         )
 
         # loss and gradient computation
-        loss = _batch_loss(self.criterion, outputs, target_seqs) if compute_loss else None
+        loss, perplexity = None, None
+        if compute_loss:
+            loss, perplexity = self.loss.eval_batch_loss(outputs, target_seqs)
 
-        return loss, output_seq, output_lengths
+        return loss, perplexity, output_seq, output_lengths
 
 
     def save_model(self, epoch):
@@ -345,18 +355,6 @@ class Trainer:
 def _set_random_seeds(seed):
     np.random.seed(seed)
     torch.manual_seed(seed)
-
-def _batch_loss(criterion, outputs, targets):
-    loss = 0
-    batch_size = targets.size(0)
-    # If the target is longer than max_output_len in
-    # case of teacher_forcing = True,
-    # then consider only max_output_len steps for loss
-    n = min(len(outputs), targets.size(1) - 1)
-    for idx in range(n):
-        output = outputs[idx]
-        loss += criterion(output, targets[:, idx + 1])
-    return loss / batch_size if batch_size > 0 else 0
 
 def _ensure_path(path):
     if not os.path.exists(path):

@@ -18,14 +18,15 @@ class Loss:
         self.num_sequences = 0
         self.total_loss = 0
 
-    def batch_loss(self, outputs, targets):
+    def eval_batch_loss(self, outputs, targets):
         batch_size = targets.size(0)
+        batch_num_tokens = (targets.cpu().data.numpy() != C.PAD_INDEX).sum()
         if batch_size == 0:
             return 0
 
-        # sequences
+        # Add to num sequences and tokens since reset
         self.num_sequences += batch_size
-        self.num_tokens += (targets.cpu().data.numpy() != C.PAD_INDEX).sum()
+        self.num_tokens += batch_num_tokens
         loss = Variable(torch.zeros(1))
 
         # If the target is longer than max_output_len in
@@ -37,7 +38,7 @@ class Loss:
             loss += self.criterion(output, targets[:, idx + 1])
 
         self.total_loss += loss.data[0]
-        return loss / batch_size
+        return loss / batch_size, _perplexity(loss.data[0], batch_num_tokens)
 
     def epoch_loss(self):
         """NLL loss per sequence since the last reset
@@ -47,4 +48,7 @@ class Loss:
     def epoch_perplexity(self):
         """Corpus perplexity per token since the last reset
         """
-        return np.exp(self.total_loss / self.num_tokens) if self.num_tokens > 0 else 0
+        return _perplexity(self.total_loss, self.num_tokens)
+
+def _perplexity(loss, num_tokens):
+    return np.exp(loss / num_tokens) if num_tokens > 0 else 0
