@@ -73,7 +73,7 @@ class Trainer:
 
         # Optimizer and loss metrics
         self.optimizer = None
-        self.criterion = nn.NLLLoss(ignore_index=C.PAD_INDEX)
+        self.criterion = nn.NLLLoss(ignore_index=C.PAD_INDEX, size_average=False)
         self.optimizer = None
 
         # loss and perplexity
@@ -254,7 +254,7 @@ class Trainer:
         )
 
         # loss and gradient computation
-        loss = _batch_loss(self.criterion, outputs, target_seqs)  if compute_loss else None
+        loss = _batch_loss(self.criterion, outputs, target_seqs) if compute_loss else None
 
         return loss, output_seq, output_lengths
 
@@ -345,6 +345,7 @@ def _set_random_seeds(seed):
 
 def _batch_loss(criterion, outputs, targets):
     loss = 0
+    batch_size = targets.size(0)
     # If the target is longer than max_output_len in
     # case of teacher_forcing = True,
     # then consider only max_output_len steps for loss
@@ -352,7 +353,7 @@ def _batch_loss(criterion, outputs, targets):
     for idx in range(n):
         output = outputs[idx]
         loss += criterion(output, targets[:, idx + 1])
-    return loss / n if n > 0 else 0
+    return loss / batch_size if batch_size > 0 else 0
 
 def _ensure_path(path):
     if not os.path.exists(path):
