@@ -100,7 +100,10 @@ class Trainer:
         # self.dev_loader = list(self.dev_loader)[:5]
         # self.test_loader = list(self.test_loader)[:5]
 
-        prev_dev_loss = np.inf
+        self.logger.log('Evaluating on DEV before epoch : 0')
+        dev_loss = self.eval(self.dev_loader, C.DEV_TYPE, epoch=-1)
+        prev_dev_loss = dev_loss
+
         for epoch in range(self.start_epoch, self.params[C.EPOCHS]):
 
             self.logger.log('\n  --- STARTING EPOCH : %d --- \n' % epoch)
