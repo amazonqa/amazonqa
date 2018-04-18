@@ -32,20 +32,26 @@ class TrainerMetrics:
         self.logger = logger
 
     def add_loss(self, loss, mode):
-        epoch_loss = self.loss.epoch_loss()
-        epoch_perplexity = self.loss.epoch_perplexity()
+        epoch_loss = loss.epoch_loss()
+        epoch_perplexity = loss.epoch_perplexity()
         
         if mode == C.TRAIN_TYPE:
             self.train_loss.append(epoch_loss)
             self.train_perplexity.append(epoch_perplexity)
+            min_loss, min_perplexity = np.nanmin(self.train_loss), np.nanmin(self.train_perplexity)
         elif mode == C.DEV_TYPE:
             self.dev_loss.append(epoch_loss)
             self.dev_perplexity.append(epoch_perplexity)
+            min_loss, min_perplexity = np.nanmin(self.dev_loss), np.nanmin(self.dev_perplexity)
         else:
             raise 'Unimplemented mode: %s' % mode
 
-    def print_metrics(self, epoch, mode):
-        pass
+        mode = mode.upper()
+        self.logger.log('\n\t[%s] Loss = %.4f, Min [%s] Loss = %.4f' % (mode, epoch_loss, mode, min_loss))
+        self.logger.log('\n\[%s] Perplexity = %.2f, Min [%s] Perplexity = %.2f' % (mode, epoch_perplexity, mode, min_perplexity))
+
+    def is_best_dev_loss(self):
+        return len(self.dev_loss) > 0 and self.dev_loss[-1] == np.nanmin(self.dev_loss)
 
 class Trainer:
 
@@ -121,15 +127,16 @@ class Trainer:
 
         self.logger.log('Evaluating on DEV before epoch : 0')
         dev_loss = self.eval(self.dev_loader, C.DEV_TYPE, epoch=-1)
-        prev_dev_loss = dev_loss
+
+        # Add train loss entry for a corresponding dev loss entry before epoch 0
+        self.loss.reset()
+        self.metrics.add_loss(self.loss, C.TRAIN_TYPE)
 
         for epoch in range(self.start_epoch, self.params[C.EPOCHS]):
-
             self.logger.log('\n  --- STARTING EPOCH : %d --- \n' % epoch)
 
             # refresh loss, perplexity 
             self.loss.reset()
-
             for batch_itr, inputs in enumerate(tqdm(self.dataloader)):
                 answer_seqs, quesion_seqs, review_seqs, \
                     answer_lengths = _extract_input_attributes(inputs, self.model_name)
@@ -139,26 +146,22 @@ class Trainer:
                     answer_seqs,
                     answer_lengths
                 )
+                if batch_itr % self.print_every == 0:
+                    self.logger.log('\n\tMean [TRAIN] Loss for batch %d = %.2f' % (batch_itr, batch_loss))
+                    self.logger.log('\tMean [TRAIN] Perplexity for batch %d = %.2f' % (batch_itr, batch_perplexity))
 
-                if batch_itr > 0 and batch_itr % self.print_every == 0:
-                    self.logger.log('\nMean [TRAIN] Loss for batch %d = %.2f' % (batch_itr, batch_loss))
-                    self.logger.log('Mean [TRAIN] Perplexity for batch %d = %.2f' % (batch_itr, batch_perplexity))
-                    # self._print_info(epoch, batch_itr, self.loss, self.perplexity, C.TRAIN_TYPE, self.logger)
-
+            logger.log('\n  --- END OF EPOCH : %d --- \n' % epoch)
             # Compute epoch loss and perplexity
             self.metrics.add_loss(self.loss, C.TRAIN_TYPE)
-
-            # Print train epoch logs
-            # self._print_info(epoch, None, self.loss, self.perplexity, C.TRAIN_TYPE, self.logger)
 
             # Save model periodically
             if epoch % self.save_model_every == 0:
                 self.save_model(epoch)
 
             # Eval on dev set
-            self.logger.log('Evaluating on DEV at end of epoch: %d' % epoch)
+            self.logger.log('\nStarting evaluation on DEV at end of epoch: %d' % epoch)
             dev_loss = self.eval(self.dev_loader, C.DEV_TYPE, epoch=epoch)
-            #self.eval( self.test_loader, C.TEST_TYPE, output_filename=self._output_filename(epoch))
+            self.logger.log('Finished evaluation on DEV')
 
             # Update lr is the val loss increases
             if dev_loss > prev_dev_loss:
@@ -326,31 +329,6 @@ class Trainer:
         self.logger.log('Decaying learning rate by %.3f (Epoch = %d)' % (decay_factor, epoch))
         for param_group in self.optimizer.param_groups:
             param_group['lr'] *= decay_factor
-
-    def _print_info(self, epoch, batch, losses, perplexities, corpus, logger):
-        loss = np.mean(np.array(losses))
-        perplexity = _perplexity_from_loss(loss)
-        corpus = corpus.upper()
-
-        if batch is not None:
-            logger.log('Epoch = %d, Batch = %d, [%s] Loss Running Mean = %.2f' % (epoch, batch, corpus, loss))
-            logger.log('Epoch = %d, Batch = %d, [%s] Perplexity Running Mean = %.2f' % (epoch, batch, corpus, perplexity))
-        else:
-            if corpus == C.TRAIN_TYPE.upper():
-                logger.log('\n-- END OF EPOCH --: %d' % epoch)
-
-            logger.log('\nMean [%s] Loss = %.2f for epoch = %d' % (corpus, loss, epoch))
-            logger.log('Mean [%s] Perplexity = %.2f for epoch = %d' % (corpus, perplexity, epoch))
-
-            if corpus == C.TRAIN_TYPE.upper():
-                self.min_loss = min(loss, self.min_loss)
-                self.min_perplexity = min(perplexity, self.min_perplexity)
-                logger.log('Best [%s] Loss = %.2f, Best [%s] Perplexity = %.2f' % (corpus, self.min_loss, corpus, self.min_perplexity))
-            if corpus == C.DEV_TYPE.upper():
-                self.min_dev_loss = min(loss, self.min_dev_loss)
-                self.min_dev_perpexity = min(perplexity, self.min_dev_perpexity )
-                logger.log('Best [%s] Loss = %.2f, Best [%s] Perplexity = %.2f' % (corpus, self.min_dev_loss, corpus, self.min_dev_perpexity))
-            logger.log('\n')
 
 def _set_random_seeds(seed):
     np.random.seed(seed)

@@ -21,8 +21,7 @@ class Loss:
     def eval_batch_loss(self, outputs, targets):
         batch_size = targets.size(0)
         batch_num_tokens = (targets.cpu().data.numpy() != C.PAD_INDEX).sum()
-        if batch_size == 0:
-            return 0
+        assert batch_size > 0
 
         # Add to num sequences and tokens since reset
         self.num_sequences += batch_size
@@ -43,7 +42,7 @@ class Loss:
     def epoch_loss(self):
         """NLL loss per sequence since the last reset
         """
-        return self.total_loss / self.num_sequences if self.num_sequences > 0 else 0
+        return self.total_loss / self.num_sequences if self.num_sequences > 0 else np.nan
     
     def epoch_perplexity(self):
         """Corpus perplexity per token since the last reset
@@ -51,4 +50,4 @@ class Loss:
         return _perplexity(self.total_loss, self.num_tokens)
 
 def _perplexity(loss, num_tokens):
-    return np.exp(loss / num_tokens) if num_tokens > 0 else 0
+    return np.exp(loss / num_tokens) if num_tokens > 0 else np.nan
