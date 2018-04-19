@@ -6,6 +6,7 @@ import os
 import pickle
 import json
 import torch
+import pandas as pd
 
 import constants as C
 from logger import Logger
@@ -16,6 +17,7 @@ SAVED_ARCHITECTURE_FILENAME = 'architecture.txt'
 
 SAVED_MODEL_FILENAME = 'model_%d.pt'
 SAVED_STATE_FILENAME = 'trainer_state_%d.pt'
+SAVED_METRICS_FILENAME = 'metrics_%d.tsv'
 
 OPTIMIZER = 'optimizer'
 METRICS = 'metrics'
@@ -59,6 +61,7 @@ class Saver:
 
     def save_model_and_state(self, epoch, model, optimizer, metrics):
         self.save_model(epoch, model)
+        self.save_metrics(epoch, metrics)
         state_filename = '%s/%s' % (self.save_dir, SAVED_STATE_FILENAME % epoch)
         state = {
             OPTIMIZER: optimizer,
@@ -73,6 +76,15 @@ class Saver:
         self.logger.log('Loading training state from epoch %d...\n' % epoch)
         state = torch.load(state_filename)
         return state[OPTIMIZER], state[METRICS]
+
+    def save_metrics(self, epoch, metrics):
+        metrics_filename = '%s/%s' % (self.save_dir, SAVED_METRICS_FILENAME % epoch)
+        pd.DataFrame({
+            'Train Loss': metrics.train_loss,
+            'Dev Loss': metrics.dev_loss,
+            'Train Perplexity': metrics.train_perplexity,
+            'Dev Perplexity': metrics.dev_perplexity
+        }).to_csv(metrics_filename, sep='\t')
 
     def _save_dir(self, time):
         time_str = time.strftime('%Y-%m-%d-%H-%M-%S')
