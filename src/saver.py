@@ -65,6 +65,9 @@ class Saver:
         self.logger.log('\nLoading model from epoch = %d...' % epoch)
         model.load_state_dict(torch.load(model_filename, map_location=map_location))
 
+        if USE_CUDA:
+            model.cuda()
+
     def save_model_and_state(self, epoch, model, optimizer, metrics):
         self.save_model(epoch, model)
         self.save_metrics(epoch, metrics)
@@ -91,6 +94,9 @@ class Saver:
             'Train Perplexity': metrics.train_perplexity,
             'Dev Perplexity': metrics.dev_perplexity
         }).to_csv(metrics_filename, sep='\t')
+
+    def load_vocab(self):
+        return _pickle_load(self.vocab_filename)
 
     def _save_dir(self, time):
         time_str = time.strftime('%Y-%m-%d-%H-%M-%S')

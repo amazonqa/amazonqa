@@ -6,6 +6,7 @@ import argparse
 import pickle
 import json
 import torch
+import numpy as np
 
 import utils
 from trainer import Trainer, hsizes
@@ -32,25 +33,21 @@ def main():
         assert mode == C.TRAIN_TYPE
         assert epoch >= 0
 
+    params = utils.get_model_params(model_name)
+    params[C.MODEL_NAME] = model_name
+
+    # Instantiate saver and a logger in save_dir
+    # If save_dir is passed in from command line
+    #   params are loaded from the save_dir
+    # Logger is instantiated in saver
+    saver = Saver(save_dir, params)
+    logger = saver.logger
+    params = saver.params
+    assert model_name == params[C.MODEL_NAME]
+
     if mode == C.TRAIN_TYPE:
-
-        params = utils.get_model_params(model_name)
-        params[C.MODEL_NAME] = model_name
-
-        # Instantiate saver and a logger in save_dir
-        # If save_dir is passed in from command line
-        #   params are loaded from the save_dir
-        # Logger is instantiated in saver
-        saver = Saver(save_dir, params)
-        logger = saver.logger
-        params = saver.params
-
         category = params[C.CATEGORY]
-        if CACHE_DATASET:
-            dataset = _get_dataset(model_name, category, params, logger)
-        else:
-            dataset = AmazonDataset(params)
-
+        dataset = AmazonDataset(params)
         logger.log('\n Model: %s, Mode = %s, Category = %s \n' % (model_name, mode, category))
         train_loader = AmazonDataLoader(dataset.train, model_name, params[C.BATCH_SIZE])
         dev_loader = AmazonDataLoader(dataset.val, model_name, params[C.BATCH_SIZE])
@@ -68,30 +65,16 @@ def main():
 
     elif mode in [C.DEV_TYPE, C.TEST_TYPE]:
 
+        logger.log('\nBeginning evaluation ..\n')
+
         # Load saved params and vocabs
-        input_path, output_file = args.input_path, args.output_file
-        params_filename = '%s/%s' % (input_path, C.SAVED_PARAMS_FILENAME)
-        vocab_filename = '%s/%s' % (input_path, C.SAVED_VOCAB_FILENAME)
-
-        logger.log('Loading params..')
-        params = json.load(open(params_filename, 'r'))
-
+        output_file = args.output_file
         logger.log('Loading vocab..')
-        vocab = pickle.load(open(vocab_filename, 'rb'))
-
+        vocab = saver.load_vocab()
         model_name = params[C.MODEL_NAME]
-        dataset = _get_dataset(
-            model_name,
-            params[C.CATEGORY],
-            params,
-            logger
-        )
-
-        loader = AmazonDataLoader(
-            dataset.val if mode == C.DEV_TYPE else dataset.test,
-            model_name,
-            params[C.BATCH_SIZE]
-        )
+        dataset = AmazonDataset(params)
+        dataset_typed = dataset.val if mode == C.DEV_TYPE else dataset.test
+        loader = AmazonDataLoader(dataset_typed, model_name, params[C.BATCH_SIZE])
 
         # Load model
         logger.log('Loading saved model..')
@@ -104,13 +87,7 @@ def main():
             params[C.DROPOUT],
             params[C.MODEL_NAME]
         )
-        use_cuda = torch.cuda.is_available()
-        map_location = None if use_cuda else lambda storage, loc: storage # assuming the model was saved from a gpu machine
-        model_filename = '%s/%s_%d' % (input_path, C.SAVED_MODEL_FILENAME, epoch)
-        model.load_state_dict(torch.load(model_filename, map_location=map_location))
-
-        if use_cuda:
-            model.cuda()
+        saver.load_model(epoch, model)
 
         # Instantiate trainer with saved model
         logger.log('Instantiating trainer..')
@@ -118,10 +95,8 @@ def main():
             None,
             params,
             dev_loader=loader,
-            #test_loader=loader,
-            vocab=vocab,
-            logger=logger,
-            save_dir=save_dir
+            saver=saver,
+            vocab=vocab
         )
         logger.log('Adding model to trainer..')
         trainer.model = model
@@ -130,40 +105,13 @@ def main():
         logger.log('Total number of [%s] batches: %d' % (mode.upper(), len(list(loader))))
         trainer.eval(loader, mode, output_filename=output_file)
 
+        logger.log('\nCompleted Evaluation..\n')
     else:
         raise 'Unimplemented mode: %s' % mode
 
 def _set_random_seeds(seed):
     np.random.seed(seed)
     torch.manual_seed(seed)
-
-def _get_dataset(model, category, params, logger):
-    logger.log('Creating dataset for [%s]..' % category.upper())
-
-    base_path = '%s/%s' % (C.BASE_PATH, params[C.CATEGORY])
-    if not os.path.exists(base_path):
-        os.makedirs(base_path)
-
-    used_params = [params[i] for i in [C.VOCAB_SIZE]]
-    filename = '_'.join(list(map(str, [model, category, RANDOM_SEED] + used_params)))
-    filename = '%s/%s.pkl' % (
-        base_path,
-        filename
-    )
-
-    if os.path.exists(filename):
-        logger.log('Loading dataset from file: %s' % filename)
-        with open(filename, 'rb') as fp:
-            dataset = pickle.load(fp)
-    else:
-        dataset = AmazonDataset(params)
-
-        logger.log('Saving dataset in file: %s' % filename)
-        with open(filename, 'wb') as fp:
-            pickle.dump(dataset, fp, pickle.HIGHEST_PROTOCOL)
-
-    logger.log('Finished loading dataset for [%s] category and [%s] model..' % (category.upper(), model.upper()))
-    return dataset
 
 if __name__ == '__main__':
     main()
