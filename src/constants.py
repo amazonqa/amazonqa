@@ -3,10 +3,6 @@ import torch
 # Global constants
 USE_CUDA = torch.cuda.is_available()
 
-# Logs related names
-LOG_FILENAME = 'logfile'
-LOG_DIR = 'log_files'
-
 # Types of RNN Cells
 RNN_CELL_LSTM = 'lstm'
 RNN_CELL_GRU = 'gru'
@@ -166,6 +162,10 @@ BEST_EPOCH_IDX = -100
 
 # DIRS/FILENAMES
 BASE_PATH = 'saved_models'
+
+# Logs related names
+LOG_FILENAME = 'logfile'
+LOG_DIR = '%s/log_files' % BASE_PATH
 
 LM_MODELS =                       [LM_ANSWERS,        LM_QUESTION_ANSWERS, LM_QUESTION_ANSWERS_REVIEWS]
 """
