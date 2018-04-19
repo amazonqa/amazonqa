@@ -105,7 +105,7 @@ class Trainer:
             self.start_epoch = resume_epoch + 1
         else:
             self.optimizer = None
-            self.metrics = TrainerMetrics(logger)
+            self.metrics = TrainerMetrics(self.logger)
 
         self.loss = Loss()
         if USE_CUDA:
@@ -137,10 +137,10 @@ class Trainer:
             # refresh loss, perplexity 
             self.loss.reset()
             for batch_itr, inputs in enumerate(tqdm(self.dataloader)):
-                answer_seqs, quesion_seqs, review_seqs, \
+                answer_seqs, question_seqs, review_seqs, \
                     answer_lengths = _extract_input_attributes(inputs, self.model_name)
                 batch_loss, batch_perplexity = self.train_batch(
-                    quesion_seqs,
+                    question_seqs,
                     review_seqs,
                     answer_seqs,
                     answer_lengths
@@ -178,7 +178,7 @@ class Trainer:
                 self.saver.save_model(C.BEST_EPOCH_IDX)
 
     def train_batch(self, 
-            quesion_seqs,
+            question_seqs,
             review_seqs,
             answer_seqs,
             answer_lengths
@@ -191,7 +191,7 @@ class Trainer:
         teacher_forcing = np.random.random() < self.params[C.TEACHER_FORCING_RATIO]
 
         # run forward pass
-        loss, perplexity, _, _ = self._forward_pass(quesion_seqs, review_seqs, answer_seqs, teacher_forcing)
+        loss, perplexity, _, _ = self._forward_pass(question_seqs, review_seqs, answer_seqs, teacher_forcing)
 
         # gradient computation
         loss.backward()
@@ -217,11 +217,11 @@ class Trainer:
             self.loss.reset()
 
         for batch_itr, inputs in tqdm(enumerate(dataloader)):
-            answer_seqs, quesion_seqs, review_seqs, \
+            answer_seqs, question_seqs, review_seqs, \
                 answer_lengths = _extract_input_attributes(inputs, self.model_name)
 
             _, _, output_seq, output_lengths = self._forward_pass(
-                quesion_seqs,
+                question_seqs,
                 review_seqs,
                 answer_seqs,
                 False,
@@ -249,19 +249,19 @@ class Trainer:
         return np.mean(np.array(losses))
 
     def _forward_pass(self,
-            quesion_seqs,
+            question_seqs,
             review_seqs,
             answer_seqs,
             teacher_forcing,
             compute_loss=True
         ):
         target_seqs, answer_seqs  = _var(answer_seqs), _var(answer_seqs)
-        quesion_seqs = None if self.model_name == C.LM_ANSWERS else _var(quesion_seqs)
+        question_seqs = None if self.model_name == C.LM_ANSWERS else _var(question_seqs)
         review_seqs = map(_var, review_seqs) if self.model_name == C.LM_QUESTION_ANSWERS_REVIEWS else None
 
         # run forward pass
         outputs, output_seq, output_lengths = self.model(
-            quesion_seqs,
+            question_seqs,
             review_seqs,
             answer_seqs,
             target_seqs,
@@ -306,16 +306,16 @@ def _var(variable):
 def _extract_input_attributes(inputs, model_name):
     if model_name == C.LM_ANSWERS:
         answer_seqs, answer_lengths = inputs
-        quesion_seqs, review_seqs = None, None
+        question_seqs, review_seqs = None, None
     elif model_name == C.LM_QUESTION_ANSWERS:
-        (answer_seqs, answer_lengths), quesion_seqs = inputs
+        (answer_seqs, answer_lengths), question_seqs = inputs
         review_seqs = None
     elif model_name == C.LM_QUESTION_ANSWERS_REVIEWS:
-        (answer_seqs, answer_lengths), quesion_seqs, review_seqs = inputs
+        (answer_seqs, answer_lengths), question_seqs, review_seqs = inputs
     else:
         raise 'Unimplemented model: %s' % model_name
 
-    return answer_seqs, quesion_seqs, review_seqs, answer_lengths
+    return answer_seqs, question_seqs, review_seqs, answer_lengths
 
 def hsizes(params, model_name):
     r_hsize, q_hsize, a_hsize = params[C.HDIM_R], params[C.HDIM_Q], params[C.HDIM_A]

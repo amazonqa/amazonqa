@@ -29,8 +29,8 @@ class Saver:
         if save_dir:
             self.save_dir = save_dir
         else:
-            self.save_dir = self._save_dir(datetime.now())
             self.params = params
+            self.save_dir = self._save_dir(datetime.now())
     
         self.params_filename = '%s/%s' % (self.save_dir, SAVED_PARAMS_FILENAME)
         if save_dir:

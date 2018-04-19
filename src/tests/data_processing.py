@@ -13,16 +13,16 @@ import utils
 def _extract_input_attributes(inputs, model_name):
 	if model_name == C.LM_ANSWERS:
 		answer_seqs, answer_lengths = inputs
-		quesion_seqs, review_seqs = None, None
+		question_seqs, review_seqs = None, None
 	elif model_name == C.LM_QUESTION_ANSWERS:
-		(answer_seqs, answer_lengths), quesion_seqs = inputs
+		(answer_seqs, answer_lengths), question_seqs = inputs
 		review_seqs = None
 	elif model_name == C.LM_QUESTION_ANSWERS_REVIEWS:
-		(answer_seqs, answer_lengths), quesion_seqs, review_seqs = inputs
+		(answer_seqs, answer_lengths), question_seqs, review_seqs = inputs
 	else:
 		raise 'Unimplemented model: %s' % model_name
 
-	return answer_seqs, quesion_seqs, review_seqs, answer_lengths
+	return answer_seqs, question_seqs, review_seqs, answer_lengths
 
 
 def print_dataframe(category, split):

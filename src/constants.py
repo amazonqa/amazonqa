@@ -161,7 +161,6 @@ ADAM = 'adam'
 SGD = 'sgd'
 
 RESUME = 'resume'
-RESUME_LR = 'resume_lr'
 SAVE_DIR = 'save_dir'
 BEST_EPOCH_IDX = -100
 
@@ -196,7 +195,6 @@ LM_HP = {
     MAX_QUESTION_LEN:             [100] * 3,
     MAX_ANSWER_LEN:               [100] * 3,
     MAX_REVIEW_LEN:               [200] * 3,
-    OPTIMIZER_TYPE:               [SGD] * 3
-    RESUME_LR:                    [None]*3, # if resume_lr is none, use optimizers lr  
+    OPTIMIZER_TYPE:               [SGD] * 3,
     SAVE_DIR:                     [None]*3
 }
