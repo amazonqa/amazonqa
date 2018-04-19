@@ -17,6 +17,7 @@ import constants as C
 from saver import Saver
 
 RANDOM_SEED = 1
+CACHE_DATASET = False
 
 def main():
 
@@ -39,7 +40,10 @@ def main():
         params = saver.params
 
         category = params[C.CATEGORY]
-        dataset = _get_dataset(model_name, category, params, logger)
+        if CACHE_DATASET:
+            dataset = _get_dataset(model_name, category, params, logger)
+        else:
+            dataset = AmazonDataset(params)
         logger.log('\n Model: %s, Mode = %s, Category = %s \n' % (model_name, mode, category))
         train_loader = AmazonDataLoader(dataset.train, model_name, params[C.BATCH_SIZE])
         dev_loader = AmazonDataLoader(dataset.val, model_name, params[C.BATCH_SIZE])
