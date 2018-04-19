@@ -6,8 +6,8 @@ import os
 
 class Logger:
 
-    def __init__(self, logfilename = None, clear_file=True):
-        self.logfilename = logfilename if logfilename else _log_file_name()
+    def __init__(self, logfilename = None, clear_file=True, base_dir=C.LOG_DIR):
+        self.logfilename = logfilename if logfilename else _log_file_name(base_dir)
         self.log('', clear=clear_file)
 
     def log(self, line, clear=False):
@@ -16,11 +16,14 @@ class Logger:
         with open(self.logfilename, 'w' if clear else 'a') as fp:
             fp.write('%s\n' % line)
 
-def _log_file_name():
+def _log_file_name(base_dir):
     parser = argparse.ArgumentParser()
     default_name = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
     parser.add_argument('--%s' % C.LOG_FILENAME, dest=C.LOG_FILENAME, type=str, default='%s.log' % default_name)
     args, _ = parser.parse_known_args()
-    if not os.path.exists(C.LOG_DIR):
-        os.makedirs(C.LOG_DIR)
-    return C.LOG_DIR + '/'  + vars(args)[C.LOG_FILENAME]
+    _ensure_path(base_dir)
+    return '%s/%s' % (base_dir, vars(args)[C.LOG_FILENAME])
+
+def _ensure_path(path):
+    if not os.path.exists(path):
+        os.makedirs(path)

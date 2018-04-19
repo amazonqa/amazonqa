@@ -12,7 +12,7 @@ def get_main_params():
     parser.add_argument('--model_name', dest='model_name', type=str, default=C.LM_ANSWERS)
     parser.add_argument('--mode', dest='mode', type=str, default=C.TRAIN_TYPE)
     parser.add_argument('--input_path', dest='input_path', type=str, default=None)
-    parser.add_argument('--epoch', dest='epoch', type=int, default=-1)
+    parser.add_argument('--epoch', dest='epoch', type=int, default=C.BEST_EPOCH_IDX)
     parser.add_argument('--resume', dest='resume', type=int, default=0)
     parser.add_argument('--save_dir', dest='save_dir', type=str, default=None)
     parser.add_argument('--output_file', dest='output_file', type=str, default='output.txt')

@@ -63,10 +63,9 @@ class Trainer:
         dev_loader=None,
         #test_loader=None,
         vocab=None,
-        logger=None,
+        saver=None,
         resume_training=False,
-        resume_epoch=None,
-        save_dir=None
+        resume_epoch=None
     ):
         _set_random_seeds(random_seed)
 
@@ -82,8 +81,9 @@ class Trainer:
         self.dev_loader = dev_loader
         #self.test_loader = test_loader
 
-        # Logger
-        self.logger = logger
+        # Saver and Logger
+        self.saver = saver
+        self.logger = self.saver.logger
 
         # Model
         self.model = LM(
@@ -95,30 +95,30 @@ class Trainer:
             params[C.DROPOUT],
             params[C.MODEL_NAME]
         ) if self.dataloader else None
+
         self.logger.log('MODEL : %s' % self.model)
         self.logger.log('PARAMS: %s' % self.params)
 
+        # Optimizer and loss metrics
         if resume_training:
-            self.save_dir = save_dir
+            self.optimizer, self.metrics = self.saver.load_model_and_state(resume_epoch, self.model)
             self.load_model_optimizer(resume_epoch)
             self.start_epoch = resume_epoch + 1
         else:
-            self.save_dir = self._save_dir(datetime.now())
+            self.optimizer = None
+            self.metrics = TrainerMetrics(logger)
 
-        # Optimizer and loss metrics
-        self.optimizer = None
         self.loss = Loss()
-        self.metrics = TrainerMetrics(logger)
-
         if USE_CUDA:
             if self.model:
                 self.model = self.model.cuda()
-            self.criterion = self.criterion.cuda()
 
     def train(self):
         lr = self.params[C.LR]
         self._set_optimizer(0, lr)
-        self.save_metadata()
+
+        # Save params, vocab and architecture
+        self.saver.save_params_and_vocab(self.params, self.vocab, str(self.model))
 
         # For Debuging
         # self.dataloader = list(self.dataloader)[:10]
@@ -156,25 +156,27 @@ class Trainer:
 
             # Save model periodically
             if epoch % self.save_model_every == 0:
-                self.save_model(epoch)
+                self.saver.save_model_and_state(epoch,
+                    self.model,
+                    self.optimizer,
+                    self.metrics
+                )
 
             # Eval on dev set
             self.logger.log('\nStarting evaluation on DEV at end of epoch: %d' % epoch)
             dev_loss = self.eval(self.dev_loader, C.DEV_TYPE, epoch=epoch)
             self.logger.log('Finished evaluation on DEV')
 
-            # Update lr is the val loss increases
-            if dev_loss > prev_dev_loss:
-                self._decay_lr(epoch, self.params[C.LR_DECAY])
-                # lr *= self.params[C.LR_DECAY]
-                # self._set_optimizer(epoch, lr=lr)
-            prev_dev_loss = dev_loss
+            # # Update lr is the val loss increases
+            # if dev_loss > prev_dev_loss:
+            #     self._decay_lr(epoch, self.params[C.LR_DECAY])
+            #     # lr *= self.params[C.LR_DECAY]
+            #     # self._set_optimizer(epoch, lr=lr)
+            # prev_dev_loss = dev_loss
 
             # Save the best model till now
-            if dev_loss == self.min_dev_loss:
-                # Using epoch = -1 as best epoch
-                self.save_model(-1)
-
+            if self.metrics.is_best_dev_loss():
+                self.saver.save_model(C.BEST_EPOCH_IDX)
 
     def train_batch(self, 
             quesion_seqs,
@@ -274,53 +276,6 @@ class Trainer:
 
         return loss, perplexity, output_seq, output_lengths
 
-
-    def save_model(self, epoch):
-        model_filename = '%s/%s_%d' % (self.save_dir, C.SAVED_MODEL_FILENAME, epoch)
-        self.logger.log('Saving model (Epochs = %s)...' % epoch)
-        torch.save(self.model.state_dict(), model_filename)
-        torch.save({'optimizer': self.optimizer}, self._optimizer_filename(epoch))
-
-    def load_model_optimizer(self, epoch):
-        map_location = None if USE_CUDA else lambda storage, loc: storage # assuming the model was saved from a gpu machine
-        model_filename = '%s/%s_%d' % (self.save_dir, C.SAVED_MODEL_FILENAME, epoch)
-        self.logger.log('Loading model (Epochs = %s)...' % epoch)
-
-        self.model.load_state_dict(torch.load(model_filename, map_location=map_location))
-        self.optimizer = torch.load(self._optimizer_filename(epoch))['optimizer']
-        if self.params[C.RESUME_LR] is not None:
-            for param_group in self.optimizer.param_groups:
-                param_group['lr'] *= self.params[C.RESUME_LR]
-            
-    def _optimizer_filename(self, epoch):
-        return '%s/%s_%d.pt' % (self.save_dir, C.SAVED_OPTIMIZER_FILENAME, epoch)
-
-    def _output_filename(self, epoch):
-        _ensure_path(self.save_dir)
-        return '%s/generated_answers_%d.txt' % (self.save_dir, epoch)
-
-    def save_metadata(self):
-        _ensure_path(self.save_dir)
-        params_filename = '%s/%s' % (self.save_dir, C.SAVED_PARAMS_FILENAME)
-        vocab_filename = '%s/%s' % (self.save_dir, C.SAVED_VOCAB_FILENAME)
-        architecture_filename = '%s/%s' % (self.save_dir, C.SAVED_ARCHITECTURE_FILENAME)
-
-        self.logger.log('Saving params in file: %s' % params_filename)
-        with open(params_filename, 'w') as fp:
-            json.dump(self.params, fp, indent=4, sort_keys=True)
-
-        self.logger.log('Saving vocab in file: %s' % vocab_filename)
-        with open(vocab_filename, 'wb') as fp:
-            pickle.dump(self.vocab, fp, pickle.HIGHEST_PROTOCOL)
-
-        self.logger.log('Saving architecture in file: %s' % architecture_filename)
-        with open(architecture_filename, 'w') as fp:
-            fp.write(str(self.model))
-
-    def _save_dir(self, time):
-        time_str = time.strftime('%Y-%m-%d-%H-%M-%S')
-        return '%s/%s/%s/%s' % (C.BASE_PATH, self.params[C.CATEGORY], self.params[C.MODEL_NAME], time_str)
-
     def _set_optimizer(self, epoch, lr):
         self.optimizer = optim.Adam(self.model.parameters(), lr=lr)
         self.logger.log('Setting Learning Rate = %.9f (Epoch = %d)' % (lr, epoch))
@@ -333,13 +288,6 @@ class Trainer:
 def _set_random_seeds(seed):
     np.random.seed(seed)
     torch.manual_seed(seed)
-
-def _ensure_path(path):
-    if not os.path.exists(path):
-        os.makedirs(path)
-
-def _perplexity_from_loss(loss):
-    return np.exp(loss)
 
 def _var(variable):
     dtype = torch.cuda.LongTensor if USE_CUDA else torch.LongTensor

@@ -155,14 +155,10 @@ WILSON = 'wilson'
 RESUME = 'resume'
 RESUME_LR = 'resume_lr'
 SAVE_DIR = 'save_dir'
+BEST_EPOCH_IDX = -100
 
 # DIRS/FILENAMES
 BASE_PATH = 'saved_models'
-SAVED_MODEL_FILENAME = 'model.pt'
-SAVED_PARAMS_FILENAME = 'params.json'
-SAVED_VOCAB_FILENAME = 'vocab.pkl'
-SAVED_ARCHITECTURE_FILENAME = 'architecture.txt'
-SAVED_OPTIMIZER_FILENAME = 'optimizer'
 
 LM_MODELS =                       [LM_ANSWERS,        LM_QUESTION_ANSWERS, LM_QUESTION_ANSWERS_REVIEWS]
 """

@@ -14,6 +14,7 @@ from dataset import AmazonDataset
 from models.model import LM
 from logger import Logger
 import constants as C
+from saver import Saver
 
 RANDOM_SEED = 1
 
@@ -22,7 +23,6 @@ def main():
     args = utils.get_main_params()
     model_name, mode = args.model_name, args.mode
     save_dir = args.save_dir
-    logger = Logger()
 
     resume, epoch = args.resume, args.epoch
     if args.resume:
@@ -32,22 +32,25 @@ def main():
     if mode == C.TRAIN_TYPE:
         params = utils.get_model_params(model_name)
         params[C.MODEL_NAME] = model_name
-        params[C.LOG_FILENAME] = logger.logfilename
+
+        # Instantiate saver and a logger in save_dir
+        saver = Saver(save_dir, params)
+        logger = saver.logger
+        params = saver.params
+
         category = params[C.CATEGORY]
         dataset = _get_dataset(model_name, category, params, logger)
         logger.log('\n Model: %s, Mode = %s, Category = %s \n' % (model_name, mode, category))
         train_loader = AmazonDataLoader(dataset.train, model_name, params[C.BATCH_SIZE])
         dev_loader = AmazonDataLoader(dataset.val, model_name, params[C.BATCH_SIZE])
-        #test_loader = AmazonDataLoader(dataset.test, model_name, params[C.BATCH_SIZE])
 
         trainer = Trainer(
             train_loader,
             params,
             dev_loader=dev_loader,
-            #test_loader=test_loader,
             random_seed=RANDOM_SEED,
             vocab=dataset.vocab,
-            logger=logger,
+            saver=saver
             resume_training=resume,
             resume_epoch=epoch if resume else None,
             save_dir=save_dir
