@@ -21,6 +21,7 @@ CACHE_DATASET = False
 
 def main():
 
+    _set_random_seeds(RANDOM_SEED)
     args = utils.get_main_params()
     model_name, mode = args.model_name, args.mode
     save_dir = args.save_dir
@@ -52,7 +53,6 @@ def main():
             train_loader,
             params,
             dev_loader=dev_loader,
-            random_seed=RANDOM_SEED,
             vocab=dataset.vocab,
             saver=saver
             resume_training=resume,
@@ -114,7 +114,6 @@ def main():
             params,
             dev_loader=loader,
             #test_loader=loader,
-            random_seed=RANDOM_SEED,
             vocab=vocab,
             logger=logger,
             save_dir=save_dir
@@ -128,6 +127,10 @@ def main():
 
     else:
         raise 'Unimplemented mode: %s' % mode
+
+def _set_random_seeds(seed):
+    np.random.seed(seed)
+    torch.manual_seed(seed)
 
 def _get_dataset(model, category, params, logger):
     logger.log('Creating dataset for [%s]..' % category.upper())

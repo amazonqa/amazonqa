@@ -57,7 +57,6 @@ class Trainer:
 
     def __init__(self, 
         dataloader, params,
-        random_seed=1,
         save_model_every=1,     # Every Number of epochs to save after
         print_every=1000,       # Every Number of batches to print after
         dev_loader=None,
@@ -67,7 +66,6 @@ class Trainer:
         resume_training=False,
         resume_epoch=None
     ):
-        _set_random_seeds(random_seed)
 
         self.save_model_every = save_model_every
         self.print_every = print_every
@@ -300,10 +298,6 @@ class Trainer:
             self.optimizer = optim.SGD(self.model.parameters(), lr=self.lr)
         else:
             raise 'Unimplemented optimization type: %s' % opt_type
-
-def _set_random_seeds(seed):
-    np.random.seed(seed)
-    torch.manual_seed(seed)
 
 def _var(variable):
     dtype = torch.cuda.LongTensor if USE_CUDA else torch.LongTensor
