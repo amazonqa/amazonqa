@@ -16,7 +16,7 @@ from torch.autograd import Variable
 
 import constants as C
 from models.seq2seq import Seq2Seq
-from trainer import loss
+from trainer.loss import Loss
 
 USE_CUDA = torch.cuda.is_available()
 
@@ -210,7 +210,7 @@ class Trainer:
         if not dataloader:
             raise 'No [%s] Dataset' % mode
         else:
-            self.logger.log('Evaluating on [%s] dataset' % mode)
+            self.logger.log('Evaluating on [%s] dataset (epoch %d)' % (mode.upper(), epoch))
 
         compute_loss = mode != C.TEST_TYPE
         if compute_loss:
@@ -284,11 +284,11 @@ class Trainer:
         else:
             raise 'Unimplemented optimization type: %s' % opt_type
 
-        self.logger.log('Setting [%s] Learning Rate = %.6f (Epoch = %d)' % (opt_type.upper(), self.lr, epoch))
+        self.logger.log('\nSetting [%s] Learning Rate = %.6f (Epoch = %d)' % (opt_type.upper(), self.lr, epoch))
 
     def _decay_lr(self, epoch, decay_factor):
         opt_type = self.params[C.OPTIMIZER_TYPE]
-        self.logger.log('Decaying [%s] learning rate by %.3f (Epoch = %d)' % (opt_type.upper(), decay_factor, epoch))
+        self.logger.log('\nDecaying [%s] learning rate by %.3f (Epoch = %d)' % (opt_type.upper(), decay_factor, epoch))
 
         if opt_type == C.ADAM:
             for param_group in self.optimizer.param_groups:

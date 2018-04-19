@@ -47,11 +47,14 @@ def main():
 
     if mode == C.TRAIN_TYPE:
         category = params[C.CATEGORY]
+        logger.log('\nLoading dataset..')
         dataset = AmazonDataset(params)
         logger.log('\n Model: %s, Mode = %s, Category = %s \n' % (model_name, mode, category))
+        logger.log('\nLoading dataloader..')
         train_loader = AmazonDataLoader(dataset.train, model_name, params[C.BATCH_SIZE])
         dev_loader = AmazonDataLoader(dataset.val, model_name, params[C.BATCH_SIZE])
 
+        logger.log('\nInstantiating training..')
         trainer = Trainer(
             train_loader,
             params,
