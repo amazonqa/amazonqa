@@ -26,14 +26,20 @@ USE_CUDA = torch.cuda.is_available()
 class Saver:
 
     def __init__(self, save_dir, params):
-        self.params = params
-        self.save_dir = save_dir if save_dir else self._save_dir(datetime.now())
+        if save_dir:
+            self.save_dir = save_dir
+        else:
+            self.save_dir = self._save_dir(datetime.now())
+            self.params = params
+    
+        self.params_filename = '%s/%s' % (self.save_dir, SAVED_PARAMS_FILENAME)
+        if save_dir:
+            self.params = _json_load(self.params_filename)
 
         _ensure_path(self.save_dir)
         self.logger = Logger(clear_file=False, base_dir=self.save_dir)
         self.params[C.LOG_FILENAME] = self.logger.logfilename
 
-        self.params_filename = '%s/%s' % (self.save_dir, SAVED_PARAMS_FILENAME)
         self.vocab_filename = '%s/%s' % (self.save_dir, SAVED_VOCAB_FILENAME)
         self.architecture_filename = '%s/%s' % (self.save_dir, SAVED_ARCHITECTURE_FILENAME)
 

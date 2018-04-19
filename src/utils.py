@@ -22,6 +22,7 @@ def get_main_params():
 def get_model_params(model_name):
     H = _model_hyperparams(C.LM_MODELS, C.LM_HP)[model_name]
     parser = argparse.ArgumentParser()
+
     add_arg(parser, str, C.MODEL_NAME, H)
     add_arg(parser, str, C.CATEGORY, H)
     add_arg(parser, str, C.REVIEW_SELECT_MODE, H)
@@ -46,8 +47,8 @@ def get_model_params(model_name):
     add_arg(parser, int, C.MAX_QUESTION_LEN, H)
     add_arg(parser, int, C.MAX_ANSWER_LEN, H)
     add_arg(parser, int, C.MAX_REVIEW_LEN, H)
-    add_arg(parser, float, C.RESUME_LR, H)
     add_arg(parser, str, C.SAVE_DIR, H)
+
     args, _ = parser.parse_known_args()
     return vars(args)
 

@@ -27,15 +27,20 @@ def main():
     save_dir = args.save_dir
 
     resume, epoch = args.resume, args.epoch
+
     if args.resume:
         assert mode == C.TRAIN_TYPE
         assert epoch >= 0
 
     if mode == C.TRAIN_TYPE:
+
         params = utils.get_model_params(model_name)
         params[C.MODEL_NAME] = model_name
 
         # Instantiate saver and a logger in save_dir
+        # If save_dir is passed in from command line
+        #   params are loaded from the save_dir
+        # Logger is instantiated in saver
         saver = Saver(save_dir, params)
         logger = saver.logger
         params = saver.params
@@ -45,6 +50,7 @@ def main():
             dataset = _get_dataset(model_name, category, params, logger)
         else:
             dataset = AmazonDataset(params)
+
         logger.log('\n Model: %s, Mode = %s, Category = %s \n' % (model_name, mode, category))
         train_loader = AmazonDataLoader(dataset.train, model_name, params[C.BATCH_SIZE])
         dev_loader = AmazonDataLoader(dataset.val, model_name, params[C.BATCH_SIZE])
@@ -54,10 +60,9 @@ def main():
             params,
             dev_loader=dev_loader,
             vocab=dataset.vocab,
-            saver=saver
+            saver=saver,
             resume_training=resume,
-            resume_epoch=epoch if resume else None,
-            save_dir=save_dir
+            resume_epoch=epoch if resume else None
         )
         trainer.train()
 
