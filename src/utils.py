@@ -27,7 +27,7 @@ def get_model_params(model_name):
     add_arg(parser, str, C.CATEGORY, H)
     add_arg(parser, str, C.REVIEW_SELECT_MODE, H)
     add_arg(parser, int, C.REVIEW_SELECT_NUM, H)
-    add_arg(parser, int, C.EPOCHS, H)
+    add_arg(parser, int, C.NUM_EPOCHS, H)
     add_arg(parser, int, C.BATCH_SIZE, H)
     add_arg(parser, float, C.DROPOUT, H)
     add_arg(parser, float, C.LR, H)

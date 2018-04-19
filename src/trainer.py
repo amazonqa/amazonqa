@@ -131,7 +131,7 @@ class Trainer:
         self.loss.reset()
         self.metrics.add_loss(self.loss, C.TRAIN_TYPE)
 
-        for epoch in range(self.start_epoch, self.params[C.EPOCHS]):
+        for epoch in range(self.start_epoch, self.params[C.NUM_EPOCHS]):
             self.logger.log('\n  --- STARTING EPOCH : %d --- \n' % epoch)
 
             # refresh loss, perplexity 

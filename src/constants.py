@@ -121,7 +121,7 @@ Default Hyperparameters for LM MODELS
 """
 
 # Hyperparameter constants
-EPOCHS = 'epochs'
+NUM_EPOCHS = 'num_epochs'
 BATCH_SIZE = 'batch_size'
 DROPOUT = 'dropout'
 LR = 'lr'
@@ -176,7 +176,7 @@ LM_HP = {
     MODEL_NAME:                   LM_MODELS,
     REVIEW_SELECT_MODE:           [None,              None,               HELPFUL],
     REVIEW_SELECT_NUM:            [None,              None,               5],
-    EPOCHS:                       [25,                25,                 25],
+    NUM_EPOCHS:                   [25,                25,                 25],
     BATCH_SIZE:                   [64,                64,                 64],
     DROPOUT:                      [0.2,               0.2,                0.2],
     LR:                           [0.01,              0.01,               0.01],
