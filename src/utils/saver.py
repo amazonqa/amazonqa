@@ -9,7 +9,7 @@ import torch
 import pandas as pd
 
 import constants as C
-from logger import Logger
+from utils import logger
 
 SAVED_PARAMS_FILENAME = 'params.json'
 SAVED_VOCAB_FILENAME = 'vocab.pkl'

@@ -1,12 +1,13 @@
 import os
 import torch
-import constants as C
-import pandas as pd
-from vocabulary import Vocabulary
 import string
+import pandas as pd
 from tqdm import tqdm
+
+import constants as C
+from data.vocabulary import Vocabulary
 import ipdb as pdb
-import utils
+from data import review_utils
 
 class AmazonDataset(object):
     def __init__(self, params):
@@ -116,7 +117,7 @@ class AmazonDataset(object):
 
             if self.model == C.LM_QUESTION_ANSWERS_REVIEWS:
                 reviewsList = row[C.REVIEWS_LIST]
-                reviewsList = utils.select_reviews(reviewsList, self.review_select_mode, self.review_select_num)
+                reviewsList = review_utils.select_reviews(reviewsList, self.review_select_mode, self.review_select_num)
                 reviewsDictList = []
                 for review in reviewsList:
                     tokens = self.truncate_tokens(review[C.TEXT], self.max_review_len)

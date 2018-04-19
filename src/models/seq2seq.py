@@ -11,10 +11,10 @@ import constants as C
 from models.encoder import Encoder
 from models.decoder import Decoder
 
-class LM(nn.Module):
+class Seq2Seq(nn.Module):
 
     def __init__(self, vocab_size, h_size, e_size, max_len, n_layers, dropout_p, model):
-        super(LM, self).__init__()
+        super(Seq2Seq, self).__init__()
 
         r_hsize, q_hsize, a_hsize = h_size
         embedding = nn.Embedding(vocab_size, e_size)

@@ -8,14 +8,14 @@ import json
 import torch
 import numpy as np
 
-import utils
-from trainer import Trainer, hsizes
-from dataloader import AmazonDataLoader
-from dataset import AmazonDataset
-from models.model import LM
-from logger import Logger
+import config
 import constants as C
-from saver import Saver
+from trainer.trainer import Trainer, hsizes
+from data.dataloader import AmazonDataLoader
+from data.dataset import AmazonDataset
+from models.seq2seq import Seq2Seq
+from utils.logger import Logger
+from utils.saver import Saver
 
 RANDOM_SEED = 1
 CACHE_DATASET = False
@@ -23,7 +23,7 @@ CACHE_DATASET = False
 def main():
 
     _set_random_seeds(RANDOM_SEED)
-    args = utils.get_main_params()
+    args = config.get_main_params()
     model_name, mode = args.model_name, args.mode
     save_dir = args.save_dir
 
@@ -33,7 +33,7 @@ def main():
         assert mode == C.TRAIN_TYPE
         assert epoch >= 0
 
-    params = utils.get_model_params(model_name)
+    params = config.get_model_params(model_name)
     params[C.MODEL_NAME] = model_name
 
     # Instantiate saver and a logger in save_dir
@@ -78,7 +78,7 @@ def main():
 
         # Load model
         logger.log('Loading saved model..')
-        model = LM(
+        model = Seq2Seq(
             vocab.get_vocab_size(),
             hsizes(params, model_name),
             params[C.EMBEDDING_DIM],

@@ -1,12 +1,12 @@
 """Class for loss computation
 """
 
-import constants as C
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
-
 import numpy as np
+
+import constants as C
 
 class Loss:
 

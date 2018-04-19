@@ -15,8 +15,8 @@ from torch import optim
 from torch.autograd import Variable
 
 import constants as C
-from models.model import LM
-from loss import Loss
+from models.seq2seq import Seq2Seq
+from trainer import loss
 
 USE_CUDA = torch.cuda.is_available()
 
@@ -85,7 +85,7 @@ class Trainer:
         self.logger = self.saver.logger
 
         # Model
-        self.model = LM(
+        self.model = Seq2Seq(
             self.vocab.get_vocab_size(),
             hsizes(params, self.model_name),
             params[C.EMBEDDING_DIM],
