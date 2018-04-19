@@ -142,15 +142,23 @@ MAX_REVIEW_LEN = 'max_review_len'
 TEACHER_FORCING_RATIO = 'teacher_forcing_ratio'
 OUTPUT_MAX_LEN = 'output_max_len'
 MODEL_NAME = 'model_name'
+OPTIMIZER_TYPE = 'optimizer_type'
 
 REVIEW_SELECT_MODE = 'review_select_mode'
 REVIEW_SELECT_NUM = 'review_select_num'
+
 """
     Review select modes
 """
 RANDOM = 'random'
 HELPFUL = 'helpful'
 WILSON = 'wilson'
+
+"""
+    Optimizer types
+"""
+ADAM = 'adam'
+SGD = 'sgd'
 
 RESUME = 'resume'
 RESUME_LR = 'resume_lr'
@@ -188,6 +196,7 @@ LM_HP = {
     MAX_QUESTION_LEN:             [100] * 3,
     MAX_ANSWER_LEN:               [100] * 3,
     MAX_REVIEW_LEN:               [200] * 3,
+    OPTIMIZER_TYPE:               [SGD] * 3
     RESUME_LR:                    [None]*3, # if resume_lr is none, use optimizers lr  
     SAVE_DIR:                     [None]*3
 }

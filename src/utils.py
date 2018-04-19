@@ -42,6 +42,7 @@ def get_model_params(model_name):
     add_arg(parser, float, C.TEACHER_FORCING_RATIO, H)
     add_arg(parser, int, C.OUTPUT_MAX_LEN, H)
     add_arg(parser, str, C.LOG_FILENAME, H)
+    add_arg(parser, str, C.OPTIMIZER_TYPE, H)
     add_arg(parser, int, C.MAX_QUESTION_LEN, H)
     add_arg(parser, int, C.MAX_ANSWER_LEN, H)
     add_arg(parser, int, C.MAX_REVIEW_LEN, H)

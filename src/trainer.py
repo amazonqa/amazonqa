@@ -75,6 +75,7 @@ class Trainer:
         self.vocab = vocab
         self.model_name = params[C.MODEL_NAME]
         self.start_epoch = 0
+        self.lr = None
 
         # Data Loaders
         self.dataloader = dataloader
@@ -114,8 +115,8 @@ class Trainer:
                 self.model = self.model.cuda()
 
     def train(self):
-        lr = self.params[C.LR]
-        self._set_optimizer(0, lr)
+        self.lr = self.params[C.LR]
+        self._set_optimizer(0)
 
         # Save params, vocab and architecture
         self.saver.save_params_and_vocab(self.params, self.vocab, str(self.model))
@@ -276,14 +277,29 @@ class Trainer:
 
         return loss, perplexity, output_seq, output_lengths
 
-    def _set_optimizer(self, epoch, lr):
-        self.optimizer = optim.Adam(self.model.parameters(), lr=lr)
-        self.logger.log('Setting Learning Rate = %.9f (Epoch = %d)' % (lr, epoch))
+    def _set_optimizer(self, epoch):
+        opt_type = self.params[C.OPTIMIZER_TYPE]
+        if opt_type == C.ADAM:
+            self.optimizer = optim.Adam(self.model.parameters(), lr=self.lr)
+        elif opt_type == C.SGD:
+            self.optimizer = optim.SGD(self.model.parameters(), lr=self.lr)
+        else:
+            raise 'Unimplemented optimization type: %s' % opt_type
+
+        self.logger.log('Setting [%s] Learning Rate = %.6f (Epoch = %d)' % (opt_type.upper(), self.lr, epoch))
 
     def _decay_lr(self, epoch, decay_factor):
-        self.logger.log('Decaying learning rate by %.3f (Epoch = %d)' % (decay_factor, epoch))
-        for param_group in self.optimizer.param_groups:
-            param_group['lr'] *= decay_factor
+        opt_type = self.params[C.OPTIMIZER_TYPE]
+        self.logger.log('Decaying [%s] learning rate by %.3f (Epoch = %d)' % (opt_type.upper(), decay_factor, epoch))
+
+        if opt_type == C.ADAM:
+            for param_group in self.optimizer.param_groups:
+                param_group['lr'] *= decay_factor
+        elif opt_type == C.SGD:
+            self.lr *= decay_factor
+            self.optimizer = optim.SGD(self.model.parameters(), lr=self.lr)
+        else:
+            raise 'Unimplemented optimization type: %s' % opt_type
 
 def _set_random_seeds(seed):
     np.random.seed(seed)
