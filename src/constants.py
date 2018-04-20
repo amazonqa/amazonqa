@@ -195,6 +195,6 @@ LM_HP = {
     MAX_QUESTION_LEN:             [100] * 3,
     MAX_ANSWER_LEN:               [100] * 3,
     MAX_REVIEW_LEN:               [200] * 3,
-    OPTIMIZER_TYPE:               [SGD] * 3,
+    OPTIMIZER_TYPE:               [ADAM] * 3,
     SAVE_DIR:                     [None]*3
 }
