@@ -48,7 +48,7 @@ class TrainerMetrics:
 
         mode = mode.upper()
         self.logger.log('\n\t[%s] Loss = %.4f, Min [%s] Loss = %.4f' % (mode, epoch_loss, mode, min_loss))
-        self.logger.log('\n\[%s] Perplexity = %.2f, Min [%s] Perplexity = %.2f' % (mode, epoch_perplexity, mode, min_perplexity))
+        self.logger.log('\t[%s] Perplexity = %.2f, Min [%s] Perplexity = %.2f' % (mode, epoch_perplexity, mode, min_perplexity))
 
     def is_best_dev_loss(self):
         return len(self.dev_loss) > 0 and self.dev_loss[-1] == np.nanmin(self.dev_loss)
@@ -125,7 +125,7 @@ class Trainer:
         # self.test_loader = list(self.test_loader)[:5]
 
         self.logger.log('Evaluating on DEV before epoch : 0')
-        dev_loss = self.eval(self.dev_loader, C.DEV_TYPE, epoch=-1)
+        self.eval(self.dev_loader, C.DEV_TYPE, epoch=-1)
 
         # Add train loss entry for a corresponding dev loss entry before epoch 0
         self.loss.reset()
@@ -149,9 +149,14 @@ class Trainer:
                     self.logger.log('\n\tMean [TRAIN] Loss for batch %d = %.2f' % (batch_itr, batch_loss))
                     self.logger.log('\tMean [TRAIN] Perplexity for batch %d = %.2f' % (batch_itr, batch_perplexity))
 
-            logger.log('\n  --- END OF EPOCH : %d --- \n' % epoch)
+            self.logger.log('\n  --- END OF EPOCH : %d --- \n' % epoch)
             # Compute epoch loss and perplexity
             self.metrics.add_loss(self.loss, C.TRAIN_TYPE)
+
+            # Eval on dev set
+            self.logger.log('\nStarting evaluation on DEV at end of epoch: %d' % epoch)
+            self.eval(self.dev_loader, C.DEV_TYPE, epoch=epoch)
+            self.logger.log('Finished evaluation on DEV')
 
             # Save model periodically
             if epoch % self.save_model_every == 0:
@@ -160,11 +165,6 @@ class Trainer:
                     self.optimizer,
                     self.metrics
                 )
-
-            # Eval on dev set
-            self.logger.log('\nStarting evaluation on DEV at end of epoch: %d' % epoch)
-            dev_loss = self.eval(self.dev_loader, C.DEV_TYPE, epoch=epoch)
-            self.logger.log('Finished evaluation on DEV')
 
             # # Update lr is the val loss increases
             # if dev_loss > prev_dev_loss:
@@ -175,7 +175,7 @@ class Trainer:
 
             # Save the best model till now
             if self.metrics.is_best_dev_loss():
-                self.saver.save_model(C.BEST_EPOCH_IDX)
+                self.saver.save_model(C.BEST_EPOCH_IDX, self.model)
 
     def train_batch(self, 
             question_seqs,
@@ -230,7 +230,7 @@ class Trainer:
 
             if mode == C.TEST_TYPE:
                 output_seq = output_seq.data.cpu().numpy()
-                with open(output_filename, 'a') as fp:
+                with open(output_filecname, 'a') as fp:
                     for seq_itr, length in enumerate(output_lengths):
                         length = int(length)
                         seq = output_seq[seq_itr, :length]
@@ -246,7 +246,6 @@ class Trainer:
             self.logger.log('Saving generated answers to file {0}'.format(output_filename))
         else:
             raise 'Unimplemented mode: %s' % mode
-        return np.mean(np.array(losses))
 
     def _forward_pass(self,
             question_seqs,

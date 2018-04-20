@@ -39,6 +39,7 @@ class Saver:
         _ensure_path(self.save_dir)
         self.logger = Logger(clear_file=False, base_dir=self.save_dir)
         self.params[C.LOG_FILENAME] = self.logger.logfilename
+        self.params[C.SAVE_DIR] = self.save_dir
 
         self.vocab_filename = '%s/%s' % (self.save_dir, SAVED_VOCAB_FILENAME)
         self.architecture_filename = '%s/%s' % (self.save_dir, SAVED_ARCHITECTURE_FILENAME)

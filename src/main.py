@@ -45,6 +45,8 @@ def main():
     params = saver.params
     assert model_name == params[C.MODEL_NAME]
 
+    logger.log('SaveDir: %s' % saver.save_dir)
+
     if mode == C.TRAIN_TYPE:
         category = params[C.CATEGORY]
         logger.log('\nLoading dataset..')

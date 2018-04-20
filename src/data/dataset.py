@@ -9,6 +9,8 @@ from data.vocabulary import Vocabulary
 import ipdb as pdb
 from data import review_utils
 
+DEBUG = True
+
 class AmazonDataset(object):
     def __init__(self, params):
         self.model = params[C.MODEL_NAME]
@@ -61,6 +63,8 @@ class AmazonDataset(object):
 
         with open(train_path, 'rb') as f:
             dataFrame = pd.read_pickle(f)
+            if DEBUG:
+                dataFrame = dataFrame.iloc[:5]
 
         for _, row in dataFrame.iterrows():
             questionsList = row[C.QUESTIONS_LIST]
@@ -94,6 +98,8 @@ class AmazonDataset(object):
 
         with open(path, 'rb') as f:
             dataFrame = pd.read_pickle(f)
+            if DEBUG:
+                dataFrame = dataFrame.iloc[:5]
 
         for _, row in tqdm(dataFrame.iterrows()):
             tuples = []

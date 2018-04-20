@@ -19,10 +19,10 @@ class Logger:
 def _log_file_name(base_dir):
     parser = argparse.ArgumentParser()
     default_name = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
-    parser.add_argument('--%s' % C.LOG_FILENAME, dest=C.LOG_FILENAME, type=str, default='%s.log' % default_name)
-    args, _ = parser.parse_known_args()
     _ensure_path(base_dir)
-    return '%s/%s' % (base_dir, vars(args)[C.LOG_FILENAME])
+    parser.add_argument('--%s' % C.LOG_FILENAME, dest=C.LOG_FILENAME, type=str, default='%s/%s.log' % (base_dir, default_name))
+    args, _ = parser.parse_known_args()
+    return vars(args)[C.LOG_FILENAME]
 
 def _ensure_path(path):
     if not os.path.exists(path):
