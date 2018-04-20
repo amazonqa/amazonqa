@@ -9,7 +9,7 @@ from data.vocabulary import Vocabulary
 import ipdb as pdb
 from data import review_utils
 
-DEBUG = True
+DEBUG = False
 
 class AmazonDataset(object):
     def __init__(self, params):
