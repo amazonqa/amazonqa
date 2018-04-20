@@ -12,6 +12,8 @@ class Loss:
 
     def __init__(self):
         self.criterion = nn.NLLLoss(ignore_index=C.PAD_INDEX, size_average=False)
+        if C.USE_CUDA:
+            self.criterion.cuda()
 
     def reset(self):
         self.num_tokens = 0
