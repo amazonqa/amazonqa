@@ -28,25 +28,25 @@ class Saver:
     def __init__(self, save_dir, params):
         if save_dir:
             self.save_dir = save_dir
+            self.params = _json_load(self._params_filename())
         else:
             self.params = params
             self.save_dir = self._save_dir(datetime.now())
-    
-        self.params_filename = '%s/%s' % (self.save_dir, SAVED_PARAMS_FILENAME)
-        if save_dir:
-            self.params = _json_load(self.params_filename)
 
         _ensure_path(self.save_dir)
-        self.logger = Logger(clear_file=False, base_dir=self.save_dir)
-        self.params[C.LOG_FILENAME] = self.logger.logfilename
-        self.params[C.SAVE_DIR] = self.save_dir
 
+        self.logger = Logger(clear_file=False, base_dir=self.save_dir)
         self.vocab_filename = '%s/%s' % (self.save_dir, SAVED_VOCAB_FILENAME)
         self.architecture_filename = '%s/%s' % (self.save_dir, SAVED_ARCHITECTURE_FILENAME)
 
+        # Enrich params
+        self.params[C.LOG_FILENAME] = self.logger.logfilename
+        self.params[C.SAVE_DIR] = self.save_dir
+
     def save_params_and_vocab(self, params, vocab, architecture):
-        self.logger.log('\nSaving params in file: %s' % self.params_filename)
-        _json_dump(params, self.params_filename)
+        params_filename = self._params_filename()
+        self.logger.log('\nSaving params in file: %s' % params_filename)
+        _json_dump(params, params_filename)
 
         self.logger.log('Saving vocab in file: %s' % self.vocab_filename)
         _pickle_dump(vocab, self.vocab_filename)
@@ -102,6 +102,9 @@ class Saver:
     def _save_dir(self, time):
         time_str = time.strftime('%Y-%m-%d-%H-%M-%S')
         return '%s/%s/%s/%s' % (C.BASE_PATH, self.params[C.CATEGORY], self.params[C.MODEL_NAME], time_str)
+
+    def _params_filename(self):
+        return '%s/%s' % (self.save_dir, SAVED_PARAMS_FILENAME)
 
 def _ensure_path(path):
     if not os.path.exists(path):
