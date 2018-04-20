@@ -43,7 +43,10 @@ def main():
     saver = Saver(save_dir, params)
     logger = saver.logger
     params = saver.params
-    assert model_name == params[C.MODEL_NAME]
+
+    # if save_dir is passed, 
+    # model_name is used from the model_name in saved params
+    model_name = params[C.MODEL_NAME]
 
     logger.log('SaveDir: %s' % saver.save_dir)
 

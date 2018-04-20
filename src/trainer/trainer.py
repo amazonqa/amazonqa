@@ -73,6 +73,7 @@ class Trainer:
         self.vocab = vocab
         self.model_name = params[C.MODEL_NAME]
         self.start_epoch = 0
+        self.resume_training = resume_training
         self.lr = None
 
         # Data Loaders
@@ -99,9 +100,8 @@ class Trainer:
         self.logger.log('PARAMS: %s' % self.params)
 
         # Optimizer and loss metrics
-        if resume_training:
+        if self.resume_training:
             self.optimizer, self.metrics = self.saver.load_model_and_state(resume_epoch, self.model)
-            self.load_model_optimizer(resume_epoch)
             self.start_epoch = resume_epoch + 1
         else:
             self.optimizer = None
@@ -124,12 +124,13 @@ class Trainer:
         # self.dev_loader = list(self.dev_loader)[:5]
         # self.test_loader = list(self.test_loader)[:5]
 
-        self.logger.log('Evaluating on DEV before epoch : 0')
-        self.eval(self.dev_loader, C.DEV_TYPE, epoch=-1)
+        if not self.resume_training:
+            self.logger.log('Evaluating on DEV before epoch : 0')
+            self.eval(self.dev_loader, C.DEV_TYPE, epoch=-1)
 
-        # Add train loss entry for a corresponding dev loss entry before epoch 0
-        self.loss.reset()
-        self.metrics.add_loss(self.loss, C.TRAIN_TYPE)
+            # Add train loss entry for a corresponding dev loss entry before epoch 0
+            self.loss.reset()
+            self.metrics.add_loss(self.loss, C.TRAIN_TYPE)
 
         for epoch in range(self.start_epoch, self.params[C.NUM_EPOCHS]):
             self.logger.log('\n  --- STARTING EPOCH : %d --- \n' % epoch)
