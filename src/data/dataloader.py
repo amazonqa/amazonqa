@@ -20,21 +20,30 @@ class AmazonDataLoader(object):
         self.num_batches = len(self.data) // self.batch_size
 
     def sortByLength(self, item):
+        max_len = 0
+
         if self.model == C.LM_ANSWERS:
-            value = self.answersDict[item[0]]
             assert(len(item) == 1)
+            answer = self.answersDict[item[0]]
+            max_len = len(answer)
 
         elif self.model == C.LM_QUESTION_ANSWERS:
             assert(len(item) == 2)
-            value = self.questionsDict[item[1]]
+            question = self.questionsDict[item[1]]
+            max_len = len(question)
 
         elif self.model == C.LM_QUESTION_ANSWERS_REVIEWS:
             assert(len(item) == 3)
-            value = self.questionsDict[item[1]]
+            #reviewIds = item[2]
+            #for reviewId in reviewIds:
+            #   review = self.reviewsDict[reviewId]
+            #   max_len = max(max_len, len(review))
+            question = self.questionsDict[item[1]]
+            max_len = len(question)
         else:
             raise 'Unknown Model %s' % self.model
 
-        return len(value)
+        return max_len
 
     def pad_answers(self, answerIds):
         batch_data = []
