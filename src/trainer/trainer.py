@@ -130,7 +130,8 @@ class Trainer:
 
             # Add train loss entry for a corresponding dev loss entry before epoch 0
             self.loss.reset()
-            self.metrics.add_loss(self.loss, C.TRAIN_TYPE)
+            #self.metrics.add_loss(self.loss, C.TRAIN_TYPE)
+            self.eval(self.dataloader, C.TRAIN_TYPE, epoch=-1)
 
         for epoch in range(self.start_epoch, self.params[C.NUM_EPOCHS]):
             self.logger.log('\n  --- STARTING EPOCH : %d --- \n' % epoch)
@@ -245,6 +246,8 @@ class Trainer:
             # self._print_info(epoch, None, losses, perplexities, mode, self.logger)
         elif mode == C.TEST_TYPE:
             self.logger.log('Saving generated answers to file {0}'.format(output_filename))
+        elif mode == C.TRAIN_TYPE:
+            self.metrics.add_loss(self.loss, C.TRAIN_TYPE)
         else:
             raise 'Unimplemented mode: %s' % mode
 
