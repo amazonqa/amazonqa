@@ -34,7 +34,7 @@ class TrainerMetrics:
     def add_loss(self, loss, mode):
         epoch_loss = loss.epoch_loss()
         epoch_perplexity = loss.epoch_perplexity()
-        
+
         if mode == C.TRAIN_TYPE:
             self.train_loss.append(epoch_loss)
             self.train_perplexity.append(epoch_perplexity)
@@ -167,13 +167,12 @@ class Trainer:
                     self.optimizer,
                     self.metrics
                 )
-
             # # Update lr is the val loss increases
-            # if dev_loss > prev_dev_loss:
-            #     self._decay_lr(epoch, self.params[C.LR_DECAY])
-            #     # lr *= self.params[C.LR_DECAY]
-            #     # self._set_optimizer(epoch, lr=lr)
-            # prev_dev_loss = dev_loss
+            if self.params[C.LR_DECAY] is not None and epoch >= self.params[C.DECAY_START_EPOCH] - 1:
+                if epoch == 0 or dev_loss > self.metrics.dev_loss[epoch-1]:
+                    self._decay_lr(epoch, self.params[C.LR_DECAY])
+                    lr *= self.params[C.LR_DECAY]
+                    self._set_optimizer(epoch, lr=lr)
 
             # Save the best model till now
             if self.metrics.is_best_dev_loss():
