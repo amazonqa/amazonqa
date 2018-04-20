@@ -28,7 +28,8 @@ class Loss:
         # Add to num sequences and tokens since reset
         self.num_sequences += batch_size
         self.num_tokens += batch_num_tokens
-        loss = Variable(torch.zeros(1))
+        dtype = torch.cuda.FloatTensor if C.USE_CUDA else torch.FloatTensor
+        loss = Variable(torch.zeros(1).dtype(dtype))
 
         # If the target is longer than max_output_len in
         # case of teacher_forcing = True,
