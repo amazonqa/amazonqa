@@ -29,7 +29,7 @@ class Loss:
         self.num_sequences += batch_size
         self.num_tokens += batch_num_tokens
         dtype = torch.cuda.FloatTensor if C.USE_CUDA else torch.FloatTensor
-        loss = Variable(torch.zeros(1).dtype(dtype))
+        loss = Variable(torch.zeros(1).type(dtype))
 
         # If the target is longer than max_output_len in
         # case of teacher_forcing = True,
