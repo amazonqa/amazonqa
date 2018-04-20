@@ -60,7 +60,7 @@ Sources - [Pytorch Word Level Language Model Example](https://github.com/pytorch
     nohup python3 -u main.py --category Electronics --mode train --model_name LM_QAR --hdim_a 512 --hdim_q 256 --hdim_r 256 --logfile Electronics-QAR.logfile --batch_size 10 > Electronics-QAR.out &
 
 ### Resume Training
-    nohup python3 -u main.py --category Electronics --mode train --resume 1 --epoch 3 --model_name LM_QAR --hdim_a 512 --hdim_q 256 --hdim_r 256 --logfile Electronics-QAR.logfile --batch_size 10 > Electronics-QAR.out &
+    nohup python3 -u main.py --mode train --resume 1 --epoch 3 --save_dir saved_models/Video_Games/LM_A/2018-04-19-20-51-27 --logfile resumed_Electronics-QAR.logfile > resumed_Electronics-QAR.out &
 
 ### Testing:
     python3 -u tests/data_processing.py --model_name LM_QAR --category Dummy --batch_size 3 --max_question_len 6 --max_answer_len 5 --max_review_len 4 > out
