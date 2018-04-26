@@ -4,10 +4,10 @@ import pandas as pd
 from tqdm import tqdm
 
 import constants as C
-from dataloader import AmazonDataLoader
-from dataset import AmazonDataset
-from vocabulary import Vocabulary
-import utils
+from data.dataloader import AmazonDataLoader
+from data.dataset import AmazonDataset
+from data.vocabulary import Vocabulary
+import config
 
 
 def _extract_input_attributes(inputs, model_name):
@@ -54,23 +54,23 @@ if __name__ == "__main__":
 	args, _ = parser.parse_known_args()
 
 	model_name = args.model_name
-	params = utils.get_model_params(model_name)
+	params = config.get_model_params(model_name)
 	category = params[C.CATEGORY]
 
-	dataset = AmazonDataset(category, model_name, params)
+	dataset = AmazonDataset(params)
 	answersDict, questionsDict, reviewsDict, data = dataset.train
 
-	train_loader = AmazonDataLoader(dataset.train, model_name, params[C.BATCH_SIZE])
-	print_dataframe(category, 'train')
+	test_loader = AmazonDataLoader(dataset.test, model_name, params[C.BATCH_SIZE])
+	print_dataframe(category, 'test')
 
-	for batch_itr, inputs in enumerate(tqdm(train_loader)):
+	for batch_itr, inputs in enumerate(tqdm(test_loader)):
 		answer_seqs, question_seqs, review_seqs, answer_lengths = _extract_input_attributes(inputs, model_name)
 		print("batch number ", batch_itr)
 		
 		for i in range(len(answer_seqs)):
 			print("batch seq number ", i)
 			print(" ".join(dataset.vocab.token_list_from_indices(answer_seqs[i])))
-			assert(len(answer_seqs[i]) == answer_lengths[i])
+			#assert(len(answer_seqs[i]) == answer_lengths[i])
 
 			if model_name == C.LM_QUESTION_ANSWERS or model_name == C.LM_QUESTION_ANSWERS_REVIEWS:
 				print(" ".join(dataset.vocab.token_list_from_indices(question_seqs[i])))
