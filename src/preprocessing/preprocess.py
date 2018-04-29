@@ -6,10 +6,30 @@ import nltk
 from nltk.corpus import stopwords
 import string
 import constants as C
-import data_utils as D
 from tqdm import tqdm
+import json
 
 np.random.seed(2018)
+
+
+def filepath(category, key):
+    if key == C.QA:
+        path = '%s/QA_%s.json.gz' % (C.QA_DATA_PATH, category)
+    elif key == C.REVIEWS:
+        path = '%s/reviews_%s_5.json.gz' % (C.REVIEWS_DATA_PATH, category)
+    else:
+        raise 'Unexpected key'
+    return path
+
+
+def getDF(path):
+    i = 0
+    df = {}
+    for d in parse(path):
+        df[i] = d
+        i += 1
+    return pd.DataFrame.from_dict(df, orient='index')
+
 
 # convert reviews row to json
 def reviewToJson(row):
@@ -59,9 +79,8 @@ def questionsToJson(questions_list):
 
   return new_questions_list
 
-
 def generate_raw_data(category):
-  qa, reviews = [D.getDF(D.filepath(category, key)) for key in [C.QA, C.REVIEWS]]
+  qa, reviews = [getDF(filepath(category, key)) for key in [C.QA, C.REVIEWS]]
 
   reviews[C.REVIEWS_LIST] = reviews[C.REVIEW_COLUMNS].apply(reviewToJson, axis=1)
   reviews = reviews.groupby(C.ASIN).apply(lambda x: x[C.REVIEWS_LIST].tolist()).reset_index()
@@ -119,4 +138,37 @@ def generate_split_data_all_categories():
 def get_split_dataframe(category, split):
     with open('%s/%s-%s.pickle' % (C.INPUT_DATA_PATH, split, category), 'rb') as f:
         return pd.read_pickle(f)
+
+
+def load_json_data(category):
+  filepath = C.JSON_DATA_PATH+"/"+category+".json"
+  print(filepath)
+  raw_df = pd.read_json(filepath, orient='index')
+  
+  with open('%s/%s.pickle' % (C.JSON_DATA_PATH, category), 'wb') as f:
+    raw_df.to_pickle(f)
+
+
+def load_text_data(category, split):
+  text_filepath = "%s/%s-%s.txt" % (C.TEXT_DATA_PATH, split, category)
+  line_num = 0
+  full_json = {}
+
+  with open(text_filepath, 'r') as f:
+    for line in f:
+      answer_json = {C.TEXT: line.strip()}
+
+      question_json = {C.ANSWERS: [answer_json], C.TEXT: ""}
+
+      product_json = {C.ASIN: line_num, C.QUESTIONS_LIST: [question_json], C.REVIEWS_LIST: []}
+
+      full_json[line_num] = product_json
+      line_num += 1
+
+
+  df = pd.DataFrame.from_dict(full_json, orient='index')
+  pickle_filepath = "%s/%s-%s.pickle" % (C.INPUT_DATA_PATH, split, category)
+
+  with open(pickle_filepath, 'wb') as f:
+    df.to_pickle(f)
 

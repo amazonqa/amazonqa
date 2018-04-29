@@ -60,6 +60,7 @@ class AmazonDataset(object):
     def create_vocab(self, train_path):
         vocab = Vocabulary(self.max_vocab_size)
         assert os.path.exists(train_path)
+        total_tokens = 0
 
         with open(train_path, 'rb') as f:
             dataFrame = pd.read_pickle(f)
@@ -74,12 +75,15 @@ class AmazonDataset(object):
 
                 for answer in question[C.ANSWERS]:
                     tokens = self.truncate_tokens(answer[C.TEXT], self.max_answer_len)
+                    total_tokens += len(tokens)
                     vocab.add_sequence(tokens)
 
             reviewsList = row[C.REVIEWS_LIST]
             for review in reviewsList:
                 tokens = self.truncate_tokens(review[C.TEXT], self.max_review_len)
                 vocab.add_sequence(tokens)
+
+        print("Train: No. of Tokens = %d, Vocab Size = %d" % (total_tokens, vocab.size))
         return vocab
 
 

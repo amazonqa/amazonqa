@@ -28,6 +28,7 @@ UNK_INDEX = 3
 # Paths
 QA_DATA_PATH = '../data/answers_multiple'
 REVIEWS_DATA_PATH = '../data/reviews_small'
+TEXT_DATA_PATH = '../data/text_data'
 JSON_DATA_PATH = '../data/json_data'
 INPUT_DATA_PATH = '../data/input'
 

@@ -3,6 +3,7 @@ import argparse
 import pandas as pd
 from tqdm import tqdm
 
+from preprocessing import preprocess as P
 import constants as C
 from data.dataloader import AmazonDataLoader
 from data.dataset import AmazonDataset
@@ -43,6 +44,11 @@ def print_dataframe(category, split):
 			print(review[C.TEXT])
 
 
+def preprocess_data(category):
+	P.load_json_data(category)
+	P.generate_split_data(category)
+
+
 if __name__ == "__main__":
 	# parse arguments
 	parser = argparse.ArgumentParser(description="Test AmazonDataset and AmazonDataLoader")
@@ -55,13 +61,15 @@ if __name__ == "__main__":
 
 	model_name = args.model_name
 	params = config.get_model_params(model_name)
-	category = params[C.CATEGORY]
+	params[C.CATEGORY]  = args.category
+
+	#preprocess_data(params[C.CATEGORY])
 
 	dataset = AmazonDataset(params)
 	answersDict, questionsDict, reviewsDict, data = dataset.train
 
 	test_loader = AmazonDataLoader(dataset.test, model_name, params[C.BATCH_SIZE])
-	print_dataframe(category, 'test')
+	#print_dataframe(params[C.CATEGORY], 'test')
 
 	for batch_itr, inputs in enumerate(tqdm(test_loader)):
 		answer_seqs, question_seqs, review_seqs, answer_lengths = _extract_input_attributes(inputs, model_name)
