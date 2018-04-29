@@ -51,7 +51,7 @@ class TrainerMetrics:
         self.logger.log('\t[%s] Perplexity = %.2f, Min [%s] Perplexity = %.2f' % (mode, epoch_perplexity, mode, min_perplexity))
 
     def is_best_dev_loss(self):
-        return len(self.dev_loss) > 0 and self.dev_loss[-1] == np.nanmin(self.dev_loss)
+        return float(len(self.dev_loss)) > 0.0 and float(self.dev_loss[-1]) == float(np.nanmin(self.dev_loss))
 
 class Trainer:
 

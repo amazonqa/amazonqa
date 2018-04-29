@@ -40,12 +40,12 @@ class Loss:
             loss += self.criterion(output, targets[:, idx + 1])
 
         self.total_loss += loss.data[0]
-        return loss / batch_size, _perplexity(loss.data[0], batch_num_tokens)
+        return loss / float(batch_size), _perplexity(loss.data[0], batch_num_tokens)
 
     def epoch_loss(self):
         """NLL loss per sequence since the last reset
         """
-        return self.total_loss / self.num_sequences if self.num_sequences > 0 else np.nan
+        return self.total_loss / float(self.num_sequences) if self.num_sequences > 0 else np.nan
     
     def epoch_perplexity(self):
         """Corpus perplexity per token since the last reset
@@ -53,4 +53,4 @@ class Loss:
         return _perplexity(self.total_loss, self.num_tokens)
 
 def _perplexity(loss, num_tokens):
-    return np.exp(loss / num_tokens) if num_tokens > 0 else np.nan
+    return np.exp(loss / float(num_tokens)) if num_tokens > 0 else np.nan
