@@ -9,15 +9,15 @@ import constants as C
 
 from models.DecoderRNN import DecoderRNN
 from models.EncoderRNN import EncoderRNN
-from models.BaseRNN import BaseRNN
+from models.baseRNN import BaseRNN
 
 
 class Seq2Seq(nn.Module):
 
-    def __init__(self, vocab_size, h_size, max_len, n_layers, dropout_p, mode):
+    def __init__(self, vocab_size, h_sizes, max_len, n_layers, dropout_p, mode):
         super(Seq2Seq, self).__init__()
 
-        r_hsize, q_hsize, a_hsize = h_size
+        r_hsize, q_hsize, a_hsize = h_sizes
 
         self.mode = mode
 
