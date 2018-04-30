@@ -38,7 +38,7 @@ class Loss:
         self.total_num_tokens += batch_num_tokens
         self.total_num_batches += 1
 
-        batch_loss = self.criterion(outputs.continous().view(-1, outputs.size(2)), targets.continous().view(-1))
+        batch_loss = self.criterion(outputs.contiguous().view(-1, outputs.size(2)), targets[:,1:].contiguous().view(-1))
         batch_loss = batch_loss.data[0].item()
 
         self.total_loss += batch_loss
