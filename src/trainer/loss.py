@@ -12,6 +12,10 @@ class Loss:
 
     def __init__(self):
         self.loss_type = C.WORD_LOSS
+
+        if self.loss_type not in {C.WORD_LOSS, C.SENTENCE_LOSS}:
+            raise 'Unimplemented Loss Type: %s' % loss_type
+
         self.criterion = nn.NLLLoss(ignore_index=C.PAD_INDEX, size_average=False)
         if C.USE_CUDA:
             self.criterion.cuda()
@@ -43,8 +47,6 @@ class Loss:
             loss = batch_loss / batch_num_tokens
         elif loss_type == C.SENTENCE_LOSS:
             loss = batch_loss / batch_num_sentences
-        else:
-            raise 'Unimplemented Loss Type: %s' % loss_type
          
         return loss, _perplexity(batch_loss, batch_num_tokens)
 
@@ -52,7 +54,12 @@ class Loss:
     def epoch_loss(self):
         """NLL loss per sentence since the last reset
         """
-        return self.total_loss / self.total_num_sentences if self.total_num_sentences > 0 else np.nan
+        if loss_type == C.WORD_LOSS:
+            epoch_loss = self.total_loss / self.total_num_tokens
+        elif loss_type == C.SENTENCE_LOSS:
+            epoch_loss = self.total_loss / self.total_num_sentences
+
+        return  epoch_loss
 
 
     def epoch_perplexity(self):
