@@ -31,33 +31,33 @@ class Loss:
     def eval_batch_loss(self, outputs, targets):
         batch_num_sentences = targets.size(0)
         batch_num_tokens = (targets.cpu().data.numpy() != C.PAD_INDEX).sum()
-        assert batch_size > 0
+        #assert batch_size > 0
 
         # Add to num sentences and tokens since reset
         self.total_num_sentences += batch_num_sentences
         self.total_num_tokens += batch_num_tokens
         self.total_num_batches += 1
-
+        
+        outputs = torch.stack(outputs).transpose(0,1)
         batch_loss = self.criterion(outputs.contiguous().view(-1, outputs.size(2)), targets[:,1:].contiguous().view(-1))
-        batch_loss = batch_loss.data[0].item()
 
-        self.total_loss += batch_loss
+        self.total_loss += batch_loss.data[0].item()
 
-        if loss_type == C.WORD_LOSS:
-            loss = batch_loss / batch_num_tokens
-        elif loss_type == C.SENTENCE_LOSS:
-            loss = batch_loss / batch_num_sentences
+        if self.loss_type == C.WORD_LOSS:
+            loss = batch_loss / float(batch_num_tokens)
+        elif self.loss_type == C.SENTENCE_LOSS:
+            loss = batch_loss / float(batch_num_sentences)
          
-        return loss, _perplexity(batch_loss, batch_num_tokens)
+        return loss, _perplexity(batch_loss.data[0].item(), batch_num_tokens)
 
 
     def epoch_loss(self):
         """NLL loss per sentence since the last reset
         """
-        if loss_type == C.WORD_LOSS:
-            epoch_loss = self.total_loss / self.total_num_tokens
-        elif loss_type == C.SENTENCE_LOSS:
-            epoch_loss = self.total_loss / self.total_num_sentences
+        if self.loss_type == C.WORD_LOSS:
+            epoch_loss = self.total_loss / float(self.total_num_tokens)
+        elif self.loss_type == C.SENTENCE_LOSS:
+            epoch_loss = self.total_loss / float(self.total_num_sentences)
 
         return  epoch_loss
 
@@ -69,6 +69,6 @@ class Loss:
 
 
 def _perplexity(loss, num_tokens):
-    return np.exp(loss / total_num_tokens) if total_num_tokens > 0 else np.nan
+    return np.exp(loss / float(num_tokens)) if num_tokens > 0 else np.nan
 
 
