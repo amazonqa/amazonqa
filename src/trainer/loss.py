@@ -30,7 +30,7 @@ class Loss:
 
     def eval_batch_loss(self, outputs, targets):
         batch_num_sentences = targets.size(0)
-        batch_num_tokens = (targets.cpu().data.numpy() != C.PAD_INDEX).sum()
+        batch_num_tokens = targets.data.ne(C.PAD_INDEX).sum()
         #assert batch_size > 0
 
         # Add to num sentences and tokens since reset
