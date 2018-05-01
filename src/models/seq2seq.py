@@ -20,13 +20,15 @@ class Seq2Seq(nn.Module):
         r_hsize, q_hsize, a_hsize = h_sizes
 
         self.mode = mode
+        self.decoder = DecoderRNN(vocab_size=vocab_size, max_len=max_len, hidden_size=a_hsize,
+                            n_layers=n_layers, dropout_p=dropout_p, sos_id=C.SOS_INDEX, eos_id=C.EOS_INDEX)
 
         if mode == C.LM_ANSWERS:
             self.question_encoder = None
         else:
             self.question_encoder = EncoderRNN(vocab_size=vocab_size, max_len=max_len, hidden_size=q_hsize,
                         n_layers=n_layers, dropout_p=dropout_p)
-
+            self.decoder.embedding.weight = self.question_encoder.embedding.weight
 
         if mode == C.LM_QUESTION_ANSWERS_REVIEWS:
             self.reviews_encoder = EncoderRNN(vocab_size=vocab_size, max_len=max_len, hidden_size=r_hsize,
@@ -39,9 +41,6 @@ class Seq2Seq(nn.Module):
             assert q_hsize == a_hsize
         if self.mode == C.LM_QUESTION_ANSWERS_REVIEWS:
             assert a_hsize == q_hsize + r_hsize
-
-        self.decoder = DecoderRNN(vocab_size=vocab_size, max_len=max_len, hidden_size=a_hsize,
-                            n_layers=n_layers, dropout_p=dropout_p, sos_id=C.SOS_INDEX, eos_id=C.EOS_INDEX)
 
 
     def forward(self,
