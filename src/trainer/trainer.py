@@ -201,7 +201,7 @@ class Trainer:
         torch.nn.utils.clip_grad_norm(params, self.params[C.GLOBAL_NORM_MAX])
         self.optimizer.step()
 
-        return loss.data.item, perplexity
+        return loss.data.item(), perplexity
 
     def eval(self, dataloader, mode, output_filename=None, epoch=0):
 
