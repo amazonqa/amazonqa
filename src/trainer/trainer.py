@@ -188,10 +188,10 @@ class Trainer:
 
         # Zero grad and teacher forcing
         self.optimizer.zero_grad()
-        teacher_forcing = np.random.random() < self.params[C.TEACHER_FORCING_RATIO]
+        teacher_forcing_ratio = self.params[C.TEACHER_FORCING_RATIO]
 
         # run forward pass
-        loss, perplexity, _, _ = self._forward_pass(question_seqs, review_seqs, answer_seqs, teacher_forcing)
+        loss, perplexity, _, _ = self._forward_pass(question_seqs, review_seqs, answer_seqs, teacher_forcing_ratio)
 
         # gradient computation
         loss.backward()
@@ -224,7 +224,7 @@ class Trainer:
                 question_seqs,
                 review_seqs,
                 answer_seqs,
-                False,
+                1.0,
                 compute_loss=compute_loss
             )
 
@@ -253,7 +253,7 @@ class Trainer:
             question_seqs,
             review_seqs,
             answer_seqs,
-            teacher_forcing,
+            teacher_forcing_ratio,
             compute_loss=True
         ):
         target_seqs, answer_seqs  = _var(answer_seqs), _var(answer_seqs)
@@ -266,7 +266,7 @@ class Trainer:
             review_seqs,
             answer_seqs,
             target_seqs,
-            teacher_forcing
+            teacher_forcing_ratio
         )
 
         # loss and gradient computation

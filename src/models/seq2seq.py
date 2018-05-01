@@ -49,7 +49,7 @@ class Seq2Seq(nn.Module):
         review_seqs,
         answer_seqs,
         target_seqs,
-        teacher_forcing
+        teacher_forcing_ratio
     ):
         #print(question_seqs, review_seqs, answer_seqs, target_seqs)
         if self.mode == C.LM_ANSWERS:
@@ -65,7 +65,7 @@ class Seq2Seq(nn.Module):
             raise 'Unimplemented model: %s' % self.mode
 
         return self.decoder(inputs=target_seqs, encoder_hidden=d_hidden, 
-            encoder_outputs=None, teacher_forcing_ratio=teacher_forcing)
+            encoder_outputs=None, teacher_forcing_ratio=teacher_forcing_ratio)
 
 def _mean(vars):
     return torch.mean(torch.cat([i.unsqueeze(0) for i in vars], 0), 0)
