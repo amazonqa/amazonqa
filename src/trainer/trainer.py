@@ -89,6 +89,7 @@ class Trainer:
         self.model = Seq2Seq(
             self.vocab.get_vocab_size(),
             hsizes(params, self.model_name),
+            params[C.EMBEDDING_DIM],
             params[C.OUTPUT_MAX_LEN],
             params[C.H_LAYERS],
             params[C.DROPOUT],

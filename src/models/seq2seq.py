@@ -14,25 +14,25 @@ from models.baseRNN import BaseRNN
 
 class Seq2Seq(nn.Module):
 
-    def __init__(self, vocab_size, h_sizes, max_len, n_layers, dropout_p, mode):
+    def __init__(self, vocab_size, h_sizes, e_size, max_len, n_layers, dropout_p, mode):
         super(Seq2Seq, self).__init__()
 
         r_hsize, q_hsize, a_hsize = h_sizes
 
         self.mode = mode
-        self.decoder = DecoderRNN(vocab_size=vocab_size, max_len=max_len, hidden_size=a_hsize,
+        self.decoder = DecoderRNN(vocab_size=vocab_size, max_len=max_len, embedding_size=e_size, hidden_size=a_hsize,
                             n_layers=n_layers, dropout_p=dropout_p, sos_id=C.SOS_INDEX, eos_id=C.EOS_INDEX)
 
         if mode == C.LM_ANSWERS:
             self.question_encoder = None
         else:
-            self.question_encoder = EncoderRNN(vocab_size=vocab_size, max_len=max_len, hidden_size=q_hsize,
-                        n_layers=n_layers, dropout_p=dropout_p)
+            self.question_encoder = EncoderRNN(vocab_size=vocab_size, max_len=max_len, embedding_size=e_size,
+                        hidden_size=q_hsize, n_layers=n_layers, dropout_p=dropout_p)
             self.decoder.embedding.weight = self.question_encoder.embedding.weight
 
         if mode == C.LM_QUESTION_ANSWERS_REVIEWS:
-            self.reviews_encoder = EncoderRNN(vocab_size=vocab_size, max_len=max_len, hidden_size=r_hsize,
-                        n_layers=n_layers, dropout_p=dropout_p)
+            self.reviews_encoder = EncoderRNN(vocab_size=vocab_size, max_len=max_len, embedding_size=e_size,
+                        hidden_size=r_hsize, n_layers=n_layers, dropout_p=dropout_p)
         else:
             self.reviews_encoder = None
 
