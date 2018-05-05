@@ -33,6 +33,7 @@ class Seq2Seq(nn.Module):
         if mode == C.LM_QUESTION_ANSWERS_REVIEWS:
             self.reviews_encoder = EncoderRNN(vocab_size=vocab_size, max_len=max_len, embedding_size=e_size,
                         hidden_size=r_hsize, n_layers=n_layers, dropout_p=dropout_p)
+            self.decoder.embedding.weight = self.reviews_encoder.embedding.weight
         else:
             self.reviews_encoder = None
 
