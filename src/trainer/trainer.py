@@ -231,7 +231,7 @@ class Trainer:
 
             if mode == C.TEST_TYPE:
                 output_seq = output_seq.data.cpu().numpy()
-                with open(output_filecname, 'a') as fp:
+                with open(output_filename, 'a') as fp:
                     for seq_itr, length in enumerate(output_lengths):
                         length = int(length)
                         seq = output_seq[seq_itr, :length]
@@ -262,7 +262,7 @@ class Trainer:
         review_seqs = map(_var, review_seqs) if self.model_name == C.LM_QUESTION_ANSWERS_REVIEWS else None
 
         # run forward pass
-        outputs, output_seq, output_lengths = self.model(
+        outputs, output_hidden, ret_dict = self.model(
             question_seqs,
             review_seqs,
             answer_seqs,
@@ -270,6 +270,10 @@ class Trainer:
             teacher_forcing_ratio
         )
 
+        output_seq = ret_dict['sequence']
+        output_lengths = ret_dict['length']
+        output_seq = torch.cat(output_seq, 1)
+        
         # loss and gradient computation
         loss, perplexity = None, None
         if compute_loss:
@@ -326,3 +330,4 @@ def hsizes(params, model_name):
     if model_name == C.LM_QUESTION_ANSWERS_REVIEWS:
         assert a_hsize == r_hsize + q_hsize
     return r_hsize, q_hsize, a_hsize
+
