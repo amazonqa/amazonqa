@@ -1,5 +1,9 @@
 import torch
 
+WORD_LOSS = 'WORD_LOSS'
+SENTENCE_LOSS = 'SENTENCE_LOSS'
+
+
 # Global constants
 USE_CUDA = torch.cuda.is_available()
 

@@ -189,10 +189,10 @@ class Trainer:
 
         # Zero grad and teacher forcing
         self.optimizer.zero_grad()
-        teacher_forcing = np.random.random() < self.params[C.TEACHER_FORCING_RATIO]
+        teacher_forcing_ratio = self.params[C.TEACHER_FORCING_RATIO]
 
         # run forward pass
-        loss, perplexity, _, _ = self._forward_pass(question_seqs, review_seqs, answer_seqs, teacher_forcing)
+        loss, perplexity, _, _ = self._forward_pass(question_seqs, review_seqs, answer_seqs, teacher_forcing_ratio)
 
         # gradient computation
         loss.backward()
@@ -202,7 +202,7 @@ class Trainer:
         torch.nn.utils.clip_grad_norm(params, self.params[C.GLOBAL_NORM_MAX])
         self.optimizer.step()
 
-        return loss.data[0], perplexity
+        return loss.data.item(), perplexity
 
     def eval(self, dataloader, mode, output_filename=None, epoch=0):
 
@@ -225,13 +225,13 @@ class Trainer:
                 question_seqs,
                 review_seqs,
                 answer_seqs,
-                False,
+                1.0,
                 compute_loss=compute_loss
             )
 
             if mode == C.TEST_TYPE:
                 output_seq = output_seq.data.cpu().numpy()
-                with open(output_filecname, 'a') as fp:
+                with open(output_filename, 'a') as fp:
                     for seq_itr, length in enumerate(output_lengths):
                         length = int(length)
                         seq = output_seq[seq_itr, :length]
@@ -254,7 +254,7 @@ class Trainer:
             question_seqs,
             review_seqs,
             answer_seqs,
-            teacher_forcing,
+            teacher_forcing_ratio,
             compute_loss=True
         ):
         target_seqs, answer_seqs  = _var(answer_seqs), _var(answer_seqs)
@@ -262,14 +262,18 @@ class Trainer:
         review_seqs = map(_var, review_seqs) if self.model_name == C.LM_QUESTION_ANSWERS_REVIEWS else None
 
         # run forward pass
-        outputs, output_seq, output_lengths = self.model(
+        outputs, output_hidden, ret_dict = self.model(
             question_seqs,
             review_seqs,
             answer_seqs,
             target_seqs,
-            teacher_forcing
+            teacher_forcing_ratio
         )
 
+        output_seq = ret_dict['sequence']
+        output_lengths = ret_dict['length']
+        output_seq = torch.cat(output_seq, 1)
+        
         # loss and gradient computation
         loss, perplexity = None, None
         if compute_loss:
@@ -326,3 +330,4 @@ def hsizes(params, model_name):
     if model_name == C.LM_QUESTION_ANSWERS_REVIEWS:
         assert a_hsize == r_hsize + q_hsize
     return r_hsize, q_hsize, a_hsize
+
