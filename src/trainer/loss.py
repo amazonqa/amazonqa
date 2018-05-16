@@ -20,6 +20,7 @@ class Loss:
         if C.USE_CUDA:
             self.criterion.cuda()
 
+
     def reset(self):
         self.total_num_tokens = 0
         self.total_num_sentences = 0
@@ -49,8 +50,9 @@ class Loss:
          
         return loss, _perplexity(batch_loss.data.item(), batch_num_tokens)
 
+
     def epoch_loss(self):
-        """ NLL loss per sentence since the last reset 
+        """NLL loss per sentence since the last reset
         """
         if self.loss_type == C.WORD_LOSS:
             epoch_loss = self.total_loss / float(self.total_num_tokens)
@@ -58,11 +60,15 @@ class Loss:
             epoch_loss = self.total_loss / float(self.total_num_sentences)
 
         return  epoch_loss
-  
+
+
     def epoch_perplexity(self):
         """Corpus perplexity per token since the last reset
         """
         return _perplexity(self.total_loss, self.total_num_tokens)
 
+
 def _perplexity(loss, num_tokens):
     return np.exp(loss / float(num_tokens)) if num_tokens > 0 else np.nan
+
+

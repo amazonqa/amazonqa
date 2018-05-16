@@ -139,7 +139,7 @@ class Trainer:
             # refresh loss, perplexity 
             self.loss.reset()
             for batch_itr, inputs in enumerate(tqdm(self.dataloader)):
-                answer_seqs, question_seqs, review_seqs, \
+                answer_seqs, question_seqs, question_ids, review_seqs, \
                     answer_lengths = _extract_input_attributes(inputs, self.model_name)
                 batch_loss, batch_perplexity = self.train_batch(
                     question_seqs,
@@ -218,7 +218,7 @@ class Trainer:
             self.loss.reset()
 
         for batch_itr, inputs in tqdm(enumerate(dataloader)):
-            answer_seqs, question_seqs, review_seqs, \
+            answer_seqs, question_seqs, question_ids, review_seqs, \
                 answer_lengths = _extract_input_attributes(inputs, self.model_name)
 
             _, _, output_seq, output_lengths = self._forward_pass(
@@ -238,7 +238,19 @@ class Trainer:
                         if seq[-1] == C.EOS_INDEX:
                             seq = seq[:-1]
                         tokens = self.vocab.token_list_from_indices(seq)
-                        fp.write(' '.join(tokens) + '\n')
+                        generated_answer = ' '.join(tokens)
+                        fp.write(generated_answer + '\n')
+                        
+                        gold_answers = []
+                        question_id = question_ids[seq_itr]
+                        answer_ids = dataloader.questionAnswersDict[question_id]
+                        for answer_id in answer_ids:
+                            answer_seq = answer_seqs[answer_id]
+                            answer_tokens = self.vocab.token_list_from_indices(answer_seq)
+                            gold_answers.append(' '.join(answer_tokens))
+
+                        print(generated_answer, gold_answers)
+
 
         if mode == C.DEV_TYPE:
             self.metrics.add_loss(self.loss, C.DEV_TYPE)
@@ -312,16 +324,16 @@ def _var(variable):
 def _extract_input_attributes(inputs, model_name):
     if model_name == C.LM_ANSWERS:
         answer_seqs, answer_lengths = inputs
-        question_seqs, review_seqs = None, None
+        question_seqs, review_seqs, question_ids = None, None, None
     elif model_name == C.LM_QUESTION_ANSWERS:
-        (answer_seqs, answer_lengths), question_seqs = inputs
+        (answer_seqs, answer_lengths), question_seqs, question_ids = inputs
         review_seqs = None
     elif model_name == C.LM_QUESTION_ANSWERS_REVIEWS:
-        (answer_seqs, answer_lengths), question_seqs, review_seqs = inputs
+        (answer_seqs, answer_lengths), question_seqs, question_ids, review_seqs = inputs
     else:
         raise 'Unimplemented model: %s' % model_name
 
-    return answer_seqs, question_seqs, review_seqs, answer_lengths
+    return answer_seqs, question_seqs, question_ids, review_seqs, answer_lengths
 
 def hsizes(params, model_name):
     r_hsize, q_hsize, a_hsize = params[C.HDIM_R], params[C.HDIM_Q], params[C.HDIM_A]
