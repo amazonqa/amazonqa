@@ -225,7 +225,6 @@ class Trainer:
 
         gold_answers_dict = {}
         generated_answer_dict = {}
-        answer_key = 0
 
         for batch_itr, inputs in tqdm(enumerate(dataloader)):
             answer_seqs, question_seqs, question_ids, review_seqs, \
@@ -261,8 +260,8 @@ class Trainer:
                             answer_tokens = self.vocab.token_list_from_indices(answer_seq)
                             gold_answers.append(' '.join(answer_tokens))
 
-                        gold_answers_dict[answer_key] = gold_answers
-                        generated_answer_dict[answer_key] = [generated_answer]
+                        gold_answers_dict[question_id] = gold_answers
+                        generated_answer_dict[question_id] = [generated_answer]
         
         print(COCOEvalCap.compute_scores(gold_answers_dict, generated_answer_dict))
 
