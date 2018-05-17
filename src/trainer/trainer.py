@@ -18,6 +18,9 @@ import constants as C
 from models.seq2seq import Seq2Seq
 from trainer.loss import Loss
 
+from evaluator.evaluator import COCOEvalCap
+
+
 USE_CUDA = torch.cuda.is_available()
 
 class TrainerMetrics:
@@ -112,6 +115,7 @@ class Trainer:
             if self.model:
                 self.model = self.model.cuda()
 
+
     def train(self):
         self.lr = self.params[C.LR]
         self._set_optimizer(0)
@@ -178,6 +182,7 @@ class Trainer:
             if self.metrics.is_best_dev_loss():
                 self.saver.save_model(C.BEST_EPOCH_IDX, self.model)
 
+
     def train_batch(self, 
             question_seqs,
             review_seqs,
@@ -204,6 +209,7 @@ class Trainer:
 
         return loss.data.item(), perplexity
 
+
     def eval(self, dataloader, mode, output_filename=None, epoch=0):
 
         self.model.eval()
@@ -217,6 +223,10 @@ class Trainer:
         if compute_loss:
             self.loss.reset()
 
+        gold_answers_dict = {}
+        generated_answer_dict = {}
+        answer_key = 0
+
         for batch_itr, inputs in tqdm(enumerate(dataloader)):
             answer_seqs, question_seqs, question_ids, review_seqs, \
                 answer_lengths = _extract_input_attributes(inputs, self.model_name)
@@ -228,6 +238,8 @@ class Trainer:
                 1.0,
                 compute_loss=compute_loss
             )
+
+            assert len(question_ids) == len(output_lengths)
 
             if mode == C.TEST_TYPE:
                 output_seq = output_seq.data.cpu().numpy()
@@ -245,16 +257,17 @@ class Trainer:
                         question_id = question_ids[seq_itr]
                         answer_ids = dataloader.questionAnswersDict[question_id]
                         for answer_id in answer_ids:
-                            answer_seq = answer_seqs[answer_id]
+                            answer_seq = dataloader.answersDict[answer_id]
                             answer_tokens = self.vocab.token_list_from_indices(answer_seq)
                             gold_answers.append(' '.join(answer_tokens))
 
-                        print(generated_answer, gold_answers)
-
+                        gold_answers_dict[answer_key] = gold_answers
+                        generated_answer_dict[answer_key] = [generated_answer]
+        
+        print(COCOEvalCap.compute_scores(gold_answers_dict, generated_answer_dict))
 
         if mode == C.DEV_TYPE:
             self.metrics.add_loss(self.loss, C.DEV_TYPE)
-            # self._print_info(epoch, None, losses, perplexities, mode, self.logger)
         elif mode == C.TEST_TYPE:
             self.logger.log('Saving generated answers to file {0}'.format(output_filename))
         elif mode == C.TRAIN_TYPE:

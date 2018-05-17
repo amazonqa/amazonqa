@@ -14,16 +14,16 @@ import config
 def _extract_input_attributes(inputs, model_name):
 	if model_name == C.LM_ANSWERS:
 		answer_seqs, answer_lengths = inputs
-		question_seqs, review_seqs = None, None
+		question_seqs, review_seqs, question_ids = None, None, None
 	elif model_name == C.LM_QUESTION_ANSWERS:
-		(answer_seqs, answer_lengths), question_seqs = inputs
+		(answer_seqs, answer_lengths), question_seqs, question_ids = inputs
 		review_seqs = None
 	elif model_name == C.LM_QUESTION_ANSWERS_REVIEWS:
-		(answer_seqs, answer_lengths), question_seqs, review_seqs = inputs
+		(answer_seqs, answer_lengths), question_seqs, question_ids, review_seqs = inputs
 	else:
 		raise 'Unimplemented model: %s' % model_name
 
-	return answer_seqs, question_seqs, review_seqs, answer_lengths
+	return answer_seqs, question_seqs, question_ids, review_seqs, answer_lengths
 
 
 def print_dataframe(category, split):
@@ -66,22 +66,28 @@ if __name__ == "__main__":
 	#preprocess_data(params[C.CATEGORY])
 
 	dataset = AmazonDataset(params)
-	answersDict, questionsDict, reviewsDict, data = dataset.train
+	answersDict, questionsDict, questionAnswersDict, reviewsDict, data = dataset.test
+	print(answersDict)
+	print(questionsDict)
+	print(questionAnswersDict)
 
 	test_loader = AmazonDataLoader(dataset.test, model_name, params[C.BATCH_SIZE])
 	#print_dataframe(params[C.CATEGORY], 'test')
 
 	for batch_itr, inputs in enumerate(tqdm(test_loader)):
-		answer_seqs, question_seqs, review_seqs, answer_lengths = _extract_input_attributes(inputs, model_name)
+		answer_seqs, question_seqs, question_ids, review_seqs, answer_lengths = _extract_input_attributes(inputs, model_name)
 		print("batch number ", batch_itr)
-		
+		print(question_ids)
+
 		for i in range(len(answer_seqs)):
 			print("batch seq number ", i)
-			print(" ".join(dataset.vocab.token_list_from_indices(answer_seqs[i])))
+			print(answer_seqs[i])
+			#print(" ".join(dataset.vocab.token_list_from_indices(answer_seqs[i])))
 			#assert(len(answer_seqs[i]) == answer_lengths[i])
 
 			if model_name == C.LM_QUESTION_ANSWERS or model_name == C.LM_QUESTION_ANSWERS_REVIEWS:
-				print(" ".join(dataset.vocab.token_list_from_indices(question_seqs[i])))
+				#print(" ".join(dataset.vocab.token_list_from_indices(question_seqs[i])))
+				print(question_seqs[i])
 			
 		if model_name == C.LM_QUESTION_ANSWERS_REVIEWS:
 			for i in range(len(review_seqs)):
