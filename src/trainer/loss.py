@@ -41,15 +41,14 @@ class Loss:
         outputs = torch.stack(outputs).transpose(0,1)
         batch_loss = self.criterion(outputs.contiguous().view(-1, outputs.size(2)), targets[:,1:].contiguous().view(-1))
 
-        self.total_loss += batch_loss.data.numpy().item()
+        self.total_loss += batch_loss.data.item()
 
         if self.loss_type == C.WORD_LOSS:
             loss = batch_loss / float(batch_num_tokens)
         elif self.loss_type == C.SENTENCE_LOSS:
             loss = batch_loss / float(batch_num_sentences)
-         
-        return loss, _perplexity(batch_loss.data.numpy().item(), batch_num_tokens)
 
+        return loss, _perplexity(batch_loss.data.item(), batch_num_tokens)
 
     def epoch_loss(self):
         """NLL loss per sentence since the last reset
