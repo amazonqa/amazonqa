@@ -20,8 +20,10 @@ def top_reviews(question, reviews, review_ids, select_mode, num_reviews):
             # TODO: the 'unhelpful' key is wrong in the database! should be 'total'
             unhelpful_count = reviews[r]['unhelpful'] - helpful_count
             scores.append(_wilson_score(helpful_count, unhelpful_count))
-    else: #select_mode == HELPFUL or default
+    elif select_mode == C.HELPFUL:
         scores = [r['helpful'] for r in reviews]
+    else:
+        raise 'Unimplemented Review Select Mode'
     _, top_review_ids = zip(*sorted(list(zip(scores, review_ids)), reverse=True))
     return list(top_review_ids)[:num_reviews]
 
