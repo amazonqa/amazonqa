@@ -126,6 +126,9 @@ class AmazonDataset(object):
                 questionId += 1
 
                 answerIdsList = []
+                if self.model == C.LM_QUESTION_ANSWERS_REVIEWS:
+                    topReviewsDictList = review_utils.top_reviews(question_text, reviewsList, reviewsDictList, self.review_select_mode, self.review_select_num)
+
                 for answer in question[C.ANSWERS]:
                     tokens = self.truncate_tokens(answer[C.TEXT], self.max_answer_len)
                     ids = self.vocab.indices_from_token_list(tokens)
@@ -135,15 +138,13 @@ class AmazonDataset(object):
 
                     if self.model == C.LM_ANSWERS:
                         tuples.append((answerId,))
-                    else:
+                    elif self.model == C.LM_QUESTION_ANSWERS:
                         tuples.append((answerId, questionId))
+                    elif self.model == C.LM_QUESTION_ANSWERS_REVIEWS:
+                        tuples.append((answerId, questionId, topReviewsDictList))
+                    else:
+                        raise 'Unexpected'
                 questionAnswersDict.append(answerIdsList)
-
-                if self.model == C.LM_QUESTION_ANSWERS_REVIEWS:
-                    topReviewsDictList = review_utils.top_reviews(question_text, reviewsList, reviewsDictList, self.review_select_mode, self.review_select_num)
-                    for i in range(len(tuples)):
-                        tuples[i] = tuples[i] + (topReviewsDictList,)
-
             data.extend(tuples)
 
         assert(len(answersDict) == answerId+1)

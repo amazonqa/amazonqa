@@ -89,11 +89,7 @@ def main():
         model = Seq2Seq(
             vocab.get_vocab_size(),
             hsizes(params, model_name),
-            params[C.EMBEDDING_DIM],
-            params[C.OUTPUT_MAX_LEN],
-            params[C.H_LAYERS],
-            params[C.DROPOUT],
-            params[C.MODEL_NAME]
+            params,
         )
         saver.load_model(epoch, model)
 

@@ -17,7 +17,7 @@ class Seq2Seq(nn.Module):
     def __init__(self, vocab_size, h_sizes, params):
         super(Seq2Seq, self).__init__()
 
-        e_size, max_len, n_layers, dropout_p, model_name, use_attention = [params[i] for i in [C.EMBEDDING_DIM, C.OUTPUT_MAX_LEN, C.H_LAYERS, C.DROPOUT, C.model_nameL_NAME, C.USE_ATTENTION]]
+        e_size, max_len, n_layers, dropout_p, model_name, use_attention = [params[i] for i in [C.EMBEDDING_DIM, C.OUTPUT_MAX_LEN, C.H_LAYERS, C.DROPOUT, C.MODEL_NAME, C.USE_ATTENTION]]
         r_hsize, q_hsize, a_hsize = h_sizes
 
         self.use_attention = use_attention

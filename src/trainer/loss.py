@@ -14,7 +14,7 @@ class Loss:
         self.loss_type = C.WORD_LOSS
 
         if self.loss_type not in {C.WORD_LOSS, C.SENTENCE_LOSS}:
-            raise 'Unimplemented Loss Type: %s' % loss_type
+            raise 'Unimplemented Loss Type: %s' % self.loss_type
 
         self.criterion = nn.NLLLoss(ignore_index=C.PAD_INDEX, size_average=False)
         if C.USE_CUDA:
@@ -41,14 +41,14 @@ class Loss:
         outputs = torch.stack(outputs).transpose(0,1)
         batch_loss = self.criterion(outputs.contiguous().view(-1, outputs.size(2)), targets[:,1:].contiguous().view(-1))
 
-        self.total_loss += batch_loss.data.item()
+        self.total_loss += batch_loss.data.numpy().item()
 
         if self.loss_type == C.WORD_LOSS:
             loss = batch_loss / float(batch_num_tokens)
         elif self.loss_type == C.SENTENCE_LOSS:
             loss = batch_loss / float(batch_num_sentences)
          
-        return loss, _perplexity(batch_loss.data.item(), batch_num_tokens)
+        return loss, _perplexity(batch_loss.data.numpy().item(), batch_num_tokens)
 
 
     def epoch_loss(self):
