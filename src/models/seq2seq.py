@@ -21,7 +21,7 @@ class Seq2Seq(nn.Module):
 
         self.mode = mode
         self.decoder = DecoderRNN(vocab_size=vocab_size, max_len=max_len, embedding_size=e_size, hidden_size=a_hsize,
-                            n_layers=n_layers, dropout_p=dropout_p, sos_id=C.SOS_INDEX, eos_id=C.EOS_INDEX)
+                            n_layers=n_layers, dropout_p=dropout_p, sos_id=C.SOS_INDEX, eos_id=C.EOS_INDEX, use_attention=True)
 
         if mode == C.LM_ANSWERS:
             self.question_encoder = None
@@ -55,7 +55,7 @@ class Seq2Seq(nn.Module):
         if self.mode == C.LM_ANSWERS:
             d_hidden = None
         elif self.mode == C.LM_QUESTION_ANSWERS:
-            _, d_hidden = self.question_encoder(question_seqs)
+            d_out, d_hidden = self.question_encoder(question_seqs)
         elif self.mode == C.LM_QUESTION_ANSWERS_REVIEWS:
             _, question_hidden = self.question_encoder(question_seqs)
             reviews_hidden = [self.reviews_encoder(seq)[1] for seq in review_seqs]
@@ -63,9 +63,9 @@ class Seq2Seq(nn.Module):
             d_hidden = tuple(torch.cat([q_h, r_h], 2) for q_h, r_h in zip(question_hidden, reviews_hidden))
         else:
             raise 'Unimplemented model: %s' % self.mode
-
+        #print(d_out.shape, d_hidden.shape)
         return self.decoder(inputs=target_seqs, encoder_hidden=d_hidden, 
-            encoder_outputs=None, teacher_forcing_ratio=teacher_forcing_ratio)
+            encoder_outputs=d_out, teacher_forcing_ratio=teacher_forcing_ratio)
 
 def _mean(vars):
     return torch.mean(torch.cat([i.unsqueeze(0) for i in vars], 0), 0)
