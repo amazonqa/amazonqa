@@ -43,7 +43,8 @@ class Seq2Seq(nn.Module):
         if self.mode == C.LM_QUESTION_ANSWERS:
             assert q_hsize == a_hsize
         if self.mode == C.LM_QUESTION_ANSWERS_REVIEWS:
-            assert a_hsize == q_hsize + r_hsize
+            assert a_hsize == q_hsize == r_hsize
+            #assert a_hsize == q_hsize + r_hsize
 
 
     def forward(self,
@@ -65,8 +66,11 @@ class Seq2Seq(nn.Module):
             question_out, question_hidden = self.question_encoder(question_seqs)
             reviews_encoder_outs = [self.reviews_encoder(seq) for seq in review_seqs]
             review_outs, review_hiddens = map(list, zip(*reviews_encoder_outs))
-            reviews_hidden = list(map(_mean, zip(*reviews_hiddens)))
-            d_hidden = tuple(torch.cat([q_h, r_h], 2) for q_h, r_h in zip(question_hidden, reviews_hidden))
+
+            #TODO - Temp Fix
+            d_hidden = question_hidden
+            #reviews_hidden = list(map(_mean, zip(*review_hiddens)))
+            #d_hidden = tuple(torch.cat([q_h, r_h], 2) for q_h, r_h in zip(question_hidden, reviews_hidden))
         else:
             raise 'Unimplemented model: %s' % self.mode
         

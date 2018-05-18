@@ -71,9 +71,11 @@ class Attention(nn.Module):
         self.hidden_size = output.size(2)
 
         (question_out, review_outs) = context
+        print(output.shape, question_out.shape)
         attn, question_mix = self.get_mix(output, question_out)
 
         if review_outs is not None:
+            print(output.shape, review_outs[0].shape)
             review_mixs = [self.get_mix(output, review_out)[1] for review_out in review_outs]
             review_mix = map(_mean, reviews_mixs) #replace with mean
             # concat -> (batch, out_len, 2*dim)
