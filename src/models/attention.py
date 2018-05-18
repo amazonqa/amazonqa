@@ -42,6 +42,7 @@ class Attention(nn.Module):
         self.linear_out = nn.Linear(dim*2, dim)
         self.mask = None
 
+
     def set_mask(self, mask):
         """
         Sets indices to be masked
@@ -51,22 +52,33 @@ class Attention(nn.Module):
         """
         self.mask = mask
 
-    def forward(self, output, context):
-        batch_size = output.size(0)
-        hidden_size = output.size(2)
+
+    def get_mix(output, context):
         input_size = context.size(1)
         # (batch, out_len, dim) * (batch, in_len, dim) -> (batch, out_len, in_len)
         attn = torch.bmm(output, context.transpose(1, 2))
         if self.mask is not None:
             attn.data.masked_fill_(self.mask, -float('inf'))
-        attn = F.softmax(attn.view(-1, input_size)).view(batch_size, -1, input_size)
+        attn = F.softmax(attn.view(-1, input_size)).view(self.batch_size, -1, input_size)
 
         # (batch, out_len, in_len) * (batch, in_len, dim) -> (batch, out_len, dim)
         mix = torch.bmm(attn, context)
+        return mix
 
+
+    def forward(self, output, context):
+        self.batch_size = output.size(0)
+        self.hidden_size = output.size(2)
+
+        (question_out, review_outs) = d_out
+        question_mix = self.get_mix(output, question_out)
+
+        review_mixs = [self.get_mix(output, review_out) for review_out in review_outs]
+        review_mix = review_mixs[0] #replace with mean
         # concat -> (batch, out_len, 2*dim)
-        combined = torch.cat((mix, output), dim=2)
+        combined = torch.cat((question_mix, review_mix, output), dim=2)
         # output -> (batch, out_len, dim)
-        output = F.tanh(self.linear_out(combined.view(-1, 2 * hidden_size))).view(batch_size, -1, hidden_size)
+        output = F.tanh(self.linear_out(combined.view(-1, 3 * self.hidden_size))).view(self.batch_size, -1, self.hidden_size)
 
         return output, attn
+

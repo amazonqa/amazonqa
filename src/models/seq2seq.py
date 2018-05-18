@@ -19,9 +19,11 @@ class Seq2Seq(nn.Module):
 
         r_hsize, q_hsize, a_hsize = h_sizes
 
+        self.use_attention = True
         self.mode = mode
         self.decoder = DecoderRNN(vocab_size=vocab_size, max_len=max_len, embedding_size=e_size, hidden_size=a_hsize,
-                            n_layers=n_layers, dropout_p=dropout_p, sos_id=C.SOS_INDEX, eos_id=C.EOS_INDEX, use_attention=True)
+                            n_layers=n_layers, dropout_p=dropout_p,
+                            sos_id=C.SOS_INDEX, eos_id=C.EOS_INDEX, use_attention=self.use_attention)
 
         if mode == C.LM_ANSWERS:
             self.question_encoder = None
@@ -54,16 +56,24 @@ class Seq2Seq(nn.Module):
         #print(question_seqs, review_seqs, answer_seqs, target_seqs)
         if self.mode == C.LM_ANSWERS:
             d_hidden = None
+            question_out = None
+            review_outs = None
         elif self.mode == C.LM_QUESTION_ANSWERS:
-            d_out, d_hidden = self.question_encoder(question_seqs)
+            question_out, d_hidden = self.question_encoder(question_seqs)
+            review_outs = None
         elif self.mode == C.LM_QUESTION_ANSWERS_REVIEWS:
-            _, question_hidden = self.question_encoder(question_seqs)
-            reviews_hidden = [self.reviews_encoder(seq)[1] for seq in review_seqs]
-            reviews_hidden = list(map(_mean, zip(*reviews_hidden)))
+            question_out, question_hidden = self.question_encoder(question_seqs)
+            reviews_encoder_outs = [self.reviews_encoder(seq) for seq in review_seqs]
+            review_outs, review_hiddens = map(list, zip(*reviews_encoder_outs))
+            reviews_hidden = list(map(_mean, zip(*reviews_hiddens)))
             d_hidden = tuple(torch.cat([q_h, r_h], 2) for q_h, r_h in zip(question_hidden, reviews_hidden))
         else:
             raise 'Unimplemented model: %s' % self.mode
-        #print(d_out.shape, d_hidden.shape)
+        
+        if self.use_attention:
+            d_out = (question_out, review_outs)
+        else:
+            d_out = None
         return self.decoder(inputs=target_seqs, encoder_hidden=d_hidden, 
             encoder_outputs=d_out, teacher_forcing_ratio=teacher_forcing_ratio)
 
