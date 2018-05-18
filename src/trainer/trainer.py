@@ -256,7 +256,9 @@ class Trainer:
 
                         gold_answers_dict[question_id] = gold_answers
                         generated_answer_dict[question_id] = [generated_answer]
-        print(COCOEvalCap.compute_scores(gold_answers_dict, generated_answer_dict))
+        
+        if mode == C.TEST_TYPE:
+            print(COCOEvalCap.compute_scores(gold_answers_dict, generated_answer_dict))
 
         if mode == C.DEV_TYPE:
             self.metrics.add_loss(self.loss, C.DEV_TYPE)
