@@ -160,7 +160,7 @@ def retrieval_model_scores(question_text, reviews, retrieval_algo):
     indri_model = Indri(lambda_=0.75, mu=5000)
     scores = []
 
-    for review in reviews:
+    for i, review in enumerate(reviews):
         review_tokens = get_tokens(review)
         score = 0.0
 
