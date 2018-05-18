@@ -39,7 +39,8 @@ class Attention(nn.Module):
     """
     def __init__(self, dim):
         super(Attention, self).__init__()
-        self.linear_out = nn.Linear(dim*2, dim)
+        self.linear_out_2 = nn.Linear(dim*2, dim)
+        self.linear_out_3 = nn.Linear(dim*3, dim)
         self.mask = None
 
 
@@ -71,21 +72,19 @@ class Attention(nn.Module):
         self.hidden_size = output.size(2)
 
         (question_out, review_outs) = context
-        print(output.shape, question_out.shape)
         attn, question_mix = self.get_mix(output, question_out)
 
         if review_outs is not None:
-            print(output.shape, review_outs[0].shape)
             review_mixs = [self.get_mix(output, review_out)[1] for review_out in review_outs]
-            review_mix = map(_mean, reviews_mixs) #replace with mean
+            review_mix = _mean(review_mixs)
             # concat -> (batch, out_len, 2*dim)
             combined = torch.cat((question_mix, review_mix, output), dim=2)
             # output -> (batch, out_len, dim)
-            output = F.tanh(self.linear_out(combined.view(-1, 3 * self.hidden_size))).view(self.batch_size, -1, self.hidden_size)
+            output = F.tanh(self.linear_out_3(combined.view(-1, 3 * self.hidden_size))).view(self.batch_size, -1, self.hidden_size)
         else:
             combined = torch.cat((question_mix, output), dim=2)
             # output -> (batch, out_len, dim)
-            output = F.tanh(self.linear_out(combined.view(-1, 2 * self.hidden_size))).view(self.batch_size, -1, self.hidden_size)
+            output = F.tanh(self.linear_out_2(combined.view(-1, 2 * self.hidden_size))).view(self.batch_size, -1, self.hidden_size)
 
         return output, attn
 

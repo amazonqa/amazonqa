@@ -44,6 +44,7 @@ class Seq2Seq(nn.Module):
             assert q_hsize == a_hsize
         if self.mode == C.LM_QUESTION_ANSWERS_REVIEWS:
             assert a_hsize == q_hsize == r_hsize
+            #TODO Attention Fix
             #assert a_hsize == q_hsize + r_hsize
 
 

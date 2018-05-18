@@ -6,7 +6,6 @@ from tqdm import tqdm
 
 import constants as C
 from data.vocabulary import Vocabulary
-import ipdb as pdb
 from data import review_utils
 
 DEBUG = False
