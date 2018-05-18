@@ -348,8 +348,10 @@ def hsizes(params, model_name):
     if model_name == C.LM_QUESTION_ANSWERS:
         assert a_hsize == q_hsize
     if model_name == C.LM_QUESTION_ANSWERS_REVIEWS:
-        # TODO Attention Fix
-        assert a_hsize == r_hsize == q_hsize
-        #assert a_hsize == r_hsize + q_hsize
+        # TODO Fix this workaround
+        if params[C.USE_ATTENTION]:
+            assert a_hsize == r_hsize == q_hsize
+        else:
+            assert a_hsize == r_hsize + q_hsize
     return r_hsize, q_hsize, a_hsize
 
