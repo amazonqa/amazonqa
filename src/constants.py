@@ -149,6 +149,8 @@ REVIEW_SELECT_NUM = 'review_select_num'
 RANDOM = 'random'
 HELPFUL = 'helpful'
 WILSON = 'wilson'
+BM25 = 'bm25'
+INDRI = 'indri'
 
 """
     Optimizer types

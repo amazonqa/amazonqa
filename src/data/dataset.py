@@ -104,8 +104,19 @@ class AmazonDataset(object):
         for _, row in tqdm(dataFrame.iterrows()):
             tuples = []
             questionsList = row[C.QUESTIONS_LIST]
+
+            reviewsDictList = []
+            reviewsList = row[C.REVIEWS_LIST]
+            for review in reviewsList:
+                tokens = self.truncate_tokens(review[C.TEXT], self.max_review_len)
+                ids = self.vocab.indices_from_token_list(tokens)
+                reviewsDict.append(ids)
+                reviewId += 1
+                reviewsDictList.append(reviewId)
+
             for question in questionsList:
-                tokens = self.truncate_tokens(question[C.TEXT], self.max_question_len)
+                question_text = question[C.TEXT]
+                tokens = self.truncate_tokens(question_text, self.max_question_len)
                 ids = self.vocab.indices_from_token_list(tokens)
                 questionsDict.append(ids)
                 questionId += 1
@@ -121,19 +132,10 @@ class AmazonDataset(object):
                     else:
                         tuples.append((answerId, questionId))
 
-            if self.model == C.LM_QUESTION_ANSWERS_REVIEWS:
-                reviewsList = row[C.REVIEWS_LIST]
-                reviewsList = review_utils.select_reviews(reviewsList, self.review_select_mode, self.review_select_num)
-                reviewsDictList = []
-                for review in reviewsList:
-                    tokens = self.truncate_tokens(review[C.TEXT], self.max_review_len)
-                    ids = self.vocab.indices_from_token_list(tokens)
-                    reviewsDict.append(ids)
-                    reviewId += 1
-                    reviewsDictList.append(reviewId)
-
-                for i in range(len(tuples)):
-                    tuples[i] = tuples[i] + (reviewsDictList,)
+                if self.model == C.LM_QUESTION_ANSWERS_REVIEWS:
+                    topReviewsDictList = review_utils.top_reviews(question_text, reviewsList, reviewsDictList, self.review_select_mode, self.review_select_num)
+                    for i in range(len(tuples)):
+                        tuples[i] = tuples[i] + (topReviewsDictList,)
 
             data.extend(tuples)
 
