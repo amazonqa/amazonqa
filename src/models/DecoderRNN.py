@@ -66,9 +66,9 @@ class DecoderRNN(BaseRNN):
     KEY_SEQUENCE = 'sequence'
 
     def __init__(self, vocab_size, max_len, embedding_size, hidden_size,
-            sos_id, eos_id,
-            n_layers=1, rnn_cell='lstm', bidirectional=False,
-            input_dropout_p=0, dropout_p=0, use_attention=False):
+            sos_id, eos_id, model_name, n_layers=1, rnn_cell='lstm', bidirectional=False,
+            input_dropout_p=0, dropout_p=0, use_attention=False
+        ):
         super(DecoderRNN, self).__init__(vocab_size, max_len, hidden_size,
                 input_dropout_p, dropout_p,
                 n_layers, rnn_cell)
@@ -86,7 +86,7 @@ class DecoderRNN(BaseRNN):
 
         self.embedding = nn.Embedding(self.output_size, embedding_size)
         if use_attention:
-            self.attention = Attention(self.hidden_size)
+            self.attention = Attention(self.hidden_size, model_name)
 
         self.out = nn.Linear(self.hidden_size, self.output_size)
 
