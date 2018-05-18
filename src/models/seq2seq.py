@@ -14,25 +14,26 @@ from models.baseRNN import BaseRNN
 
 class Seq2Seq(nn.Module):
 
-    def __init__(self, vocab_size, h_sizes, e_size, max_len, n_layers, dropout_p, mode):
+    def __init__(self, vocab_size, h_sizes, params):
         super(Seq2Seq, self).__init__()
 
+        e_size, max_len, n_layers, dropout_p, model_name, use_attention = [params[i] for i in [C.EMBEDDING_DIM, C.OUTPUT_MAX_LEN, C.H_LAYERS, C.DROPOUT, C.model_nameL_NAME, C.USE_ATTENTION]]
         r_hsize, q_hsize, a_hsize = h_sizes
 
-        self.use_attention = True
-        self.mode = mode
+        self.use_attention = use_attention
+        self.model_name = model_name
         self.decoder = DecoderRNN(vocab_size=vocab_size, max_len=max_len, embedding_size=e_size, hidden_size=a_hsize,
                             n_layers=n_layers, dropout_p=dropout_p,
                             sos_id=C.SOS_INDEX, eos_id=C.EOS_INDEX, use_attention=self.use_attention)
 
-        if mode == C.LM_ANSWERS:
+        if model_name == C.LM_ANSWERS:
             self.question_encoder = None
         else:
             self.question_encoder = EncoderRNN(vocab_size=vocab_size, max_len=max_len, embedding_size=e_size,
                         hidden_size=q_hsize, n_layers=n_layers, dropout_p=dropout_p)
             self.decoder.embedding.weight = self.question_encoder.embedding.weight
 
-        if mode == C.LM_QUESTION_ANSWERS_REVIEWS:
+        if model_name == C.LM_QUESTION_ANSWERS_REVIEWS:
             self.reviews_encoder = EncoderRNN(vocab_size=vocab_size, max_len=max_len, embedding_size=e_size,
                         hidden_size=r_hsize, n_layers=n_layers, dropout_p=dropout_p)
             self.decoder.embedding.weight = self.reviews_encoder.embedding.weight
@@ -40,9 +41,9 @@ class Seq2Seq(nn.Module):
             self.reviews_encoder = None
 
 
-        if self.mode == C.LM_QUESTION_ANSWERS:
+        if self.model_name == C.LM_QUESTION_ANSWERS:
             assert q_hsize == a_hsize
-        if self.mode == C.LM_QUESTION_ANSWERS_REVIEWS:
+        if self.model_name == C.LM_QUESTION_ANSWERS_REVIEWS:
             assert a_hsize == q_hsize == r_hsize
             #TODO Attention Fix
             #assert a_hsize == q_hsize + r_hsize
@@ -56,14 +57,14 @@ class Seq2Seq(nn.Module):
         teacher_forcing_ratio
     ):
         #print(question_seqs, review_seqs, answer_seqs, target_seqs)
-        if self.mode == C.LM_ANSWERS:
+        if self.model_name == C.LM_ANSWERS:
             d_hidden = None
             question_out = None
             review_outs = None
-        elif self.mode == C.LM_QUESTION_ANSWERS:
+        elif self.model_name == C.LM_QUESTION_ANSWERS:
             question_out, d_hidden = self.question_encoder(question_seqs)
             review_outs = None
-        elif self.mode == C.LM_QUESTION_ANSWERS_REVIEWS:
+        elif self.model_name == C.LM_QUESTION_ANSWERS_REVIEWS:
             question_out, question_hidden = self.question_encoder(question_seqs)
             reviews_encoder_outs = [self.reviews_encoder(seq) for seq in review_seqs]
             review_outs, review_hiddens = map(list, zip(*reviews_encoder_outs))
@@ -73,7 +74,7 @@ class Seq2Seq(nn.Module):
             #reviews_hidden = list(map(_mean, zip(*review_hiddens)))
             #d_hidden = tuple(torch.cat([q_h, r_h], 2) for q_h, r_h in zip(question_hidden, reviews_hidden))
         else:
-            raise 'Unimplemented model: %s' % self.mode
+            raise 'Unimplemented model: %s' % self.model_name
         
         if self.use_attention:
             d_out = (question_out, review_outs)

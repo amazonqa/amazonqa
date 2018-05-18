@@ -135,6 +135,7 @@ DECAY_START_EPOCH = 'decay_start_epoch'
 LR_DECAY = 'lr_decay'
 GLOBAL_NORM_MAX = 'global_norm_max'
 VOCAB_SIZE = 'vocab_size'
+USE_ATTENTION = 'use_attention'
 
 MAX_QUESTION_LEN = 'max_question_len'
 MAX_ANSWER_LEN = 'max_answer_len'
@@ -197,6 +198,7 @@ LM_HP = {
     VOCAB_SIZE:                   [20000,             20000,              20000],
     TEACHER_FORCING_RATIO:        [0.9,               0.9,                0.9],
     OUTPUT_MAX_LEN:               [128,               128,                128],
+    USE_ATTENTION:                [False] * 3,
     CATEGORY:                     [VIDEO_GAMES] * 3,
     LOG_FILENAME:                 ['log.log'] * 3,
     MAX_QUESTION_LEN:             [100] * 3,
