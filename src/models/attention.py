@@ -53,7 +53,7 @@ class Attention(nn.Module):
         self.mask = mask
 
 
-    def get_mix(output, context):
+    def get_mix(self, output, context):
         input_size = context.size(1)
         # (batch, out_len, dim) * (batch, in_len, dim) -> (batch, out_len, in_len)
         attn = torch.bmm(output, context.transpose(1, 2))
@@ -63,22 +63,31 @@ class Attention(nn.Module):
 
         # (batch, out_len, in_len) * (batch, in_len, dim) -> (batch, out_len, dim)
         mix = torch.bmm(attn, context)
-        return mix
+        return attn, mix
 
 
     def forward(self, output, context):
         self.batch_size = output.size(0)
         self.hidden_size = output.size(2)
 
-        (question_out, review_outs) = d_out
-        question_mix = self.get_mix(output, question_out)
+        (question_out, review_outs) = context
+        attn, question_mix = self.get_mix(output, question_out)
 
-        review_mixs = [self.get_mix(output, review_out) for review_out in review_outs]
-        review_mix = review_mixs[0] #replace with mean
-        # concat -> (batch, out_len, 2*dim)
-        combined = torch.cat((question_mix, review_mix, output), dim=2)
-        # output -> (batch, out_len, dim)
-        output = F.tanh(self.linear_out(combined.view(-1, 3 * self.hidden_size))).view(self.batch_size, -1, self.hidden_size)
+        if review_outs is not None:
+            review_mixs = [self.get_mix(output, review_out)[1] for review_out in review_outs]
+            review_mix = map(_mean, reviews_mixs) #replace with mean
+            # concat -> (batch, out_len, 2*dim)
+            combined = torch.cat((question_mix, review_mix, output), dim=2)
+            # output -> (batch, out_len, dim)
+            output = F.tanh(self.linear_out(combined.view(-1, 3 * self.hidden_size))).view(self.batch_size, -1, self.hidden_size)
+        else:
+            combined = torch.cat((question_mix, output), dim=2)
+            # output -> (batch, out_len, dim)
+            output = F.tanh(self.linear_out(combined.view(-1, 2 * self.hidden_size))).view(self.batch_size, -1, self.hidden_size)
 
         return output, attn
+
+
+def _mean(vars):
+    return torch.mean(torch.cat([i.unsqueeze(0) for i in vars], 0), 0)
 
