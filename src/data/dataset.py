@@ -6,7 +6,6 @@ from tqdm import tqdm
 
 import constants as C
 from data.vocabulary import Vocabulary
-import ipdb as pdb
 from data import review_utils
 
 DEBUG = False
@@ -60,6 +59,7 @@ class AmazonDataset(object):
     def create_vocab(self, train_path):
         vocab = Vocabulary(self.max_vocab_size)
         assert os.path.exists(train_path)
+        total_tokens = 0
 
         with open(train_path, 'rb') as f:
             dataFrame = pd.read_pickle(f)
@@ -74,12 +74,15 @@ class AmazonDataset(object):
 
                 for answer in question[C.ANSWERS]:
                     tokens = self.truncate_tokens(answer[C.TEXT], self.max_answer_len)
+                    total_tokens += len(tokens)
                     vocab.add_sequence(tokens)
 
             reviewsList = row[C.REVIEWS_LIST]
             for review in reviewsList:
                 tokens = self.truncate_tokens(review[C.TEXT], self.max_review_len)
                 vocab.add_sequence(tokens)
+
+        print("Train: No. of Tokens = %d, Vocab Size = %d" % (total_tokens, vocab.size))
         return vocab
 
 
@@ -87,6 +90,7 @@ class AmazonDataset(object):
         answersDict = []
         questionsDict = []
         reviewsDict = []
+        questionAnswersDict = []
 
         questionId = -1
         reviewId = -1
@@ -121,16 +125,19 @@ class AmazonDataset(object):
                 questionsDict.append(ids)
                 questionId += 1
 
+                answerIdsList = []
                 for answer in question[C.ANSWERS]:
                     tokens = self.truncate_tokens(answer[C.TEXT], self.max_answer_len)
                     ids = self.vocab.indices_from_token_list(tokens)
                     answersDict.append(ids)
                     answerId += 1
+                    answerIdsList.append(answerId)
 
                     if self.model == C.LM_ANSWERS:
                         tuples.append((answerId,))
                     else:
                         tuples.append((answerId, questionId))
+                questionAnswersDict.append(answerIdsList)
 
                 if self.model == C.LM_QUESTION_ANSWERS_REVIEWS:
                     topReviewsDictList = review_utils.top_reviews(question_text, reviewsList, reviewsDictList, self.review_select_mode, self.review_select_num)
@@ -144,4 +151,4 @@ class AmazonDataset(object):
         assert(len(reviewsDict) == reviewId+1)
         print("Number of samples in the data = %d" % (len(data)))
 
-        return (answersDict, questionsDict, reviewsDict, data)
+        return (answersDict, questionsDict, questionAnswersDict, reviewsDict, data)

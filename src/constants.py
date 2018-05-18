@@ -1,5 +1,9 @@
 import torch
 
+WORD_LOSS = 'WORD_LOSS'
+SENTENCE_LOSS = 'SENTENCE_LOSS'
+
+
 # Global constants
 USE_CUDA = torch.cuda.is_available()
 
@@ -28,6 +32,7 @@ UNK_INDEX = 3
 # Paths
 QA_DATA_PATH = '../data/answers_multiple'
 REVIEWS_DATA_PATH = '../data/reviews_small'
+TEXT_DATA_PATH = '../data/text_data'
 JSON_DATA_PATH = '../data/json_data'
 INPUT_DATA_PATH = '../data/input'
 
@@ -98,14 +103,14 @@ TIME = 'time'
 TEXT = 'text'
 TYPE = 'type'
 
-"""
-TODO: remove if not being used anywhere
+
+#TODO: remove if not being used anywhere
 REVIEW_COLUMNS = [
   REVIEW_TEXT,
   HELPFUL,
   REVIEW_TIME
 ]
-"""
+
 """
     Modes
 """

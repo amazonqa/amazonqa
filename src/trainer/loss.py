@@ -11,46 +11,64 @@ import constants as C
 class Loss:
 
     def __init__(self):
+        self.loss_type = C.WORD_LOSS
+
+        if self.loss_type not in {C.WORD_LOSS, C.SENTENCE_LOSS}:
+            raise 'Unimplemented Loss Type: %s' % loss_type
+
         self.criterion = nn.NLLLoss(ignore_index=C.PAD_INDEX, size_average=False)
         if C.USE_CUDA:
             self.criterion.cuda()
 
+
     def reset(self):
-        self.num_tokens = 0
-        self.num_sequences = 0
+        self.total_num_tokens = 0
+        self.total_num_sentences = 0
+        self.total_num_batches = 0
         self.total_loss = 0
 
+
     def eval_batch_loss(self, outputs, targets):
-        batch_size = targets.size(0)
-        batch_num_tokens = (targets.cpu().data.numpy() != C.PAD_INDEX).sum()
-        assert batch_size > 0
+        batch_num_sentences = targets.size(0)
+        batch_num_tokens = targets.data.ne(C.PAD_INDEX).sum()
+        #assert batch_size > 0
 
-        # Add to num sequences and tokens since reset
-        self.num_sequences += batch_size
-        self.num_tokens += batch_num_tokens
-        dtype = torch.cuda.FloatTensor if C.USE_CUDA else torch.FloatTensor
-        loss = Variable(torch.zeros(1).type(dtype))
+        # Add to num sentences and tokens since reset
+        self.total_num_sentences += batch_num_sentences
+        self.total_num_tokens += batch_num_tokens
+        self.total_num_batches += 1
+        
+        outputs = torch.stack(outputs).transpose(0,1)
+        batch_loss = self.criterion(outputs.contiguous().view(-1, outputs.size(2)), targets[:,1:].contiguous().view(-1))
 
-        # If the target is longer than max_output_len in
-        # case of teacher_forcing = True,
-        # then consider only max_output_len steps for loss
-        n = min(len(outputs), targets.size(1) - 1)
-        for idx in range(n):
-            output = outputs[idx]
-            loss += self.criterion(output, targets[:, idx + 1])
+        self.total_loss += batch_loss.data.item()
 
-        self.total_loss += loss.data[0]
-        return loss / batch_size, _perplexity(loss.data[0], batch_num_tokens)
+        if self.loss_type == C.WORD_LOSS:
+            loss = batch_loss / float(batch_num_tokens)
+        elif self.loss_type == C.SENTENCE_LOSS:
+            loss = batch_loss / float(batch_num_sentences)
+         
+        return loss, _perplexity(batch_loss.data.item(), batch_num_tokens)
+
 
     def epoch_loss(self):
-        """NLL loss per sequence since the last reset
+        """NLL loss per sentence since the last reset
         """
-        return self.total_loss / self.num_sequences if self.num_sequences > 0 else np.nan
-    
+        if self.loss_type == C.WORD_LOSS:
+            epoch_loss = self.total_loss / float(self.total_num_tokens)
+        elif self.loss_type == C.SENTENCE_LOSS:
+            epoch_loss = self.total_loss / float(self.total_num_sentences)
+
+        return  epoch_loss
+
+
     def epoch_perplexity(self):
         """Corpus perplexity per token since the last reset
         """
-        return _perplexity(self.total_loss, self.num_tokens)
+        return _perplexity(self.total_loss, self.total_num_tokens)
+
 
 def _perplexity(loss, num_tokens):
-    return np.exp(loss / num_tokens) if num_tokens > 0 else np.nan
+    return np.exp(loss / float(num_tokens)) if num_tokens > 0 else np.nan
+
+

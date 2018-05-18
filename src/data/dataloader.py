@@ -12,7 +12,7 @@ import constants as C
 class AmazonDataLoader(object):
 
     def __init__(self, data, model, batch_size):
-        self.answersDict, self.questionsDict, self.reviewsDict, self.data = data
+        self.answersDict, self.questionsDict, self.questionAnswersDict, self.reviewsDict, self.data = data
 
         self.batch_size = batch_size
         self.model = model
@@ -134,14 +134,14 @@ class AmazonDataLoader(object):
                 [answerIds, questionIds] = zip(*batch_data)
                 paded_answers = self.pad_answers(list(answerIds))
                 padded_questions = self.pad_questions(list(questionIds))
-                yield (paded_answers, padded_questions)
+                yield (paded_answers, padded_questions, list(questionIds))
 
             elif self.model == C.LM_QUESTION_ANSWERS_REVIEWS:
                 [answerIds, questionIds, reviewIds] = zip(*batch_data)
                 paded_answers = self.pad_answers(list(answerIds))
                 padded_questions = self.pad_questions(list(questionIds))
                 padded_reviews = self.pad_reviews(list(reviewIds))
-                yield (paded_answers, padded_questions, padded_reviews)
+                yield (paded_answers, padded_questions, list(questionIds), padded_reviews)
 
 
     def __len__(self):

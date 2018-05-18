@@ -18,6 +18,9 @@ import constants as C
 from models.seq2seq import Seq2Seq
 from trainer.loss import Loss
 
+from evaluator.evaluator import COCOEvalCap
+
+
 USE_CUDA = torch.cuda.is_available()
 
 class TrainerMetrics:
@@ -51,7 +54,7 @@ class TrainerMetrics:
         self.logger.log('\t[%s] Perplexity = %.2f, Min [%s] Perplexity = %.2f' % (mode, epoch_perplexity, mode, min_perplexity))
 
     def is_best_dev_loss(self):
-        return len(self.dev_loss) > 0 and self.dev_loss[-1] == np.nanmin(self.dev_loss)
+        return float(len(self.dev_loss)) > 0.0 and float(self.dev_loss[-1]) == float(np.nanmin(self.dev_loss))
 
 class Trainer:
 
@@ -112,6 +115,7 @@ class Trainer:
             if self.model:
                 self.model = self.model.cuda()
 
+
     def train(self):
         self.lr = self.params[C.LR]
         self._set_optimizer(0)
@@ -139,7 +143,7 @@ class Trainer:
             # refresh loss, perplexity 
             self.loss.reset()
             for batch_itr, inputs in enumerate(tqdm(self.dataloader)):
-                answer_seqs, question_seqs, review_seqs, \
+                answer_seqs, question_seqs, question_ids, review_seqs, \
                     answer_lengths = _extract_input_attributes(inputs, self.model_name)
                 batch_loss, batch_perplexity = self.train_batch(
                     question_seqs,
@@ -178,6 +182,7 @@ class Trainer:
             if self.metrics.is_best_dev_loss():
                 self.saver.save_model(C.BEST_EPOCH_IDX, self.model)
 
+
     def train_batch(self, 
             question_seqs,
             review_seqs,
@@ -189,10 +194,10 @@ class Trainer:
 
         # Zero grad and teacher forcing
         self.optimizer.zero_grad()
-        teacher_forcing = np.random.random() < self.params[C.TEACHER_FORCING_RATIO]
+        teacher_forcing_ratio = self.params[C.TEACHER_FORCING_RATIO]
 
         # run forward pass
-        loss, perplexity, _, _ = self._forward_pass(question_seqs, review_seqs, answer_seqs, teacher_forcing)
+        loss, perplexity, _, _ = self._forward_pass(question_seqs, review_seqs, answer_seqs, teacher_forcing_ratio)
 
         # gradient computation
         loss.backward()
@@ -202,7 +207,8 @@ class Trainer:
         torch.nn.utils.clip_grad_norm(params, self.params[C.GLOBAL_NORM_MAX])
         self.optimizer.step()
 
-        return loss.data[0], perplexity
+        return loss.data.item(), perplexity
+
 
     def eval(self, dataloader, mode, output_filename=None, epoch=0):
 
@@ -217,32 +223,50 @@ class Trainer:
         if compute_loss:
             self.loss.reset()
 
+        gold_answers_dict = {}
+        generated_answer_dict = {}
+
         for batch_itr, inputs in tqdm(enumerate(dataloader)):
-            answer_seqs, question_seqs, review_seqs, \
+            answer_seqs, question_seqs, question_ids, review_seqs, \
                 answer_lengths = _extract_input_attributes(inputs, self.model_name)
 
             _, _, output_seq, output_lengths = self._forward_pass(
                 question_seqs,
                 review_seqs,
                 answer_seqs,
-                False,
+                1.0,
                 compute_loss=compute_loss
             )
 
+            assert len(question_ids) == len(output_lengths)
+
             if mode == C.TEST_TYPE:
                 output_seq = output_seq.data.cpu().numpy()
-                with open(output_filecname, 'a') as fp:
+                with open(output_filename, 'a') as fp:
                     for seq_itr, length in enumerate(output_lengths):
                         length = int(length)
                         seq = output_seq[seq_itr, :length]
                         if seq[-1] == C.EOS_INDEX:
                             seq = seq[:-1]
                         tokens = self.vocab.token_list_from_indices(seq)
-                        fp.write(' '.join(tokens) + '\n')
+                        generated_answer = ' '.join(tokens)
+                        fp.write(generated_answer + '\n')
+                        
+                        gold_answers = []
+                        question_id = question_ids[seq_itr]
+                        answer_ids = dataloader.questionAnswersDict[question_id]
+                        for answer_id in answer_ids:
+                            answer_seq = dataloader.answersDict[answer_id]
+                            answer_tokens = self.vocab.token_list_from_indices(answer_seq)
+                            gold_answers.append(' '.join(answer_tokens))
+
+                        gold_answers_dict[question_id] = gold_answers
+                        generated_answer_dict[question_id] = [generated_answer]
+        
+                print(COCOEvalCap.compute_scores(gold_answers_dict, generated_answer_dict))
 
         if mode == C.DEV_TYPE:
             self.metrics.add_loss(self.loss, C.DEV_TYPE)
-            # self._print_info(epoch, None, losses, perplexities, mode, self.logger)
         elif mode == C.TEST_TYPE:
             self.logger.log('Saving generated answers to file {0}'.format(output_filename))
         elif mode == C.TRAIN_TYPE:
@@ -254,7 +278,7 @@ class Trainer:
             question_seqs,
             review_seqs,
             answer_seqs,
-            teacher_forcing,
+            teacher_forcing_ratio,
             compute_loss=True
         ):
         target_seqs, answer_seqs  = _var(answer_seqs), _var(answer_seqs)
@@ -262,14 +286,18 @@ class Trainer:
         review_seqs = map(_var, review_seqs) if self.model_name == C.LM_QUESTION_ANSWERS_REVIEWS else None
 
         # run forward pass
-        outputs, output_seq, output_lengths = self.model(
+        outputs, output_hidden, ret_dict = self.model(
             question_seqs,
             review_seqs,
             answer_seqs,
             target_seqs,
-            teacher_forcing
+            teacher_forcing_ratio
         )
 
+        output_seq = ret_dict['sequence']
+        output_lengths = ret_dict['length']
+        output_seq = torch.cat(output_seq, 1)
+        
         # loss and gradient computation
         loss, perplexity = None, None
         if compute_loss:
@@ -308,21 +336,24 @@ def _var(variable):
 def _extract_input_attributes(inputs, model_name):
     if model_name == C.LM_ANSWERS:
         answer_seqs, answer_lengths = inputs
-        question_seqs, review_seqs = None, None
+        question_seqs, review_seqs, question_ids = None, None, None
     elif model_name == C.LM_QUESTION_ANSWERS:
-        (answer_seqs, answer_lengths), question_seqs = inputs
+        (answer_seqs, answer_lengths), question_seqs, question_ids = inputs
         review_seqs = None
     elif model_name == C.LM_QUESTION_ANSWERS_REVIEWS:
-        (answer_seqs, answer_lengths), question_seqs, review_seqs = inputs
+        (answer_seqs, answer_lengths), question_seqs, question_ids, review_seqs = inputs
     else:
         raise 'Unimplemented model: %s' % model_name
 
-    return answer_seqs, question_seqs, review_seqs, answer_lengths
+    return answer_seqs, question_seqs, question_ids, review_seqs, answer_lengths
 
 def hsizes(params, model_name):
     r_hsize, q_hsize, a_hsize = params[C.HDIM_R], params[C.HDIM_Q], params[C.HDIM_A]
     if model_name == C.LM_QUESTION_ANSWERS:
         assert a_hsize == q_hsize
     if model_name == C.LM_QUESTION_ANSWERS_REVIEWS:
-        assert a_hsize == r_hsize + q_hsize
+        # TODO Attention Fix
+        assert a_hsize == r_hsize == q_hsize
+        #assert a_hsize == r_hsize + q_hsize
     return r_hsize, q_hsize, a_hsize
+
