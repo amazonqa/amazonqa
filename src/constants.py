@@ -103,14 +103,14 @@ TIME = 'time'
 TEXT = 'text'
 TYPE = 'type'
 
-"""
-TODO: remove if not being used anywhere
+
+#TODO: remove if not being used anywhere
 REVIEW_COLUMNS = [
   REVIEW_TEXT,
   HELPFUL,
   REVIEW_TIME
 ]
-"""
+
 """
     Modes
 """

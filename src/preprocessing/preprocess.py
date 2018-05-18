@@ -11,6 +11,10 @@ import json
 
 np.random.seed(2018)
 
+def parse(path):
+    g = gzip.open(path, 'rb')
+    for l in g:
+        yield eval(l)
 
 def filepath(category, key):
     if key == C.QA:
