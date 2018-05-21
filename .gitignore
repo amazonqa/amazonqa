@@ -12,3 +12,4 @@ __init__.pyc
 *.ipynb_checkpoints*
 *saved_models*
 *.DS_Store*
+*/conll2018.pdf
