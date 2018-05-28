@@ -3,10 +3,12 @@ import torch
 import string
 import pandas as pd
 from tqdm import tqdm
+from nltk.corpus import stopwords
 
 import constants as C
 from data.vocabulary import Vocabulary
 from data import review_utils
+import string
 
 DEBUG = False
 
@@ -34,27 +36,21 @@ class AmazonDataset(object):
         test_path = '%s/test-%s.pickle' % (C.INPUT_DATA_PATH, category)
         self.test = self.get_data(test_path)
 
-    def tokenize(self, text):
+    @staticmethod
+    def tokenize(text):
         punctuations = string.punctuation.replace("\'", '')
 
         for ch in punctuations:
             text = text.replace(ch, " " + ch + " ")
 
         tokens = text.split()
-
-        for i in range(len(tokens)):
-            token = tokens[i]
-            if token.isupper() == False:
+        for i, token in enumerate(tokens):
+            if not token.isupper():
                 tokens[i] = token.lower()
         return tokens
 
-
     def truncate_tokens(self, text, max_length):
-        tokens = self.tokenize(text)
-        if len(tokens) > max_length:
-            tokens = tokens[:max_length]
-        return tokens
-
+        return self.tokenize(text)[:max_length]
 
     def create_vocab(self, train_path):
         vocab = Vocabulary(self.max_vocab_size)
@@ -105,29 +101,50 @@ class AmazonDataset(object):
             if DEBUG:
                 dataFrame = dataFrame.iloc[:5]
 
+        if self.review_select_mode in [C.BM25, C.INDRI]:
+            stop_words = set(stopwords.words('english'))
+        else:
+            stop_words = []
+
         for _, row in tqdm(dataFrame.iterrows()):
             tuples = []
             questionsList = row[C.QUESTIONS_LIST]
 
             reviewsDictList = []
             reviewsList = row[C.REVIEWS_LIST]
+            review_tokens = []
             for review in reviewsList:
-                tokens = self.truncate_tokens(review[C.TEXT], self.max_review_len)
-                ids = self.vocab.indices_from_token_list(tokens)
+                tokens = self.tokenize(review[C.TEXT])
+                review_tokens.append(tokens)
+                ids = self.vocab.indices_from_token_list(tokens[:self.max_review_len])
                 reviewsDict.append(ids)
                 reviewId += 1
                 reviewsDictList.append(reviewId)
 
+            # Filter stop words and create inverted index
+            review_tokens = [[token for token in r if token not in stop_words and token not in string.punctuation] for r in review_tokens]
+            inverted_index = _create_inverted_index(review_tokens)
+            review_tokens = list(map(set, review_tokens))
+
+            # Add tuples to data 
             for question in questionsList:
                 question_text = question[C.TEXT]
-                tokens = self.truncate_tokens(question_text, self.max_question_len)
+                question_tokens = self.tokenize(question_text)[:self.max_question_len]
                 ids = self.vocab.indices_from_token_list(tokens)
                 questionsDict.append(ids)
                 questionId += 1
 
                 answerIdsList = []
                 if self.model == C.LM_QUESTION_ANSWERS_REVIEWS:
-                    topReviewsDictList = review_utils.top_reviews(question_text, reviewsList, reviewsDictList, self.review_select_mode, self.review_select_num)
+                    topReviewsDictList = review_utils.top_reviews(
+                        set(question_tokens),
+                        review_tokens,
+                        inverted_index,
+                        reviewsList,
+                        reviewsDictList,
+                        self.review_select_mode,
+                        self.review_select_num
+                    )
 
                 for answer in question[C.ANSWERS]:
                     tokens = self.truncate_tokens(answer[C.TEXT], self.max_answer_len)
@@ -153,3 +170,17 @@ class AmazonDataset(object):
         print("Number of samples in the data = %d" % (len(data)))
 
         return (answersDict, questionsDict, questionAnswersDict, reviewsDict, data)
+
+def _create_inverted_index(review_tokens):
+    term_dict = {}
+    # TODO: Use actual review IDs
+    for docId, tokens in enumerate(review_tokens):
+        for token in tokens:
+            if token in term_dict:
+                if docId in term_dict[token]:
+                    term_dict[token][docId] += 1
+                else:
+                    term_dict[token][docId] = 1
+            else:
+                term_dict[token] = {docId: 1}
+    return term_dict
