@@ -114,12 +114,13 @@ class AmazonDataset(object):
             )
 
             samples.append({
-                'id': ids,
+                'id': '(%d,%d,%d)' % tuple(ids),
                 'question': question_text,
-                'reviews': top_reviews,
+                'reviews': '\n'.join(top_reviews),
+                'enumerated_reviews': '\n'.join(['%d) %s' % (rid + 1, r) for rid, r in enumerate(top_reviews) if r != '']),
                 'answer': answer_text,
             })
-        pd.DataFrame(samples)[['id', 'question', 'reviews', 'answer']].to_csv(filename)
+        pd.DataFrame(samples)[['id', 'question', 'reviews', 'enumerated_reviews', 'answer']].to_csv(filename)
 
 def _create_inverted_index(review_tokens):
     term_dict = {}

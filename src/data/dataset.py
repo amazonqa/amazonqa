@@ -106,6 +106,7 @@ class AmazonDataset(object):
         else:
             stop_words = []
 
+        print('Number of products: %d' % len(dataFrame))
         for _, row in tqdm(dataFrame.iterrows()):
             tuples = []
             questionsList = row[C.QUESTIONS_LIST]
