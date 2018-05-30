@@ -137,7 +137,8 @@ def _create_inverted_index(review_tokens):
     return term_dict
 
 if __name__ == '__main__':
-    np.random.seed(1)
+    seed = 1
+    np.random.seed(seed)
     model_name = C.LM_QUESTION_ANSWERS_REVIEWS    
     params = config.get_model_params(model_name)
     params[C.MODEL_NAME] = model_name
@@ -149,5 +150,5 @@ if __name__ == '__main__':
         dataset.test_path,
         100,
         max_review_len=50,
-        filename='samples.csv'
+        filename='%s_samples_%d.csv' % (params[C.CATEGORY], seed)
     )
