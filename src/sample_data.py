@@ -103,15 +103,18 @@ class AmazonDataset(object):
             answer_text = answer[C.TEXT]
             question_tokens = self.tokenize(question_text)
 
-            top_reviews = review_utils.top_reviews(
-                set(question_tokens),
-                review_tokens,
-                inverted_index,
-                None,
-                review_texts,
-                self.review_select_mode,
-                self.review_select_num
-            )
+            if len(review_texts) > 0:
+                top_reviews = review_utils.top_reviews(
+                    set(question_tokens),
+                    review_tokens,
+                    inverted_index,
+                    None,
+                    review_texts,
+                    self.review_select_mode,
+                    self.review_select_num
+                )
+            else:
+                top_reviews = []
 
             samples.append({
                 'id': '(%d,%d,%d)' % tuple(ids),
