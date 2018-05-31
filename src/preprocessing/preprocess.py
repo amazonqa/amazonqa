@@ -176,3 +176,46 @@ def load_text_data(category, split):
   with open(pickle_filepath, 'wb') as f:
     df.to_pickle(f)
 
+
+def load_ms_marco_data(split):
+  category = "Ms_Marco"
+  json_filepath = "%s/%s-%s.jsonl" % (C.JSON_DATA_PATH, split, category)
+  full_json = {}
+  line_num = 0
+
+  with open(json_filepath, 'r') as f:
+      for line in f:
+          j = json.loads(line)
+          
+          answers = j["answers"]
+          num_answers = len(answers)
+          
+          if num_answers == 1 and answers[0] == 'No Answer Present.':
+              continue
+          
+          answers_list = []
+          for answer in answers:
+              answer_text = answer.strip()
+              answer_json = {C.TEXT: answer_text}
+              answers_list.append(answer_json)
+          
+          question_text = j["query"].strip()
+          question_json = {C.ANSWERS: answers_list, C.TEXT: question_text}
+          
+          reviews_list = []
+          for passage in j["passages"]:
+              review_text = passage["passage_text"].strip()
+              review_json = {C.TEXT: review_text}
+              reviews_list.append(review_json)
+          
+          product_json = {C.ASIN: line_num, C.QUESTIONS_LIST: [question_json], C.REVIEWS_LIST: reviews_list}
+
+          full_json[line_num] = product_json
+          line_num += 1
+      
+  df = pd.DataFrame.from_dict(full_json, orient='index')
+  pickle_filepath = "%s/%s-%s.pickle" % (C.INPUT_DATA_PATH, split, category)
+
+  with open(pickle_filepath, 'wb') as f:
+    df.to_pickle(f)
+

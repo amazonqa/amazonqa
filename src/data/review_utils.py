@@ -7,12 +7,11 @@ import math
 import scipy.stats as st
 from data import retrieval_models
 
-def top_reviews(question, reviews, review_ids, select_mode, num_reviews):
+def top_reviews(question_tokens, review_tokens, inverted_index, reviews, review_ids, select_mode, num_reviews):
     if select_mode == C.RANDOM:
         scores = list(random.uniform(size=len(reviews)))
     elif select_mode in [C.BM25, C.INDRI]:
-        review_texts = [i['text'] for i in reviews]
-        scores = retrieval_models.retrieval_model_scores(question, review_texts, select_mode)
+        scores = retrieval_models.retrieval_model_scores(question_tokens, review_tokens, inverted_index, select_mode)
     elif select_mode == C.WILSON:
         scores = []
         for r in range(len(reviews)):
