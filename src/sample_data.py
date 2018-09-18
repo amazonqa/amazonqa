@@ -60,21 +60,27 @@ class AmazonDataset(object):
         print('Number of products: %d' % len(dataFrame))
 
         all_instances = []
+        all_questions = []
         for row_id, (_, row) in enumerate(dataFrame.iterrows()):
             for qid, question in enumerate(row[C.QUESTIONS_LIST]):
+                all_questions.append((row_id, qid))
                 for aid, _ in enumerate(question[C.ANSWERS]):
                     all_instances.append((row_id, qid, aid))
         
         print('Total Instances: %d' % len(all_instances))
         print('Sampling %d instances ...' % num_entries)
         sample_ids = np.random.permutation(all_instances)[:num_entries]
+        sample_question_ids = np.random.permutation(all_questions)[:num_entries]
 
         samples = []
-        for ids in tqdm(sample_ids):
-            row_id, qid, aid = ids
+        # for ids in tqdm(sample_ids):
+        for ids in tqdm(sample_question_ids):
+            # row_id, qid, aid = ids
+            row_id, qid = ids
             row = dataFrame.iloc[row_id]
             question = row[C.QUESTIONS_LIST][qid]
-            answer = question[C.ANSWERS][aid]
+            # answer = question[C.ANSWERS][aid]
+            answers = question[C.ANSWERS]
 
             reviews = row[C.REVIEWS_LIST]
            
@@ -100,11 +106,12 @@ class AmazonDataset(object):
             review_tokens = list(map(set, review_tokens))
 
             question_text = question[C.TEXT]
-            answer_text = answer[C.TEXT]
+            # answer_text = answer[C.TEXT]
+            answer_texts = [answer[C.TEXT] for answer in answers][:3]
             question_tokens = self.tokenize(question_text)
 
             if len(review_texts) > 0:
-                top_reviews = review_utils.top_reviews(
+                top_reviews_q = review_utils.top_reviews(
                     set(question_tokens),
                     review_tokens,
                     inverted_index,
@@ -113,17 +120,42 @@ class AmazonDataset(object):
                     self.review_select_mode,
                     self.review_select_num
                 )
+                top_reviews_a = [review_utils.top_reviews(
+                    set(self.tokenize(answer_text)),
+                    review_tokens,
+                    inverted_index,
+                    None,
+                    review_texts,
+                    self.review_select_mode,
+                    self.review_select_num
+                ) for answer_text in answer_texts]
             else:
-                top_reviews = []
+                top_reviews_q = []
+                top_reviews_a = []
 
             samples.append({
-                'id': '(%d,%d,%d)' % tuple(ids),
+                # 'id': '(%d,%d,%d)' % tuple(ids),
+                'id': '(%d,%d)' % tuple(ids),
                 'question': question_text,
-                'reviews': '\n'.join(top_reviews),
-                'enumerated_reviews': '\n'.join(['%d) %s' % (rid + 1, r) for rid, r in enumerate(top_reviews) if r != '']),
-                'answer': answer_text,
+                'reviews_q': _enumerated_list_as_string(top_reviews_q),
+                'reviews_a1': _reviews_and_answer(top_reviews_a, answer_texts, 0),
+                'reviews_a2': _reviews_and_answer(top_reviews_a, answer_texts, 1),
+                'reviews_a3': _reviews_and_answer(top_reviews_a, answer_texts, 2),
             })
-        pd.DataFrame(samples)[['id', 'question', 'reviews', 'enumerated_reviews', 'answer']].to_csv(filename)
+        pd.DataFrame(samples)[['id', 
+            'question', 
+            'reviews_q',
+            'reviews_a1', 
+            'reviews_a2',  
+            'reviews_a3', 
+            # 'enumerated_reviews', 
+            # 'answer'
+        ]].to_csv(filename)
+
+def _reviews_and_answer(top_reviews_a, answer_texts, i):
+    if len(top_reviews_a) <= i:
+        return ''    
+    return 'Answer:\n%s\n\nReviews:\n%s' % (answer_texts[i], _enumerated_list_as_string(top_reviews_a[i]))
 
 def _create_inverted_index(review_tokens):
     term_dict = {}
@@ -139,9 +171,15 @@ def _create_inverted_index(review_tokens):
                 term_dict[token] = {doc_id: 1}
     return term_dict
 
+def _enumerated_list_as_string(l):
+    return '\n'.join(_enumerate_list(l))
+
+def _enumerate_list(l):
+    return ['%d) %s' % (rid + 1, r) for rid, r in enumerate(l) if r != '']
+
 def main():
     seed = 1
-    num_entries = 2000
+    num_entries = 400
     max_review_len = 50
     np.random.seed(seed)
     model_name = C.LM_QUESTION_ANSWERS_REVIEWS    
@@ -155,7 +193,7 @@ def main():
         dataset.test_path,
         num_entries,
         max_review_len=max_review_len,
-        filename='%s_samples_%d_%d_%d.csv' % (params[C.CATEGORY], num_entries, max_review_len, seed)
+        filename='is_answerable_%s_samples_%d_%d_%d.csv' % (params[C.CATEGORY], num_entries, max_review_len, seed)
     )
 
 if __name__ == '__main__':
