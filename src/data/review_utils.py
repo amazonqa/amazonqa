@@ -8,6 +8,10 @@ import scipy.stats as st
 from data import retrieval_models
 
 def top_reviews(question_tokens, review_tokens, inverted_index, reviews, review_ids, select_mode, num_reviews):
+    _, top_review_ids = top_reviews_and_scores(question_tokens, review_tokens, inverted_index, reviews, review_ids, select_mode, num_reviews)
+    return top_review_ids
+
+def top_reviews_and_scores(question_tokens, review_tokens, inverted_index, reviews, review_ids, select_mode, num_reviews):
     if select_mode == C.RANDOM:
         scores = list(random.uniform(size=len(reviews)))
     elif select_mode in [C.BM25, C.INDRI]:
@@ -23,8 +27,9 @@ def top_reviews(question_tokens, review_tokens, inverted_index, reviews, review_
         scores = [r['helpful'] for r in reviews]
     else:
         raise 'Unimplemented Review Select Mode'
-    _, top_review_ids = zip(*sorted(list(zip(scores, review_ids)), reverse=True))
-    return list(top_review_ids)[:num_reviews]
+    
+    top_review_ids, scores = zip(*sorted(list(zip(scores, review_ids)), reverse=True))
+    return top_review_ids[:num_reviews], scores[:num_reviews]
 
 def _top_review_ids(reviews, review_ids, sort_id):
     reviews_and_ids = [(r, rid) for r, rid in zip(reviews, review_ids)]

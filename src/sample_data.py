@@ -111,7 +111,7 @@ class AmazonDataset(object):
             question_tokens = self.tokenize(question_text)
 
             if len(review_texts) > 0:
-                top_reviews_q = review_utils.top_reviews(
+                scores_q, top_reviews_q = review_utils.top_reviews_and_scores(
                     set(question_tokens),
                     review_tokens,
                     inverted_index,
@@ -120,19 +120,23 @@ class AmazonDataset(object):
                     self.review_select_mode,
                     self.review_select_num
                 )
-                top_reviews_a = [review_utils.top_reviews(
-                    set(self.tokenize(answer_text)),
-                    review_tokens,
-                    inverted_index,
-                    None,
-                    review_texts,
-                    self.review_select_mode,
-                    self.review_select_num
-                ) for answer_text in answer_texts]
+                scores_a, top_reviews_a = [], []
+                for answer_text in answer_texts:
+                    scores, top_reviews = review_utils.top_reviews_and_scores(
+                        set(self.tokenize(answer_text)),
+                        review_tokens,
+                        inverted_index,
+                        None,
+                        review_texts,
+                        self.review_select_mode,
+                        self.review_select_num
+                    )
+                    scores_a += scores
+                    top_reviews_a.append(top_reviews)
             else:
                 top_reviews_q = []
                 top_reviews_a = []
-
+                scores_a, scores_q = [], []
             samples.append({
                 # 'id': '(%d,%d,%d)' % tuple(ids),
                 'id': '(%d,%d)' % tuple(ids),
@@ -141,6 +145,7 @@ class AmazonDataset(object):
                 'reviews_a1': _reviews_and_answer(top_reviews_a, answer_texts, 0),
                 'reviews_a2': _reviews_and_answer(top_reviews_a, answer_texts, 1),
                 'reviews_a3': _reviews_and_answer(top_reviews_a, answer_texts, 2),
+                'review_scores': ','.join(map(str, list(scores_q) + scores_a))
             })
         pd.DataFrame(samples)[['id', 
             'question', 
@@ -148,6 +153,7 @@ class AmazonDataset(object):
             'reviews_a1', 
             'reviews_a2',  
             'reviews_a3', 
+            'review_scores',
             # 'enumerated_reviews', 
             # 'answer'
         ]].to_csv(filename)
