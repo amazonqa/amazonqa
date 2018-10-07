@@ -25,7 +25,16 @@ class AmazonDataset(object):
         self.val_path = '%s/val-%s.pickle' % (C.INPUT_DATA_PATH, category)
         self.test_path = '%s/test-%s.pickle' % (C.INPUT_DATA_PATH, category)
 
-    def save_data(self, path, max_review_len=50, filename='temp.csv'):
+    def find_answer_spans(answer_span_len, answers, reviews):
+        for i in range(len(reviews)):
+            span = review[i: i+answer_span_len]
+            score = get_bleu(span, answers)
+            l.append((score, span))
+
+        sorted(l)
+        return 
+
+    def save_data(self, path, max_review_len=50, answer_span_len=10, filename='temp.csv'):
         print("Creating Dataset from " + path)
         assert os.path.exists(path)
 
@@ -36,19 +45,20 @@ class AmazonDataset(object):
 
         print('Number of products: %d' % len(dataFrame))
 
-        final_data = []
+        paragraphs = []
         for (_, row) in dataFrame.iterrows():
             # combine all or get only the reviews
-            reviews = row[C.REVIEWS_LIST]
-
+            all_reviews = processed(row[C.REVIEWS_LIST])
             qas = []
             for qid, question in enumerate(row[C.QUESTIONS_LIST]):
+                context = get_context(question, all_reviews)
+                relevant_context = get
                 question_text = question[C.TEXT]
 
                 answers = question[C.ANSWERS]
-                new_answers = find_span_answers(answers, reviews)
+                new_answers = find_answer_spans(answer_span_len, answers, context)
                 
-                is_answerable = find_answerable(question_text, reviews)
+                is_answerable = find_answerable(question_text, context)
                 new_question = {}
                 new_question['id'] = qid
                 new_question['is_impossible'] = is_answerable
@@ -58,15 +68,19 @@ class AmazonDataset(object):
                 qas.append(new_question)
             
             new_row = {}
-            new_row['context'] = reviews
+            new_row['context'] = context
             new_row['qas'] = qas
-            final_data.append(new_row)
+            paragraphs.append(new_row)
         
-        pd.DataFrame(final_data).to_csv(filename)
+        data = []
+        data['title'] = 'AmazonDataset'
+        data['paragraphs'] = paragraphs
+        json.dumps(data, filename)
 
 def main():
     seed = 1
     max_review_len = 50
+    answer_span_len = 10
     np.random.seed(seed)
     model_name = C.LM_QUESTION_ANSWERS_REVIEWS
     params = config.get_model_params(model_name)
@@ -78,6 +92,7 @@ def main():
     dataset.save_data(
         dataset.test_path,
         max_review_len=max_review_len,
+        answer_span_len=answer_span_len,
         filename='squad_%s_%d_%d.csv' % (params[C.CATEGORY], max_review_len, seed)
     )
 
