@@ -12,6 +12,8 @@ import constants as C
 from data.vocabulary import Vocabulary
 from data import review_utils
 import string
+from evaluator.evaluator import COCOEvalCap
+from operator import itemgetter, attrgetter
 
 DEBUG = False
 
@@ -38,16 +40,25 @@ class AmazonDataset(object):
                 tokens[i] = token.lower()
         return tokens
 
-    def find_answer_spans(answer_span_len, answers, reviews):
-        for i in range(len(reviews)):
-            span = review[i: i+answer_span_len]
-            score = get_bleu(span, answers)
-            l.append((score, span))
+    def find_answer_spans(self, max_num_spans, answer_span_lens, answers, context):
+        gold_answers_dict = {}
+        gold_answers_dict[0] = [answer[C.TEXT] for answer in answers]
+        answers = []
+        for answer_span_len in answer_span_lens:
+            for index in range(len(context)-answer_span_len):
+                span = context[index: index+answer_span_len]
+                generated_answer_dict = {}
+                generated_answer_dict[0] = [span]
+                
+                score = COCOEvalCap.compute_scores(gold_answers_dict, generated_answer_dict)['Bleu_2']
+                answers.append((score, {
+                    'answer_start': index,
+                    'text': span    
+                }))
 
-        sorted(l)
-        return 
+        return [i[1] for i in sorted(answers, reverse=True, key=itemgetter(0))[:max_num_spans]]
 
-    def save_data(self, path, max_review_len=50, answer_span_len=10, filename='temp.csv'):
+    def save_data(self, path, max_review_len, answer_span_lens, max_num_spans, filename='temp.csv'):
         print("Creating Dataset from " + path)
         assert os.path.exists(path)
 
@@ -57,9 +68,14 @@ class AmazonDataset(object):
                 dataFrame = dataFrame.iloc[:5]
 
         print('Number of products: %d' % len(dataFrame))
+        stop_words = set(stopwords.words('english'))
 
         paragraphs = []
+        count = 0
         for (_, row) in dataFrame.iterrows():
+            print(count)
+            count += 1
+            
             # combine all or get only the reviews
             reviews = row[C.REVIEWS_LIST]
             review_tokens = []
@@ -83,7 +99,6 @@ class AmazonDataset(object):
             inverted_index = _create_inverted_index(review_tokens)
             review_tokens = list(map(set, review_tokens))
 
-            def get_context(question_tokens):
             qas = []
             for qid, question in enumerate(row[C.QUESTIONS_LIST]):
                 question_text = question[C.TEXT]
@@ -102,8 +117,9 @@ class AmazonDataset(object):
                 context = ' '.join(top_reviews_q)
 
                 answers = question[C.ANSWERS]
-                new_answers = find_answer_spans(answer_span_len, answers, context)
-                
+                new_answers = self.find_answer_spans(max_num_spans, answer_span_lens, answers, context)
+                # max_num_spans, answer_span_lens, answers, context
+
                 # is_answerable = find_answerable(question_text, context)
                 is_answerable = False
 
@@ -154,7 +170,8 @@ def _enumerate_list(l):
 def main():
     seed = 1
     max_review_len = 50
-    answer_span_len = 10
+    answer_span_lens = range(1, 10)
+    max_num_spans = 5
     np.random.seed(seed)
     model_name = C.LM_QUESTION_ANSWERS_REVIEWS
     params = config.get_model_params(model_name)
@@ -165,8 +182,9 @@ def main():
     path = dataset.test_path
     dataset.save_data(
         dataset.test_path,
-        max_review_len=max_review_len,
-        answer_span_len=answer_span_len,
+        max_review_len,
+        answer_span_lens,
+        max_num_spans,
         filename='squad_%s_%d_%d.csv' % (params[C.CATEGORY], max_review_len, seed)
     )
 
