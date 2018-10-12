@@ -93,7 +93,6 @@ class AmazonDataset(object):
                     else:
                         bufr.append(sentence)
 
-            all_reviews = row[C.REVIEWS_LIST]
             review_tokens = [self.tokenize(r) for r in review_texts]
             review_tokens = [[token for token in r if token not in stop_words and token not in string.punctuation] for r in review_tokens]
             inverted_index = _create_inverted_index(review_tokens)
