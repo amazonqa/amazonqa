@@ -14,6 +14,7 @@ from data import review_utils
 import string
 from evaluator.evaluator import COCOEvalCap
 from operator import itemgetter, attrgetter
+import json
 
 DEBUG = False
 
@@ -41,6 +42,7 @@ class AmazonDataset(object):
         return tokens
 
     def find_answer_spans(self, max_num_spans, answer_span_lens, answers, context):
+        context = context.split(' ')
         gold_answers_dict = {}
         gold_answers_dict[0] = [answer[C.TEXT] for answer in answers]
         answers = []
@@ -75,7 +77,8 @@ class AmazonDataset(object):
         for (_, row) in dataFrame.iterrows():
             print(count)
             count += 1
-            
+            if count % 10 != 0:
+              continue
             # combine all or get only the reviews
             reviews = row[C.REVIEWS_LIST]
             review_tokens = []
@@ -139,7 +142,9 @@ class AmazonDataset(object):
             'title': 'AmazonDataset',
             'paragraphs': paragraphs,
         }
-        json.dumps(data, filename)
+        
+        with open(filename, 'w') as outfile:
+          json.dump(data, outfile)
 
 def _reviews_and_answer(top_reviews_a, answer_texts, i):
     if len(top_reviews_a) <= i:
@@ -180,7 +185,7 @@ def main():
     dataset = AmazonDataset(params)
     path = dataset.test_path
     dataset.save_data(
-        dataset.test_path,
+        path,
         max_review_len,
         answer_span_lens,
         max_num_spans,
