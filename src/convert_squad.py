@@ -43,20 +43,25 @@ class AmazonDataset(object):
 
     def find_answer_spans(self, max_num_spans, answer_span_lens, answers, context):
         context = context.split(' ')
+
         gold_answers_dict = {}
         gold_answers_dict[0] = [answer[C.TEXT] for answer in answers]
         answers = []
+        
         for answer_span_len in answer_span_lens:
-            for index in range(len(context)-answer_span_len):
-                span = context[index: index+answer_span_len]
+            char_index = 0
+            for word_index in range(len(context)-answer_span_len):
+                span = ' '.join(context[word_index: word_index+answer_span_len])
+                
                 generated_answer_dict = {}
                 generated_answer_dict[0] = [span]
                 
                 score = COCOEvalCap.compute_scores(gold_answers_dict, generated_answer_dict)['Bleu_2']
                 answers.append((score, {
-                    'answer_start': index,
+                    'answer_start': char_index,
                     'text': span    
                 }))
+                char_index += len(context[word_index])
 
         return [i[1] for i in sorted(answers, reverse=True, key=itemgetter(0))[:max_num_spans]]
 
