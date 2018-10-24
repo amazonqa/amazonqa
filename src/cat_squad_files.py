@@ -13,13 +13,16 @@ def cat_files(category, mode, max_review_len, max_num_spans, max_num_products, s
         with open(filename, 'r') as fp:
             for line in fp:
                 paragraphs.append(json.loads(line.strip()))
-    data = {
+    data = [{
         'title': 'AmazonDataset',
         'paragraphs': paragraphs,
-    }
-    outfile = 'AmazonQA_squadformat_%s_%d_%d_%d_%d.json' % (category, max_review_len, max_num_spans, max_num_products, seed)
+    }]
+    
+    out = {"data":data, "version":"1.0"}
+
+    outfile = 'Amazon-Squad_%s_%s_%d_%d_%d_%d.json' % (category, mode, max_review_len, max_num_spans, max_num_products, seed)
     with open(outfile, 'w') as outfile:
-        json.dump(data, outfile)
+        json.dump(out, outfile)
 
 def main():
     main_params = convert_squad.get_main_params()
@@ -41,3 +44,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
