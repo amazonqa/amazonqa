@@ -12,12 +12,26 @@ import constants as C
 from data.vocabulary import Vocabulary
 from data import review_utils
 import string
+import argparse
 from evaluator.evaluator import COCOEvalCap
 from operator import itemgetter, attrgetter
 import json
 
 DEBUG = False
 TEMPFILEPATH = './temp'
+
+def get_main_params():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--model_name', dest='model_name', type=str, default=C.LM_ANSWERS)
+    parser.add_argument('--mode', dest='mode', type=str, default=C.TRAIN_TYPE)
+    parser.add_argument('--process_idx', dest='process_idx', type=int, default=0)
+    parser.add_argument('--num_processes', dest='num_processes', type=int, default=1)
+    parser.add_argument('--max_num_products', dest='max_num_products', type=int, default=20)
+    parser.add_argument('--max_review_len', dest='max_review_len', type=int, default=50)
+    parser.add_argument('--max_num_spans', dest='max_num_spans', type=int, default=5)
+    parser.add_argument('--seed', dest='seed', type=int, default=1)
+    args, _ = parser.parse_known_args()
+    return args
 
 class AmazonDataset(object):
     def __init__(self, params):
@@ -66,7 +80,7 @@ class AmazonDataset(object):
 
         return [i[1] for i in sorted(answers, reverse=True, key=itemgetter(0))[:max_num_spans]]
 
-    def save_data(self, p_idx, num_processes, max_paragraphs, path, max_review_len, answer_span_lens, max_num_spans, log, filename):
+    def save_data(self, p_idx, num_processes, max_num_products, path, max_review_len, answer_span_lens, max_num_spans, log, filename):
         log("Creating Dataset from " + path)
         assert os.path.exists(path)
 
@@ -79,15 +93,16 @@ class AmazonDataset(object):
         stop_words = set(stopwords.words('english'))
 
         paragraphs = []
-        count = 0
+        product_idx = 0
         with open(filename, 'w') as fp:
             for (_, row) in dataFrame.iterrows():
-                count += 1
-                if count % num_processes != p_idx:
+                product_idx += 1
+                if product_idx % num_processes != p_idx:
                     continue
-                if count > max_paragraphs:
+                if product_idx >= max_num_products:
                     break
-                log('Iteration: %d / %d' % (count // num_processes, max_paragraphs // num_processes))
+                log('Iteration: %d / %d' % (product_idx // num_processes, max_num_products // num_processes))
+
                 # combine all or get only the reviews
                 reviews = row[C.REVIEWS_LIST]
                 review_tokens = []
@@ -110,8 +125,8 @@ class AmazonDataset(object):
                 inverted_index = _create_inverted_index(review_tokens)
                 review_tokens = list(map(set, review_tokens))
 
-                qas = []
                 for qid, question in enumerate(row[C.QUESTIONS_LIST]):
+                    qas = []
                     question_text = question[C.TEXT]
                     question_tokens = self.tokenize(question_text)
 
@@ -143,10 +158,10 @@ class AmazonDataset(object):
                         'human_answers': [answer[C.TEXT] for answer in answers],
                     })
 
-                fp.write(json.dumps({
-                        'context': context,
-                        'qas': qas,
-                }) + '\n')
+                    fp.write(json.dumps({
+                            'context': context,
+                            'qas': qas,
+                    }) + '\n')
 
 def _reviews_and_answer(top_reviews_a, answer_texts, i):
     if len(top_reviews_a) <= i:
@@ -173,16 +188,22 @@ def _enumerated_list_as_string(l):
 def _enumerate_list(l):
     return ['%d) %s' % (rid + 1, r) for rid, r in enumerate(l) if r != '']
 
+def process_filepath(category, mode, max_review_len, max_num_spans, seed, process_idx):
+    return '%s/squad_%s_%s_%d_%d_%d_%d.txt' % (TEMPFILEPATH, category, mode, max_review_len, max_num_spans, seed, process_idx)
+
 def main():
-    seed = 1
-    max_review_len = 50
     answer_span_lens = range(1, 10)
-    max_num_spans = 5
-    max_num_paragraphs = 10
+
+    main_params = get_main_params()
+    seed = main_params.seed
     np.random.seed(seed)
+
+    max_review_len = main_params.max_review_len
+    max_num_spans = main_params.max_num_spans
+    max_num_products = main_params.max_num_products
+
     model_name = C.LM_QUESTION_ANSWERS_REVIEWS
     params = config.get_model_params(model_name)
-    main_params = config.get_main_params()
     params[C.MODEL_NAME] = model_name 
 
     logfilename = '%s/%d.log' % (TEMPFILEPATH, main_params.process_idx)
@@ -198,17 +219,30 @@ def main():
 
     params[C.REVIEW_SELECT_MODE] = C.BM25
     dataset = AmazonDataset(params)
+    path = {
+        C.TRAIN_TYPE: dataset.train_path,
+        C.DEV_TYPE: dataset.val_path,
+        C.TEST_TYPE: dataset.test_path,
+    }[main_params.mode]
+
     path = dataset.test_path
     dataset.save_data(
         main_params.process_idx,
         main_params.num_processes,
-        max_num_paragraphs,
+        max_num_products,
         path,
         max_review_len,
         answer_span_lens,
         max_num_spans,
         log,
-        '%s/squad_%s_%d_%d_%d.txt' % (TEMPFILEPATH, params[C.CATEGORY], max_review_len, seed, main_params.process_idx),
+        process_filepath(
+            params[C.CATEGORY],
+            main_params.mode,
+            max_review_len,
+            max_num_spans,
+            seed, 
+            main_params.process_idx,
+        ),
     )
     with open('%s/all_processes.log' % TEMPFILEPATH, 'a') as fp:
         fp.write('Finished process: %d / %d\n' % (main_params.process_idx, main_params.num_processes))

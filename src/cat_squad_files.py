@@ -1,14 +1,15 @@
 
+import convert_squad
 import config
 import constants as C
 import json
 
 TEMPFILEPATH = './temp'
 
-def cat_files(params, max_review_len, seed, num_processes):
+def cat_files(category, mode, max_review_len, max_num_spans, max_num_products, seed, num_processes):
     paragraphs = []
     for process_idx in range(num_processes):
-        filename='%s/squad_%s_%d_%d_%d.txt' % (TEMPFILEPATH, params[C.CATEGORY], max_review_len, seed, process_idx)
+        filename = convert_squad.process_filepath(category, mode, max_review_len, max_num_spans, seed, process_idx)
         with open(filename, 'r') as fp:
             for line in fp:
                 paragraphs.append(json.loads(line.strip()))
@@ -16,17 +17,27 @@ def cat_files(params, max_review_len, seed, num_processes):
         'title': 'AmazonDataset',
         'paragraphs': paragraphs,
     }
-    outfile = 'AmazonQA_squadformat_%s_%d_%d.json' % (params[C.CATEGORY], max_review_len, seed)
+    outfile = 'AmazonQA_squadformat_%s_%d_%d_%d_%d.json' % (category, max_review_len, max_num_spans, max_num_products, seed)
     with open(outfile, 'w') as outfile:
         json.dump(data, outfile)
 
 def main():
-    seed = 1
-    max_review_len = 50
+    main_params = convert_squad.get_main_params()
     model_name = C.LM_QUESTION_ANSWERS_REVIEWS
     params = config.get_model_params(model_name)
-    main_params = config.get_main_params()
-    cat_files(params, max_review_len, seed, main_params.num_processes)
+    params[C.MODEL_NAME] = model_name 
+
+    model_name = C.LM_QUESTION_ANSWERS_REVIEWS
+    params = config.get_model_params(model_name)
+    cat_files(
+        params[C.CATEGORY], 
+        main_params.mode, 
+        main_params.max_review_len, 
+        main_params.max_num_spans, 
+        main_params.max_num_products, 
+        main_params.seed, 
+        main_params.num_processes
+    )
 
 if __name__ == '__main__':
     main()
