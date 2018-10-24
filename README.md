@@ -50,6 +50,13 @@ Sources - [Pytorch Word Level Language Model Example](https://github.com/pytorch
 
 ## Getting Started:
 
+### Create a virtual enviroment and install required packages
+    python3 -m pip install --user virtualenv
+    python3 -m virtualenv eqa_env
+    source eqa_env/bin/activate
+    pip3 install -r requirements.txt
+    deactivate
+
 ## Example Commands:
 
 ### Setting up env
