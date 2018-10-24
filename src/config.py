@@ -13,6 +13,8 @@ def get_main_params():
     parser.add_argument('--resume', dest='resume', type=int, default=0)
     parser.add_argument('--save_dir', dest='save_dir', type=str, default=None)
     parser.add_argument('--output_file', dest='output_file', type=str, default='output.txt')
+    parser.add_argument('--process_idx', dest='process_idx', type=int, default=0)
+    parser.add_argument('--num_processes', dest='num_processes', type=int, default=1)
     args, _ = parser.parse_known_args()
     return args
 

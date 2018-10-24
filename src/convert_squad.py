@@ -17,6 +17,7 @@ from operator import itemgetter, attrgetter
 import json
 
 DEBUG = False
+TEMPFILEPATH = './temp'
 
 class AmazonDataset(object):
     def __init__(self, params):
@@ -65,8 +66,8 @@ class AmazonDataset(object):
 
         return [i[1] for i in sorted(answers, reverse=True, key=itemgetter(0))[:max_num_spans]]
 
-    def save_data(self, path, max_review_len, answer_span_lens, max_num_spans, filename='temp.csv'):
-        print("Creating Dataset from " + path)
+    def save_data(self, p_idx, num_processes, max_paragraphs, path, max_review_len, answer_span_lens, max_num_spans, log, filename):
+        log("Creating Dataset from " + path)
         assert os.path.exists(path)
 
         with open(path, 'rb') as f:
@@ -74,82 +75,78 @@ class AmazonDataset(object):
             if DEBUG:
                 dataFrame = dataFrame.iloc[:5]
 
-        print('Number of products: %d' % len(dataFrame))
+        log('Number of products: %d' % len(dataFrame))
         stop_words = set(stopwords.words('english'))
 
         paragraphs = []
         count = 0
-        for (_, row) in dataFrame.iterrows():
-            print(count)
-            count += 1
-            if count % 10 != 0:
-              continue
-            # combine all or get only the reviews
-            reviews = row[C.REVIEWS_LIST]
-            review_tokens = []
-            review_texts = []
-            for review in reviews:
-                sentences = nltk.sent_tokenize(review[C.TEXT])
-                bufr = []
-                buffer_len = 0
-                for sentence in sentences:
-                    buffer_len += len(self.tokenize(sentence))
-                    if buffer_len > max_review_len:
-                        review_texts.append(' '.join(bufr))
-                        bufr = []
-                        buffer_len = 0
-                    else:
-                        bufr.append(sentence)
+        with open(filename, 'w') as fp:
+            for (_, row) in dataFrame.iterrows():
+                count += 1
+                if count % num_processes != p_idx:
+                    continue
+                if count > max_paragraphs:
+                    break
+                log('Iteration: %d / %d' % (count // num_processes, max_paragraphs // num_processes))
+                # combine all or get only the reviews
+                reviews = row[C.REVIEWS_LIST]
+                review_tokens = []
+                review_texts = []
+                for review in reviews:
+                    sentences = nltk.sent_tokenize(review[C.TEXT])
+                    bufr = []
+                    buffer_len = 0
+                    for sentence in sentences:
+                        buffer_len += len(self.tokenize(sentence))
+                        if buffer_len > max_review_len:
+                            review_texts.append(' '.join(bufr))
+                            bufr = []
+                            buffer_len = 0
+                        else:
+                            bufr.append(sentence)
 
-            review_tokens = [self.tokenize(r) for r in review_texts]
-            review_tokens = [[token for token in r if token not in stop_words and token not in string.punctuation] for r in review_tokens]
-            inverted_index = _create_inverted_index(review_tokens)
-            review_tokens = list(map(set, review_tokens))
+                review_tokens = [self.tokenize(r) for r in review_texts]
+                review_tokens = [[token for token in r if token not in stop_words and token not in string.punctuation] for r in review_tokens]
+                inverted_index = _create_inverted_index(review_tokens)
+                review_tokens = list(map(set, review_tokens))
 
-            qas = []
-            for qid, question in enumerate(row[C.QUESTIONS_LIST]):
-                question_text = question[C.TEXT]
-                question_tokens = self.tokenize(question_text)
+                qas = []
+                for qid, question in enumerate(row[C.QUESTIONS_LIST]):
+                    question_text = question[C.TEXT]
+                    question_tokens = self.tokenize(question_text)
 
-                # Get Context
-                scores_q, top_reviews_q = review_utils.top_reviews_and_scores(
-                    set(question_tokens),
-                    review_tokens,
-                    inverted_index,
-                    None,
-                    review_texts,
-                    self.review_select_mode,
-                    self.review_select_num
-                )
-                context = ' '.join(top_reviews_q)
+                    # Get Context
+                    scores_q, top_reviews_q = review_utils.top_reviews_and_scores(
+                        set(question_tokens),
+                        review_tokens,
+                        inverted_index,
+                        None,
+                        review_texts,
+                        self.review_select_mode,
+                        self.review_select_num
+                    )
+                    context = ' '.join(top_reviews_q)
 
-                answers = question[C.ANSWERS]
-                new_answers = self.find_answer_spans(max_num_spans, answer_span_lens, answers, context)
-                # max_num_spans, answer_span_lens, answers, context
+                    answers = question[C.ANSWERS]
+                    new_answers = self.find_answer_spans(max_num_spans, answer_span_lens, answers, context)
+                    # max_num_spans, answer_span_lens, answers, context
 
-                # is_answerable = find_answerable(question_text, context)
-                is_answerable = False
+                    # is_answerable = find_answerable(question_text, context)
+                    is_answerable = False
 
-                # New Question
-                qas.append({
-                    'id': qid,
-                    'is_impossible': is_answerable,
-                    'question': question_text,
-                    'answers': new_answers,
-                })
-            
-            paragraphs.append({
-                'context': context,
-                'qas': qas,
-            })
-        
-        data = {
-            'title': 'AmazonDataset',
-            'paragraphs': paragraphs,
-        }
-        
-        with open(filename, 'w') as outfile:
-          json.dump(data, outfile)
+                    # New Question
+                    qas.append({
+                        'id': qid,
+                        'is_impossible': is_answerable,
+                        'question': question_text,
+                        'answers': new_answers,
+                        'human_answers': [answer[C.TEXT] for answer in answers],
+                    })
+
+                fp.write(json.dumps({
+                        'context': context,
+                        'qas': qas,
+                }) + '\n')
 
 def _reviews_and_answer(top_reviews_a, answer_texts, i):
     if len(top_reviews_a) <= i:
@@ -181,21 +178,40 @@ def main():
     max_review_len = 50
     answer_span_lens = range(1, 10)
     max_num_spans = 5
+    max_num_paragraphs = 10
     np.random.seed(seed)
     model_name = C.LM_QUESTION_ANSWERS_REVIEWS
     params = config.get_model_params(model_name)
-    params[C.MODEL_NAME] = model_name
+    main_params = config.get_main_params()
+    params[C.MODEL_NAME] = model_name 
+
+    logfilename = '%s/%d.log' % (TEMPFILEPATH, main_params.process_idx)
+    with open(logfilename, 'w') as fp:
+        fp.write('')
+
+    def log(line):
+        with open(logfilename, 'a') as fp:
+            fp.write(line + '\n')
+
+    if not os.path.exists(TEMPFILEPATH):
+        os.makedirs(TEMPFILEPATH)
 
     params[C.REVIEW_SELECT_MODE] = C.BM25
     dataset = AmazonDataset(params)
     path = dataset.test_path
     dataset.save_data(
+        main_params.process_idx,
+        main_params.num_processes,
+        max_num_paragraphs,
         path,
         max_review_len,
         answer_span_lens,
         max_num_spans,
-        filename='squad_%s_%d_%d.csv' % (params[C.CATEGORY], max_review_len, seed)
+        log,
+        '%s/squad_%s_%d_%d_%d.txt' % (TEMPFILEPATH, params[C.CATEGORY], max_review_len, seed, main_params.process_idx),
     )
+    with open('%s/all_processes.log' % TEMPFILEPATH, 'a') as fp:
+        fp.write('Finished process: %d / %d\n' % (main_params.process_idx, main_params.num_processes))
 
 if __name__ == '__main__':
     main()
