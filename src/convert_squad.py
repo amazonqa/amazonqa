@@ -225,7 +225,6 @@ def main():
         C.TEST_TYPE: dataset.test_path,
     }[main_params.mode]
 
-    path = dataset.test_path
     dataset.save_data(
         main_params.process_idx,
         main_params.num_processes,
