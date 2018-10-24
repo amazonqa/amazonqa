@@ -76,7 +76,7 @@ class AmazonDataset(object):
                     'answer_start': char_index,
                     'text': span    
                 }))
-                char_index += len(context[word_index])
+                char_index += (len(context[word_index]) + 1)
 
         return [i[1] for i in sorted(answers, reverse=True, key=itemgetter(0))[:max_num_spans]]
 
@@ -192,7 +192,7 @@ def process_filepath(category, mode, max_review_len, max_num_spans, seed, proces
     return '%s/squad_%s_%s_%d_%d_%d_%d.txt' % (TEMPFILEPATH, category, mode, max_review_len, max_num_spans, seed, process_idx)
 
 def main():
-    answer_span_lens = range(1, 10)
+    answer_span_lens = range(2, 10)
 
     main_params = get_main_params()
     seed = main_params.seed
