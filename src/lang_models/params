@@ -1,0 +1,44 @@
+nohup python3 -u main.py --mode train --epochs 25 --batch_size 32 --dropout 0.2 --lr 0.001 --hdim_a 256 --embedding_dim 256 --h_layers 2 --global_norm_max 5 --vocab_size 20000 --teacher_forcing_ratio 1.0 --output_max_len 100 --max_answer_len 100 --category Video_Games --logfile Video_Games-A_1.logfile --model_name LM_A > Video_Games-A_1.out &
+
+nohup python3 -u main.py --mode train --epochs 25 --batch_size 32 --dropout 0.2 --lr 0.01 --hdim_a 256 --hdim_q 256 --embedding_dim 256 --h_layers 2 --global_norm_max 5 --vocab_size 20000 --teacher_forcing_ratio 1.0 --output_max_len 100 --max_answer_len 100 --max_question_len 50 --category Video_Games --logfile Video_Games-QA_1.logfile --model_name LM_QA > Video_Games-QA_1.out &
+
+nohup python3 -u main.py --mode train --epochs 25 --batch_size 32 --dropout 0.2 --lr 0.01 --hdim_a 256 --hdim_q 256 --embedding_dim 256 --h_layers 2 --global_norm_max 5 --vocab_size 20000 --teacher_forcing_ratio 1.0 --output_max_len 100 --max_answer_len 100 --max_question_len 50 --category Video_Games --logfile Video_Games-QA_2.logfile --model_name LM_QA > Video_Games-QA_2.out &
+
+
+nohup python3 -u main.py --mode train --epochs 25 --batch_size 32 --dropout 0.2 --lr 0.01 --hdim_a 256 --hdim_q 255 --hdim_r 1 --embedding_dim 256 --h_layers 2 --lr_decay 0.5 --global_norm_max 5 --vocab_size 20000 --teacher_forcing_ratio 1.0 --output_max_len 100 --max_question_len 50 --max_answer_len 100 --max_review_len 400 --category Video_Games --logfile Video_Games-QAR_1.logfile --model_name LM_QAR > Video_Games-QAR_1.out &
+
+nohup python3 -u main.py --mode train --epochs 25 --batch_size 32 --dropout 0.2 --lr 0.01 --hdim_a 512 --hdim_q 256 --hdim_r 256 --embedding_dim 256 --h_layers 2 --lr_decay 0.5 --global_norm_max 5 --vocab_size 20000 --teacher_forcing_ratio 1.0 --output_max_len 100 --max_question_len 50 --max_answer_len 100 --max_review_len 1 --category Video_Games --logfile Video_Games-QAR_2.logfile --model_name LM_QAR > Video_Games-QAR_2.out &
+
+nohup python3 -u main.py --mode train --epochs 25 --batch_size 32 --dropout 0.2 --lr 0.01 --hdim_a 512 --hdim_q 256 --hdim_r 256 --embedding_dim 256 --h_layers 2 --lr_decay 0.5 --global_norm_max 5 --vocab_size 20000 --teacher_forcing_ratio 1.0 --output_max_len 100 --max_question_len 50 --max_answer_len 100 --max_review_len 400 --category Video_Games --logfile Video_Games-QAR_3.logfile --model_name LM_QAR > Video_Games-QAR_3.out &
+
+
+
+nohup python3 -u main.py --mode train --epochs 25 --batch_size 32 --dropout 0.2 --lr 0.001 --hdim_a 256 --embedding_dim 256 --h_layers 2 --global_norm_max 5 --vocab_size 20000 --teacher_forcing_ratio 0.9 --output_max_len 100 --max_answer_len 100 --category Wiki --logfile Wiki-A_1.logfile --model_name LM_A > Wiki-A_1.out &
+
+
+
+nohup python3 -u main.py --mode train --epochs 25 --batch_size 32 --dropout 0.2 --lr 0.0001 --hdim_a 256 --embedding_dim 256 --h_layers 2 --global_norm_max 5 --vocab_size 20000 --teacher_forcing_ratio 1.0 --output_max_len 100 --max_answer_len 100 --category Electronics --logfile Electronics-A_1.logfile --model_name LM_A > Electronics-A_1.out &
+
+
+nohup python3 -u main.py --mode train --epochs 25 --batch_size 32 --dropout 0.2 --lr 0.0001 --hdim_a 256 --hdim_q 256 --embedding_dim 256 --h_layers 2 --global_norm_max 5 --vocab_size 20000 --teacher_forcing_ratio 1.0 --output_max_len 100 --max_answer_len 100 --max_question_len 50 --category Electronics --logfile Electronics-QA_1.logfile --model_name LM_QA > Electronics-QA_1.out &
+
+nohup python3 -u main.py --mode train --epochs 25 --batch_size 32 --dropout 0.2 --lr 0.0001 --hdim_a 256 --hdim_q 256 --hdim_r 256 --embedding_dim 256 --h_layers 2 --lr_decay 0.5 --global_norm_max 5 --vocab_size 20000 --teacher_forcing_ratio 1.0 --output_max_len 100 --max_question_len 50 --max_answer_len 100 --max_review_len 400 --category Electronics --logfile Electronics-QAR_1.logfile --model_name LM_QAR > Electronics-QAR_1.out &
+
+
+nohup python3 -u main.py --mode test --epoch 0 --save_dir saved_models/Video_Games/LM_QA/2018-05-16-02-30-46/ --logfile Video_Games-QA.logfile --model_name LM_QA > Video_Games-QA.out &
+
+nohup python3 -u main.py --mode dev --epoch 4 --save_dir saved_models/Ms_Marco_V1/LM_QAR/2018-05-28-08-15-10/ --logfile Ms_Marco_V1-QAR.logfile --model_name LM_QAR > Ms_Marco_V1-QAR.out &
+
+
+nohup python3 -u main.py --mode dev --epoch 3 --save_dir saved_models/Ms_Marco_V1/LM_QA/2018-05-28-08-15-34/ --logfile Ms_Marco_V1-QA.logfile --model_name LM_QA > Ms_Marco_V1-QA.out &
+
+
+nohup python3 -u main.py --mode train --epochs 25 --batch_size 32 --dropout 0.2 --lr 0.0001 --hdim_a 256 --hdim_q 256 --hdim_r 256 --embedding_dim 256 --h_layers 2 --global_norm_max 5 --vocab_size 20000 --teacher_forcing_ratio 1.0 --output_max_len 100 --max_question_len 50 --max_answer_len 100 --max_review_len 400 --category Electronics --logfile Electronics-QAR_1.logfile --model_name LM_QAR --review_select_mode bm25 --review_select_num 1 > Electronics-QAR_1.out &
+
+
+nohup python3 -u main.py --mode train --epochs 25 --batch_size 32 --dropout 0.2 --lr 0.0001 --hdim_a 256 --hdim_q 256 --hdim_r 256 --embedding_dim 256 --h_layers 2 --global_norm_max 5 --vocab_size 20000 --teacher_forcing_ratio 1.0 --output_max_len 80 --max_question_len 30 --max_answer_len 80 --max_review_len 300 --category Home_and_Kitchen --logfile Home_and_Kitchen-QAR_1.logfile --model_name LM_QAR --review_select_mode bm25 --review_select_num 1 --use_attention 1 > Home_and_Kitchen-QAR_1.out &
+
+nohup python3 -u main.py --mode train --epochs 25 --batch_size 32 --dropout 0.2 --lr 0.0001 --hdim_a 256 --hdim_q 256 --embedding_dim 256 --h_layers 2 --global_norm_max 5 --vocab_size 20000 --teacher_forcing_ratio 1.0 --output_max_len 80 --max_question_len 30 --max_answer_len 80 --category Home_and_Kitchen --logfile Home_and_Kitchen-QA.logfile --model_name LM_QA --use_attention 1 > Home_and_Kitchen-QA.out &
+
+nohup python3 -u main.py --mode train --epochs 25 --batch_size 32 --dropout 0.2 --lr 0.0001 --hdim_a 256 --embedding_dim 256 --h_layers 2 --global_norm_max 5 --vocab_size 20000 --teacher_forcing_ratio 1.0 --output_max_len 80 --max_answer_len 80 --category Home_and_Kitchen --logfile Home_and_Kitchen-A.logfile --model_name LM_A > Home_and_Kitchen-A.out &
+
