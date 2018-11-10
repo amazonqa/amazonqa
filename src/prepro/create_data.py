@@ -102,17 +102,14 @@ def main(args):
 					args.review_select_mode,
 					args.review_select_num
 				)
-				context = ' '.join(top_reviews_q)
-
-				answers = question["answers"]
 
 				final_json = {}
 				final_json['asin'] = row['asin']
 				final_json['category'] = row['category']
 				final_json['questionText'] = question_text
 				final_json['questionType'] = question["questionType"]
-				final_json['review_snippets'] = context
-				final_json['answers'] = answers
+				final_json['review_snippets'] = top_reviews_q
+				final_json['answers'] = question["answers"]
 
 				fp.write(json.dumps(final_json) + '\n')
 

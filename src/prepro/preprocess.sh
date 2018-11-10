@@ -14,17 +14,17 @@ done
 
 wait
 
-qar_all_categories="$data_dir/qar_all_categories.jsonl"
+qar_products_all="$data_dir/qar_products_all.jsonl"
 
 for i in "${categories[@]}"; do
     echo "$i"
-    file="$data_dir/qar_$i.jsonl"
-    cat $file > $qar_all_categories
+    file="$data_dir/qar_products_$i.jsonl"
+    cat $file > $qar_products_all
 done
 
-gshuf $qar_all_categories -o $qar_all_categories
+gshuf $qar_products_all -o $qar_products_all
 
-num_lines=($(wc -l $qar_all_categories))
+num_lines=($(wc -l $qar_products_all))
 parts=('train' 'val' 'test')
 
 part=0
@@ -36,8 +36,8 @@ for percent in 80 10 10; do
         if ((nextLine < currentLine)); then
                 printf "" # create empty file
         else
-                sed -n "$currentLine,$nextLine"p "$qar_all_categories"
-        fi > "$data_dir/${parts[$part]}-qar_all_categories.jsonl"
+                sed -n "$currentLine,$nextLine"p "$qar_products_all"
+        fi > "$data_dir/${parts[$part]}-qar_products_all.jsonl"
         ((currentLine = nextLine + 1))
         ((part++))
 done

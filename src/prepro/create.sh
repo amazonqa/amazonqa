@@ -6,13 +6,14 @@ parts=('train')
 num_process=1
 
 for part in "${parts[@]}"; do
-	echo $part
-	qar_all_categories="$data_dir/$part-qar_all_categories.jsonl"
-	num_lines=($(wc -l $qar_all_categories))
-	echo $num_lines
+	echo "processing $part"
+	qar_products_all="$data_dir/$part-qar_products_all.jsonl"
+	
+	num_lines=($(wc -l $qar_products_all))
 	((num_splits = num_lines/$num_process))
-	echo $num_splits
-	split -l $num_splits $qar_all_categories "$data_dir/$part-input-"
+	echo "Total number of lines $num_lines"
+
+	split -l $num_splits $qar_products_all "$data_dir/$part-input-"
 
 	for input_file in $data_dir/$part-input-*; do
 		echo $input_file
@@ -22,11 +23,13 @@ for part in "${parts[@]}"; do
 
 	wait
 
-	final_output_file="$data_dir/$part-qar_all.jsonl" 
+	qar_all="$data_dir/$part-qar_all.jsonl" 
 	for output_file in $data_dir/$part-input-*.out; do
 		echo $output_file
-		cat $output_file > $final_output_file
+		cat $output_file > $qar_all
 	done
+
+	gshuf $qar_all -o $qar_all
 
 done
 
