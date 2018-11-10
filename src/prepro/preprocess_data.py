@@ -122,8 +122,8 @@ def main(args):
 	qa_reviews_df = pd.merge(qa_df, reviews_df, on=['asin', 'asin'])
 	qa_reviews_df['category'] = category
 
-	output_path =  "%s/qa_reviews_%s.jsonl.gz" % (data_dir, category)
-	qa_reviews_df.to_json(output_path, orient='records', lines=True, compression='gzip')
+	output_path =  "%s/qar_%s.jsonl" % (data_dir, category)
+	qa_reviews_df.to_json(output_path, orient='records', lines=True)
 
 
 if __name__=="__main__":

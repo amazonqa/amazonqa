@@ -7,9 +7,7 @@ import pandas as pd
 import scipy.stats as st
 import nltk
 from nltk.corpus import stopwords
-from operator import itemgetter, attrgetter
 
-from evaluator.evaluator import COCOEvalCap
 import retrieval_models
 
 
@@ -38,7 +36,7 @@ def tokenize(text):
 	return tokens
 
 
-def process_reviews(reviews, max_review_len, stop_words):
+def process_reviews(reviews, review_max_len, stop_words):
 	review_tokens = []
 	review_texts = []
 	for review in reviews:
@@ -47,7 +45,7 @@ def process_reviews(reviews, max_review_len, stop_words):
 		buffer_len = 0
 		for sentence in sentences:
 			buffer_len += len(tokenize(sentence))
-			if buffer_len > max_review_len:
+			if buffer_len > review_max_len:
 				review_texts.append(' '.join(bufr))
 				bufr = []
 				buffer_len = 0
@@ -57,31 +55,6 @@ def process_reviews(reviews, max_review_len, stop_words):
 	review_tokens = [tokenize(r) for r in review_texts]
 	review_tokens = [[token for token in r if token not in stop_words and token not in string.punctuation] for r in review_tokens]
 	return review_texts, review_tokens
-
-
-def find_answer_spans(max_num_spans, answer_span_lens, answers, context):
-	context = context.split(' ')
-
-	gold_answers_dict = {}
-	gold_answers_dict[0] = [answer["answerText"] for answer in answers]
-	answers = []
-	
-	for answer_span_len in answer_span_lens:
-		char_index = 0
-		for word_index in range(len(context)-answer_span_len):
-			span = ' '.join(context[word_index: word_index+answer_span_len])
-			
-			generated_answer_dict = {}
-			generated_answer_dict[0] = [span]
-			
-			score = COCOEvalCap.compute_scores(gold_answers_dict, generated_answer_dict)['Bleu_2']
-			answers.append((score, {
-				'answer_start': char_index,
-				'text': span    
-			}))
-			char_index += (len(context[word_index]) + 1)
-
-	return [i[1] for i in sorted(answers, reverse=True, key=itemgetter(0))[:max_num_spans]]
 
 
 def create_inverted_index(review_tokens):
@@ -100,7 +73,7 @@ def create_inverted_index(review_tokens):
 
 
 def main(args):
-	df = pd.read_json(args.input_file, orient='records', lines=True, compression='gzip')
+	df = pd.read_json(args.input_file, orient='records', lines=True)
 
 	stop_words = set(stopwords.words('english'))
 	answer_span_lens = range(2, 10)
@@ -111,7 +84,7 @@ def main(args):
 			if len(reviews) == 0:
 				continue
 
-			review_texts, review_tokens = process_reviews(reviews, args.max_review_len, stop_words)
+			review_texts, review_tokens = process_reviews(reviews, args.review_max_len, stop_words)
 
 			inverted_index = create_inverted_index(review_tokens)
 			review_tokens = list(map(set, review_tokens))
@@ -132,7 +105,6 @@ def main(args):
 				context = ' '.join(top_reviews_q)
 
 				answers = question["answers"]
-				new_answers = find_answer_spans(args.max_num_spans, answer_span_lens, answers, context)
 
 				final_json = {}
 				final_json['asin'] = row['asin']
@@ -141,7 +113,6 @@ def main(args):
 				final_json['questionType'] = question["questionType"]
 				final_json['review_snippets'] = context
 				final_json['answers'] = answers
-				final_json['answers_spans'] = new_answers
 
 				fp.write(json.dumps(final_json) + '\n')
 
@@ -153,8 +124,7 @@ if __name__ == '__main__':
 	argParser.add_argument("--output_file", type=str)
 	argParser.add_argument("--review_select_mode", type=str)
 	argParser.add_argument("--review_select_num", type=int)
-	argParser.add_argument("--max_review_len", type=int, default=100)
-	argParser.add_argument("--max_num_spans", type=int, default=10)
+	argParser.add_argument("--review_max_len", type=int, default=100)
 
 	args = argParser.parse_args()
 	main(args)
