@@ -80,6 +80,10 @@ def main(args):
 
 	with open(args.output_file, 'w') as fp:
 		for (_, row) in df.iterrows():
+			if "reviews" not in row:
+				print("Wrong Format" + row)
+				exit(0)
+
 			reviews = row["reviews"]
 			if len(reviews) == 0:
 				continue

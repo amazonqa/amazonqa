@@ -22,7 +22,7 @@ for i in "${categories[@]}"; do
     cat $file > $qar_products_all
 done
 
-gshuf $qar_products_all -o $qar_products_all
+shuf $qar_products_all -o $qar_products_all
 
 num_lines=($(wc -l $qar_products_all))
 parts=('train' 'val' 'test')

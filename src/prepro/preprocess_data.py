@@ -52,7 +52,7 @@ def get_question_type(question):
 def download_data(data_dir, category, url_prefix):
 	url_suffix = '.json.gz'
 
-	download_link = url_prefix + cat + url_suffix
+	download_link = url_prefix + category + url_suffix
 	wget.download(download_link, data_dir)
 
 
@@ -79,7 +79,7 @@ def clean_questions(questions_list):
 
 
 def clean_qa_data(data_dir, category):
-	input_path = "%s/qa_%s.json.gz" % (data_dir, category)
+	input_path = "%s/QA_%s.json.gz" % (data_dir, category)
 	qa_df = getDF(input_path)
 
 	qa_df["questions"] = qa_df["questions"].apply(clean_questions)
