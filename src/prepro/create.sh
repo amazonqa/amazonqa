@@ -15,6 +15,7 @@ for part in "${parts[@]}"; do
 	
 	rm $data_dir/$part-split-*
 	split -l $num_splits $qar_products_all "$data_dir/$part-split-"
+	echo "Split Completed"
 
 	for input_file in $data_dir/$part-split-*; do
 		echo $input_file
@@ -23,15 +24,18 @@ for part in "${parts[@]}"; do
 	done
 
 	wait
+	echo "Creation Completed"
 
 	qar_all="$data_dir/$part-qar_all.jsonl" 
 	for output_file in $data_dir/$part-split-*.out; do
 		echo $output_file
 		cat $output_file > $qar_all
 	done
+	echo "Cat Completed"
 
 	shuf $qar_all -o $qar_all
 	rm $data_dir/$part-split-*
+	echo "Shuffle and Delete Completed"
 done
 
 

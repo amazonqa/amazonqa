@@ -1,7 +1,7 @@
 #!/bin/bash
 
-categories=("Automotive" "Baby" "Beauty" "Cell Phones and Accessories" "Clothing Shoes and Jewelry" "Electronics" "Grocery and Gourmet Food" "Health and Personal Care" "Home and Kitchen" "Musical Instruments" "Office Products" "Patio Lawn and Garden" "Pet Supplies" "Sports and Outdoors" "Tools and Home Improvement" "Toys and Games" "Video Games")
-categories=("Baby")
+categories=("Automotive" "Baby" "Beauty" "Cell_Phones_and_Accessories" "Clothing_Shoes_and_Jewelry" "Electronics" "Grocery_and_Gourmet_Food" "Health_and_Personal_Care" "Home_and_Kitchen" "Musical_Instruments" "Office_Products" "Patio_Lawn_and_Garden" "Pet_Supplies" "Sports_and_Outdoors" "Tools_and_Home_Improvement" "Toys_and_Games" "Video_Games")
+#categories=("Baby")
 
 data_dir="../../data"
 
@@ -9,10 +9,11 @@ mkdir -p $data_dir
 
 for i in "${categories[@]}"; do
     echo "$i"
-    python3 preprocess_data.py --download 0 --data_dir $data_dir --category $i &
+    python3 preprocess_data.py --download 1 --data_dir $data_dir --category "$i" &
 done
 
 wait
+echo "Preprocess Completed"
 
 qar_products_all="$data_dir/qar_products_all.jsonl"
 
@@ -21,8 +22,10 @@ for i in "${categories[@]}"; do
     file="$data_dir/qar_products_$i.jsonl"
     cat $file > $qar_products_all
 done
+echo "Cat Completed"
 
 shuf $qar_products_all -o $qar_products_all
+echo "Shuffle Completed"
 
 num_lines=($(wc -l $qar_products_all))
 parts=('train' 'val' 'test')
@@ -41,4 +44,5 @@ for percent in 80 10 10; do
         ((currentLine = nextLine + 1))
         ((part++))
 done
+echo "Split Completed"
 
