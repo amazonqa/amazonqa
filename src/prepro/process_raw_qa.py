@@ -1,5 +1,6 @@
 import json
 import gzip
+import wget
 import argparse
 from tqdm import tqdm
 
@@ -37,7 +38,20 @@ def get_question_type(question):
 	return question_type
 
 
-def main(args):
+def download_data(args):
+	url_prefix = 'http://jmcauley.ucsd.edu/data/amazon/qa/icdm/QA_'
+	#url_prefix = 'http://jmcauley.ucsd.edu/data/amazon/qa/qa_'
+
+	url_suffix = '.json.gz'
+
+	raw_qa_dir = args.raw_qa_dir
+	cat = args.category
+
+	download_link = url_prefix + cat + url_suffix
+	wget.download(download_link, raw_qa_dir)
+
+
+def clean_data(args):
 	cat = args.category
 	raw_qa_dir = args.raw_qa_dir
 	clean_qa_dir = args.clean_qa_dir
@@ -79,11 +93,16 @@ def main(args):
 
 if __name__=="__main__":
 	# parse arguments
-	argParser = argparse.ArgumentParser(description="Convert Raw QA data to Clean QA data")
+	argParser = argparse.ArgumentParser(description="Download and Convert Raw QA data to Clean QA data")
 	argParser.add_argument("--raw_qa_dir", type=str)
 	argParser.add_argument("--clean_qa_dir", type=str)
 	argParser.add_argument("--category", type=str)
+	argParser.add_argument("--download", type=int, default=1)
 
 	args = argParser.parse_args()
 
-	main(args)
+	if args.download == 1:
+		download_data(args)
+	
+	clean_data(args)
+

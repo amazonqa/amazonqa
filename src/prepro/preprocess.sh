@@ -6,6 +6,5 @@
 categories=("Automotive")
 for i in "${categories[@]}"; do
     echo "$i"
-    python3 download_raw_qa.py --raw_qa_dir '../../data/raw_qa/' --category $i
-    python3 clean_raw_qa.py --raw_qa_dir '../../data/raw_qa/' --clean_qa_dir '../../data/clean_qa/' --category $i
+    python3 process_raw_qa.py --download 1 --raw_qa_dir '../../data/raw_qa/' --clean_qa_dir '../../data/clean_qa/' --category $i
 done
