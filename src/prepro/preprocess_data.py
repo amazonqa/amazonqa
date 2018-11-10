@@ -120,11 +120,16 @@ def main(args):
 	reviews_df = clean_review_data(data_dir, category)
 	
 	qa_reviews_df = pd.merge(qa_df, reviews_df, on=['asin', 'asin'])
-	qa_reviews_df['category'] = category
 
 	output_path =  "%s/qar_products_%s.jsonl" % (data_dir, category)
-	qa_reviews_df.to_json(output_path, orient='records', lines=True)
-
+	with open(output_path, 'w') as fp:
+		for (_, row) in qa_reviews_df.iterrows():
+			j = {}
+			j['asin'] = row['asin']
+			j['questions'] = row['questions']
+			j['reviews'] = row['reviews']
+			j['category'] = category
+			fp.write(json.dumps(j) + "\n")
 
 if __name__=="__main__":
 	# parse arguments
