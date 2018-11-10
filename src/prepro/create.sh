@@ -1,8 +1,8 @@
 #!/bin/bash
 
 data_dir="../../data"
-parts=('train' 'dev' 'test')
-parts=('train')
+parts=('train' 'val' 'test')
+parts=('test')
 num_process=32
 
 for part in "${parts[@]}"; do
@@ -28,9 +28,8 @@ for part in "${parts[@]}"; do
 
 	qar_all="$data_dir/$part-qar_all.jsonl" 
 	for output_file in $data_dir/$part-split-*.out; do
-		echo $output_file
-		cat $output_file > $qar_all
-	done
+		cat $output_file
+	done > $qar_all
 	echo "Cat Completed"
 
 	shuf $qar_all -o $qar_all

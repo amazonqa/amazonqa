@@ -16,13 +16,13 @@ wait
 echo "Preprocess Completed"
 
 qar_products_all="$data_dir/qar_products_all.jsonl"
-touch $qar_products_all
+rm $qar_products_all
 
 for i in "${categories[@]}"; do
-    echo "$i"
     file="$data_dir/qar_products_$i.jsonl"
-    cat $qar_products_all $file > $qar_products_all
-done
+    cat $file
+done > $qar_products_all
+
 echo "Cat Completed"
 
 shuf $qar_products_all -o $qar_products_all
