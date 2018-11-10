@@ -73,49 +73,51 @@ def create_inverted_index(review_tokens):
 
 
 def main(args):
-	df = pd.read_json(args.input_file, orient='records', lines=True)
-
 	stop_words = set(stopwords.words('english'))
 	answer_span_lens = range(2, 10)
+	
+	wfp = open(args.output_file, 'w')
+	rfp = open(args.input_file, 'r')
+	
+	for line in rfp:
+		row = json.loads(line)
+		if "reviews" not in row:
+			print("Wrong Format" + row)
+			exit(0)
 
-	with open(args.output_file, 'w') as fp:
-		for (_, row) in df.iterrows():
-			if "reviews" not in row:
-				print("Wrong Format" + row)
-				exit(0)
+		reviews = row["reviews"]
+		if len(reviews) == 0:
+			continue
 
-			reviews = row["reviews"]
-			if len(reviews) == 0:
-				continue
+		review_texts, review_tokens = process_reviews(reviews, args.review_max_len, stop_words)
 
-			review_texts, review_tokens = process_reviews(reviews, args.review_max_len, stop_words)
+		inverted_index = create_inverted_index(review_tokens)
+		review_tokens = list(map(set, review_tokens))
 
-			inverted_index = create_inverted_index(review_tokens)
-			review_tokens = list(map(set, review_tokens))
+		for question in row["questions"]:
+			question_text = question["questionText"]
+			question_tokens = tokenize(question_text)
 
-			for question in row["questions"]:
-				question_text = question["questionText"]
-				question_tokens = tokenize(question_text)
+			scores_q, top_reviews_q = top_reviews_and_scores(
+				set(question_tokens),
+				review_tokens,
+				inverted_index,
+				None,
+				review_texts,
+				args.review_select_mode,
+				args.review_select_num
+			)
 
-				scores_q, top_reviews_q = top_reviews_and_scores(
-					set(question_tokens),
-					review_tokens,
-					inverted_index,
-					None,
-					review_texts,
-					args.review_select_mode,
-					args.review_select_num
-				)
+			final_json = {}
+			final_json['asin'] = row['asin']
+			final_json['category'] = row['category']
+			final_json['questionText'] = question_text
+			final_json['questionType'] = question["questionType"]
+			final_json['review_snippets'] = top_reviews_q
+			final_json['answers'] = question["answers"]
 
-				final_json = {}
-				final_json['asin'] = row['asin']
-				final_json['category'] = row['category']
-				final_json['questionText'] = question_text
-				final_json['questionType'] = question["questionType"]
-				final_json['review_snippets'] = top_reviews_q
-				final_json['answers'] = question["answers"]
-
-				fp.write(json.dumps(final_json) + '\n')
+			wfp.write(json.dumps(final_json) + '\n')
+	wfp.close()
 
 
 if __name__ == '__main__':

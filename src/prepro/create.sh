@@ -2,8 +2,8 @@
 
 data_dir="../../data"
 parts=('train' 'val' 'test')
-parts=('test')
-num_process=32
+parts=('train')
+num_process=150
 
 for part in "${parts[@]}"; do
 	echo "processing $part"
