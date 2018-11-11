@@ -45,7 +45,7 @@ def main(args):
 	rfp = open(args.input_file, 'r')
 	qid = 0
 
-	for line in tdqm(rfp):
+	for line in tqdm(rfp):
 		row = json.loads(line)
 
 		#if row["questionType"] == "yesno":
