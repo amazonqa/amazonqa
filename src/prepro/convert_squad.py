@@ -9,6 +9,7 @@ import nltk
 from nltk.corpus import stopwords
 from evaluator.evaluator import COCOEvalCap
 from operator import itemgetter, attrgetter
+from tqdm import tqdm
 
 
 def find_answer_spans(args, answer_span_lens, answers, context):
@@ -44,11 +45,11 @@ def main(args):
 	rfp = open(args.input_file, 'r')
 	qid = 0
 
-	for line in rfp:
+	for line in tdqm(rfp):
 		row = json.loads(line)
 
-		if row["questionType"] == "yesno":
-			continue
+		#if row["questionType"] == "yesno":
+		#	continue
 
 		reviews = row["review_snippets"]
 		context = ' '.join(reviews)
