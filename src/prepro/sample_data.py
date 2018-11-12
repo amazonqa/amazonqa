@@ -40,6 +40,7 @@ def main(args):
 		
 		sample_dict = {}
 		sample_dict['id'] = '%d' % qid
+		sample_dict['category'] = row['category']
 		sample_dict['question'] = question_text
 		sample_dict['review0'] = get_review(top_reviews_q, 1)
 		sample_dict['review1'] = get_review(top_reviews_q, 2)
@@ -50,7 +51,7 @@ def main(args):
 		samples.append(sample_dict)
 
 	if samples:
-		pd.DataFrame(samples).to_csv(args.output_file)
+		pd.DataFrame(samples).to_csv(args.output_file, index=False)
 
 
 def get_review(top_reviews_q, i):
