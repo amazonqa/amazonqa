@@ -2,7 +2,7 @@
 
 data_dir="../../data"
 parts=('train' 'val' 'test')
-parts=('train')
+parts=('test')
 num_process=3
 
 for part in "${parts[@]}"; do
