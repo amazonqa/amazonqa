@@ -5,8 +5,6 @@ import json
 
 import pandas as pd
 import scipy.stats as st
-import nltk
-from nltk.corpus import stopwords
 from evaluator.evaluator import COCOEvalCap
 from operator import itemgetter, attrgetter
 from tqdm import tqdm
@@ -38,7 +36,6 @@ def find_answer_spans(args, answer_span_lens, answers, context):
 
 
 def main(args):
-	stop_words = set(stopwords.words('english'))
 	answer_span_lens = range(args.span_min_len, args.span_max_len)
 	
 	wfp = open(args.output_file, 'w')
@@ -78,7 +75,7 @@ def main(args):
 
 if __name__ == '__main__':
 	# parse arguments
-	argParser = argparse.ArgumentParser(description="Preprocess QA and Review Data")
+	argParser = argparse.ArgumentParser(description="Convert Amazon QAR to Squad format")
 	argParser.add_argument("--input_file", type=str)
 	argParser.add_argument("--output_file", type=str)
 	argParser.add_argument("--span_min_len", type=int, default=2)
