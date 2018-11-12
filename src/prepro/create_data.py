@@ -108,6 +108,9 @@ def main(args):
 				args.review_select_num
 			)
 
+			if len(top_reviews_q) == 0:
+				continue
+			
 			final_json = {}
 			final_json['asin'] = row['asin']
 			final_json['category'] = row['category']
