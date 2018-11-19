@@ -7,10 +7,10 @@ from main import train, test
 flags = tf.flags
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
-home = os.path.expanduser("~")
-train_file = os.path.join(home, "data", "squad", "train-v1.1.json")
-dev_file = os.path.join(home, "data", "squad", "dev-v1.1.json")
-test_file = os.path.join(home, "data", "squad", "dev-v1.1.json")
+home = os.path.expanduser("../../..")
+train_file = os.path.join(home, "data", "squad_all", "train-v1.1.json")
+dev_file = os.path.join(home, "data", "squad_all", "dev-v1.1.json")
+test_file = os.path.join(home, "data", "squad_all", "dev-v1.1.json")
 glove_word_file = os.path.join(home, "data", "glove", "glove.840B.300d.txt")
 
 target_dir = "data"
@@ -22,9 +22,15 @@ dev_record_file = os.path.join(target_dir, "dev.tfrecords")
 test_record_file = os.path.join(target_dir, "test.tfrecords")
 word_emb_file = os.path.join(target_dir, "word_emb.json")
 char_emb_file = os.path.join(target_dir, "char_emb.json")
+
 train_eval = os.path.join(target_dir, "train_eval.json")
 dev_eval = os.path.join(target_dir, "dev_eval.json")
 test_eval = os.path.join(target_dir, "test_eval.json")
+dev_examples = os.path.join(target_dir, "dev_examples.pickle")
+test_examples = os.path.join(target_dir, "test_examples.pickle")
+word_counter = os.path.join(target_dir, "word_counter.pickle")
+char_counter = os.path.join(target_dir, "char_counter.pickle")
+
 dev_meta = os.path.join(target_dir, "dev_meta.json")
 test_meta = os.path.join(target_dir, "test_meta.json")
 word2idx_file = os.path.join(target_dir, "word2idx.json")
@@ -55,9 +61,15 @@ flags.DEFINE_string("dev_record_file", dev_record_file, "")
 flags.DEFINE_string("test_record_file", test_record_file, "")
 flags.DEFINE_string("word_emb_file", word_emb_file, "")
 flags.DEFINE_string("char_emb_file", char_emb_file, "")
+
 flags.DEFINE_string("train_eval_file", train_eval, "")
 flags.DEFINE_string("dev_eval_file", dev_eval, "")
 flags.DEFINE_string("test_eval_file", test_eval, "")
+flags.DEFINE_string("dev_examples_file", dev_examples, "")
+flags.DEFINE_string("test_examples_file", test_examples, "")
+flags.DEFINE_string("word_counter_file", word_counter, "")
+flags.DEFINE_string("char_counter_file", char_counter, "")
+
 flags.DEFINE_string("dev_meta", dev_meta, "")
 flags.DEFINE_string("test_meta", test_meta, "")
 flags.DEFINE_string("word2idx_file", word2idx_file, "")
