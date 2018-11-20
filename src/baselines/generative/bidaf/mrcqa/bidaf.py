@@ -8,6 +8,8 @@ from torch.nn.functional import nll_loss
 from torch.autograd import Variable
 import numpy as np
 
+from DecoderRNN import DecoderRNN
+
 import modules
 from modules.highway import Highways
 
@@ -22,7 +24,11 @@ class BidafModel(nn.Module):
                  num_highways,
                  num_lstm,
                  hidden_size,
-                 dropout):
+                 dropout, 
+                 max_len,
+                 sos_id,
+                 eos_id,
+                 vocab_size):
         """
         Create a BiDAF model. The input is a tensor of indices, or a tuple of
         same. The outputs are start and end log probability vectors..
@@ -104,6 +110,22 @@ class BidafModel(nn.Module):
                                    dropout=dropout,
                                    bidirectional=True)
         self.attention = AttentionMatrix(self.bidir_hidden_size)
+
+        # Decoder
+
+        self.decoder = DecoderRNN(
+            vocab_size,
+            max_len,
+            4*self.bidir_hidden_size + self.bidir_hidden_size,
+            sos_id,
+            eos_id,
+            n_layers=1,
+            rnn_cell='lstm',
+            bidirectional=True,
+            input_dropout_p=0.2,
+            dropout_p=0.2,
+            use_attention=True
+        )
 
         # Second hidden_size is for extractor.
         self.start_projection = nn.Linear(
@@ -423,7 +445,7 @@ class BidafModel(nn.Module):
         return nll_loss(combined, labels)
 
     @classmethod
-    def _parse_config(cls, config, vocab, c_vocab):
+    def _parse_config(cls, config, vocab, c_vocab, sos_id, eos_id):
         num_tokens = len(vocab)
         num_chars = len(c_vocab)
 
@@ -442,7 +464,9 @@ class BidafModel(nn.Module):
                 config.get('num_highways', 2),
                 config.get('num_lstm', 2),
                 config.get('hidden_size', 100),
-                config.get('dropout', 0.2))
+                config.get('dropout', 0.2),
+                config.get('max_len', 50),
+                sos_id, eos_id, num_tokens)
         return args
 
     @classmethod

@@ -2,13 +2,20 @@ import itertools
 import numpy as np
 from nltk import sent_tokenize, word_tokenize
 
+import constants as C
 
-def rich_tokenize(text, vocab, c_vocab, update):
+def rich_tokenize(text, vocab, c_vocab, update, is_target=False):
+
     tokens = list(
         itertools.chain.from_iterable(
             (token.replace("''", '"').replace("``", '"')
              for token in word_tokenize(sent))
             for sent in sent_tokenize(text)))
+
+    if is_target:
+        tokens = [C.SOS_TOKEN] + tokens + [C.EOS_TOKEN]
+        text = '%s %s %s' % (C.SOS_TOKEN, text, C.EOS_TOKEN)
+
     length = len(tokens)
     mapping = np.zeros((length, 2), dtype='int32')
     c_lengths = np.zeros(length, dtype='int32')

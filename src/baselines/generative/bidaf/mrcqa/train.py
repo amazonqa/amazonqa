@@ -14,6 +14,8 @@ import torch
 import torch.optim as optim
 import h5py
 
+import constants as C
+
 from bidaf import BidafModel
 
 import checkpointing
@@ -112,8 +114,11 @@ def init_state(config, args):
     id_to_token = {id_: tok for tok, id_ in token_to_id.items()}
     id_to_char = {id_: char for char, id_ in char_to_id.items()}
 
+    sos_id = token_to_id[C.SOS_TOKEN]
+    eos_id = token_to_id[C.EOS_TOKEN]
+
     print('Creating model...')
-    model = BidafModel.from_config(config['bidaf'], id_to_token, id_to_char)
+    model = BidafModel.from_config(config['bidaf'], id_to_token, id_to_char, sos_id, eos_id)
 
     if args.word_rep:
         print('Loading pre-trained embeddings...')

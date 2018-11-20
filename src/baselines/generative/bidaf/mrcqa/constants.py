@@ -11,11 +11,6 @@ USE_CUDA = torch.cuda.is_available()
 RNN_CELL_LSTM = 'lstm'
 RNN_CELL_GRU = 'gru'
 
-# Types of languages models
-LM_ANSWERS = 'LM_A'
-LM_QUESTION_ANSWERS = 'LM_QA'
-LM_QUESTION_ANSWERS_REVIEWS = 'LM_QAR'
-
 RESERVED_IDS = 4
 
 # Special tokens
@@ -174,36 +169,3 @@ BASE_PATH = 'saved_models'
 # Logs related names
 LOG_FILENAME = 'logfile'
 LOG_DIR = '%s/log_files' % BASE_PATH
-
-LM_MODELS =                       [LM_ANSWERS,        LM_QUESTION_ANSWERS, LM_QUESTION_ANSWERS_REVIEWS]
-"""
-    WARNING : LM_HP shouldn't be accessed anywhere other than utils.get_model_params()
-"""
-LM_HP = {
-    MODEL_NAME:                   LM_MODELS,
-    REVIEW_SELECT_MODE:           [None,              None,               HELPFUL],
-    REVIEW_SELECT_NUM:            [None,              None,               5],
-    NUM_EPOCHS:                   [25,                25,                 25],
-    BATCH_SIZE:                   [64,                64,                 64],
-    DROPOUT:                      [0.2,               0.2,                0.2],
-    LR:                           [0.01,              0.01,               0.01],
-    HDIM_A:                       [512,               512,                512],
-    HDIM_Q:                       [None,              512,                256],
-    HDIM_R:                       [None,              None,               256],
-    EMBEDDING_DIM:                [512,               512,                512],
-    H_LAYERS:                     [2,                 2,                  2],
-    DECAY_START_EPOCH:            [3,                 3,                  3],
-    LR_DECAY:                     [None,              None,               None],
-    GLOBAL_NORM_MAX:              [5,                 5,                  5],
-    VOCAB_SIZE:                   [20000,             20000,              20000],
-    TEACHER_FORCING_RATIO:        [0.9,               0.9,                0.9],
-    OUTPUT_MAX_LEN:               [128,               128,                128],
-    USE_ATTENTION:                [False] * 3,
-    CATEGORY:                     [VIDEO_GAMES] * 3,
-    LOG_FILENAME:                 ['log.log'] * 3,
-    MAX_QUESTION_LEN:             [100] * 3,
-    MAX_ANSWER_LEN:               [100] * 3,
-    MAX_REVIEW_LEN:               [200] * 3,
-    OPTIMIZER_TYPE:               [ADAM] * 3,
-    SAVE_DIR:                     [None]*3
-}

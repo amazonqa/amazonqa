@@ -119,10 +119,10 @@ def tokenize_data(data, token_to_id, char_to_id, limit=None):
     for qid, passage, query, answer, (start, stop) in data:
         
         # idx += 1
+        a_tokens, a_chars, _, _, _ = \
+            rich_tokenize(answer[0], token_to_id, char_to_id, update=True, is_target=True)
         q_tokens, q_chars, _, _, _ = \
             rich_tokenize(query, token_to_id, char_to_id, update=True)
-        a_tokens, a_chars, _, _, _ = \
-            rich_tokenize(answer[0], token_to_id, char_to_id, update=True)
         p_tokens, p_chars, _, _, mapping = \
             rich_tokenize(passage['passage_text'],
                           token_to_id, char_to_id, update=True)
