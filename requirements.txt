@@ -5,3 +5,5 @@ tqdm
 torch
 pandas
 numpy
+h5py
+pyyaml

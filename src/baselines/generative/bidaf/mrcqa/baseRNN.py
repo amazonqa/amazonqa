@@ -15,11 +15,9 @@ class BaseRNN(nn.Module):
         dropout_p (float): dropout probability for the output sequence
         n_layers (int): number of recurrent layers
         rnn_cell (str): type of RNN cell (Eg. 'LSTM' , 'GRU')
-
     Inputs: ``*args``, ``**kwargs``
         - ``*args``: variable length argument list.
         - ``**kwargs``: arbitrary keyword arguments.
-
     Attributes:
         SYM_MASK: masking symbol
         SYM_EOS: end-of-sequence symbol

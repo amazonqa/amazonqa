@@ -148,13 +148,18 @@ def train(epoch, model, optimizer, data, args):
     Train for one epoch.
     """
 
-    for batch_id, (qids, passages, queries, outputs, answers, _) in enumerate(data):
+    for batch_id, (qids, passages, queries, targets, answers, _) in enumerate(data):
         start_log_probs, end_log_probs = model(
             passages[:2], passages[2],
-            queries[:2], queries[2])
+            queries[:2], queries[2],
+            # targets[:2], targets[2],
+        )
+
         loss = model.get_loss(
             start_log_probs, end_log_probs,
-            answers[:, 0], answers[:, 1])
+            answers[:, 0], answers[:, 1]
+        )
+
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()

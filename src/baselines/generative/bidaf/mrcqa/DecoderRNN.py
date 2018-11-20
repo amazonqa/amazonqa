@@ -7,8 +7,8 @@ import torch.nn as nn
 from torch.autograd import Variable
 import torch.nn.functional as F
 
-from .attention import Attention
-from .baseRNN import BaseRNN
+from attention import Attention
+from baseRNN import BaseRNN
 
 if torch.cuda.is_available():
     import torch.cuda as device
@@ -19,7 +19,6 @@ else:
 class DecoderRNN(BaseRNN):
     r"""
     Provides functionality for decoding in a seq2seq framework, with an option for attention.
-
     Args:
         vocab_size (int): size of the vocabulary
         max_len (int): a maximum allowed length for the sequence to be processed
@@ -32,12 +31,10 @@ class DecoderRNN(BaseRNN):
         input_dropout_p (float, optional): dropout probability for the input sequence (default: 0)
         dropout_p (float, optional): dropout probability for the output sequence (default: 0)
         use_attention(bool, optional): flag indication whether to use attention mechanism or not (default: false)
-
     Attributes:
         KEY_ATTN_SCORE (str): key used to indicate attention weights in `ret_dict`
         KEY_LENGTH (str): key used to indicate a list representing lengths of output sequences in `ret_dict`
         KEY_SEQUENCE (str): key used to indicate a list of sequences in `ret_dict`
-
     Inputs: inputs, encoder_hidden, encoder_outputs, function, teacher_forcing_ratio
         - **inputs** (batch, seq_len, input_size): list of sequences, whose length is the batch size and within which
           each sequence is a list of token IDs.  It is used for teacher forcing when provided. (default `None`)
@@ -50,7 +47,6 @@ class DecoderRNN(BaseRNN):
         - **teacher_forcing_ratio** (float): The probability that teacher forcing will be used. A random number is
           drawn uniformly from 0-1 for every decoding token, and if the sample is smaller than the given value,
           teacher forcing would be used (default is 0).
-
     Outputs: decoder_outputs, decoder_hidden, ret_dict
         - **decoder_outputs** (seq_len, batch, vocab_size): list of tensors with size (batch_size, vocab_size) containing
           the outputs of the decoding function.
@@ -65,16 +61,16 @@ class DecoderRNN(BaseRNN):
     KEY_LENGTH = 'length'
     KEY_SEQUENCE = 'sequence'
 
-    def __init__(self, vocab_size, max_len, embedding_size, hidden_size,
-            sos_id, eos_id, model_name, n_layers=1, rnn_cell='lstm', bidirectional=False,
-            input_dropout_p=0, dropout_p=0, use_attention=False
-        ):
+    def __init__(self, vocab_size, max_len, hidden_size,
+            sos_id, eos_id,
+            n_layers=1, rnn_cell='gru', bidirectional=False,
+            input_dropout_p=0, dropout_p=0, use_attention=False):
         super(DecoderRNN, self).__init__(vocab_size, max_len, hidden_size,
                 input_dropout_p, dropout_p,
                 n_layers, rnn_cell)
 
         self.bidirectional_encoder = bidirectional
-        self.rnn = self.rnn_cell(embedding_size, hidden_size, n_layers, batch_first=True, dropout=dropout_p)
+        self.rnn = self.rnn_cell(hidden_size, hidden_size, n_layers, batch_first=True, dropout=dropout_p)
 
         self.output_size = vocab_size
         self.max_length = max_len
@@ -84,9 +80,9 @@ class DecoderRNN(BaseRNN):
 
         self.init_input = None
 
-        self.embedding = nn.Embedding(self.output_size, embedding_size)
+        self.embedding = nn.Embedding(self.output_size, self.hidden_size)
         if use_attention:
-            self.attention = Attention(self.hidden_size, model_name)
+            self.attention = Attention(self.hidden_size)
 
         self.out = nn.Linear(self.hidden_size, self.output_size)
 
@@ -102,7 +98,7 @@ class DecoderRNN(BaseRNN):
         if self.use_attention:
             output, attn = self.attention(output, encoder_outputs)
 
-        predicted_softmax = function(self.out(output.contiguous().view(-1, self.hidden_size))).view(batch_size, output_size, -1)
+        predicted_softmax = function(self.out(output.contiguous().view(-1, self.hidden_size)), dim=1).view(batch_size, output_size, -1)
         return predicted_softmax, hidden, attn
 
     def forward(self, inputs=None, encoder_hidden=None, encoder_outputs=None,
@@ -202,8 +198,7 @@ class DecoderRNN(BaseRNN):
         if inputs is None:
             if teacher_forcing_ratio > 0:
                 raise ValueError("Teacher forcing has to be disabled (set 0) when no inputs is provided.")
-            inputs = Variable(torch.LongTensor([self.sos_id] * batch_size),
-                                    volatile=True).view(batch_size, 1)
+            inputs = torch.LongTensor([self.sos_id] * batch_size).view(batch_size, 1)
             if torch.cuda.is_available():
                 inputs = inputs.cuda()
             max_length = self.max_length

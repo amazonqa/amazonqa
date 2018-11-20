@@ -51,7 +51,15 @@ def _organize(flat, span_only, answered_only):
 
     organized = []
 
+    # idx = 0
     for qid, passages, query, answers in flat:
+        
+        # idx += 1
+        # if idx < 2:
+        #     print("###################################################################################")
+        #     print(qid, passages, query, answers)
+        #     print("###################################################################################")
+
         if answers is None and not answered_only:
             filtered_out.add(qid)
             continue  # Skip non-answered queries
@@ -64,7 +72,7 @@ def _organize(flat, span_only, answered_only):
                 pos = passage['passage_text'].find(ans)
                 if pos >= 0:
                     matching.add(ind)
-                    organized.append((qid, passage, query,
+                    organized.append((qid, passage, query, [ans],
                                       (pos, pos+len(ans))))
         # OK, found all spans.
         if not span_only or not answered_only:
@@ -73,11 +81,11 @@ def _organize(flat, span_only, answered_only):
                     continue
                 if passage.get('is_selected', False):
                     matching.add(ind)
-                    organized.append((qid, passage, query,
+                    organized.append((qid, passage, query, answers,
                                       (0, len(passage))))
                 elif not answered_only:
                     matching.add(ind)
-                    organized.append((qid, passage, query,
+                    organized.append((qid, passage, query, answers,
                                       (0, 0)))
         # Went through the whole thing. If there's still not match, then it got
         # filtered out.
@@ -106,12 +114,25 @@ def tokenize_data(data, token_to_id, char_to_id, limit=None):
     Answer indexes are start:stop range of tokens.
     """
     tokenized = []
-    for qid, passage, query, (start, stop) in data:
+    
+    # idx = 0
+    for qid, passage, query, answer, (start, stop) in data:
+        
+        # idx += 1
         q_tokens, q_chars, _, _, _ = \
             rich_tokenize(query, token_to_id, char_to_id, update=True)
+        a_tokens, a_chars, _, _, _ = \
+            rich_tokenize(answer[0], token_to_id, char_to_id, update=True)
         p_tokens, p_chars, _, _, mapping = \
             rich_tokenize(passage['passage_text'],
                           token_to_id, char_to_id, update=True)
+        
+        # if idx < 2:
+        #     print("###################################################################################")
+        #     print(query, q_tokens, q_chars)
+        #     print("-----------------------------------------------------------------------------------")
+        #     print(answer[0], a_tokens, a_chars)
+        #     print("###################################################################################")
 
         if start == 0 and stop == 0:
             pass  # No answer; nop, since 0 == 0
@@ -146,6 +167,7 @@ def tokenize_data(data, token_to_id, char_to_id, limit=None):
             (qid,
              (p_tokens, p_chars),
              (q_tokens, q_chars),
+             (a_tokens, a_chars),
              (start, stop),
              mapping))
 
@@ -364,18 +386,28 @@ class EpochGen(object):
             c_passages = [self.data[ind][1][1] for ind in batch_idx]
             queries = [self.data[ind][2][0] for ind in batch_idx]
             c_queries = [self.data[ind][2][1] for ind in batch_idx]
-            answers = [self.data[ind][3] for ind in batch_idx]
-            mappings = [self.data[ind][4] for ind in batch_idx]
+            
+            # Descriptive answers
+            targets = [self.data[ind][3][0] for ind in batch_idx]
+            c_targets = [self.data[ind][3][1] for ind in batch_idx]
+            
+            # Span answers
+            span_answers = [self.data[ind][4] for ind in batch_idx]
+            mappings = [self.data[ind][5] for ind in batch_idx]
 
             passages = self.process_batch_for_length(
                     passages, c_passages)
             queries = self.process_batch_for_length(
                     queries, c_queries)
+            targets = self.process_batch_for_length(
+                    targets, c_targets)
 
-            answers = Variable(self.tensor_type(answers))
-
+            answers = Variable(self.tensor_type(span_answers))
+            
             batch = (qids,
-                     passages, queries,
+                     passages, 
+                     queries,
+                     targets,
                      answers,
                      mappings)
             yield batch
