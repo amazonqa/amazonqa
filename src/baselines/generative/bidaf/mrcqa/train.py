@@ -17,6 +17,8 @@ import h5py
 import constants as C
 
 from bidaf import BidafModel
+from loss import Loss
+from logger import Logger
 
 import checkpointing
 from dataset import load_data, tokenize_data, EpochGen
@@ -148,27 +150,32 @@ def init_state(config, args):
     return model, id_to_token, id_to_char, optimizer, data
 
 
-def train(epoch, model, optimizer, data, args):
+def train(loss, model, optimizer, data, args, logger, teacher_forcing_ratio):
     """
     Train for one epoch.
     """
 
-    for batch_id, (qids, passages, queries, targets, answers, _) in enumerate(data):
-        start_log_probs, end_log_probs = model(
+    for batch_id, (qids, passages, queries, targets, _, _) in enumerate(data):
+        outputs, _, _ = model(
             passages[:2], passages[2],
             queries[:2], queries[2],
-            # targets[:2], targets[2],
+            targets[0],
+            teacher_forcing_ratio
         )
 
-        loss = model.get_loss(
-            start_log_probs, end_log_probs,
-            answers[:, 0], answers[:, 1]
-        )
+        # loss and gradient computation
+        batch_loss, batch_perplexity = loss.eval_batch_loss(outputs, targets[0])
 
         optimizer.zero_grad()
-        loss.backward()
+        batch_loss.backward()
         optimizer.step()
-    return
+
+        batch_loss = batch_loss.data.item()
+        if batch_id % 100 == 0:
+            logger.log('\n\tMean [TRAIN] Loss for batch %d = %.2f' % (batch_id, batch_loss))
+            logger.log('\tMean [TRAIN] Perplexity for batch %d = %.2f' % (batch_id, batch_perplexity))
+
+    return loss
 
 
 def main():
@@ -204,12 +211,14 @@ def main():
     checkpoint, training_state, epoch = try_to_resume(
             args.force_restart, args.exp_folder)
 
+    logger = Logger()
+
     if checkpoint:
-        print('Resuming training...')
+        logger.log('Resuming training...')
         model, id_to_token, id_to_char, optimizer, data = reload_state(
             checkpoint, training_state, config, args)
     else:
-        print('Preparing to train...')
+        logger.log('Preparing to train...')
         model, id_to_token, id_to_char, optimizer, data = init_state(
             config, args)
         checkpoint = h5py.File(os.path.join(args.exp_folder, 'checkpoint'))
@@ -220,16 +229,22 @@ def main():
         data.tensor_type = torch.cuda.LongTensor
 
     train_for_epochs = config.get('training', {}).get('epochs')
+    teacher_forcing_ratio = config.get('training', {}).get('teacher_forcing_ratio', 1.0)
     if train_for_epochs is not None:
         epochs = range(epoch, train_for_epochs)
     else:
         epochs = itertools.count(epoch)
 
+    loss = Loss()
     for epoch in epochs:
-        print('Starting epoch', epoch)
-        train(epoch, model, optimizer, data, args)
+        loss.reset()
+        logger.log('\n  --- STARTING EPOCH : %d --- \n' % epoch)
+        train(loss, model, optimizer, data, args, logger, teacher_forcing_ratio)
+
+        logger.log('\n  --- END OF EPOCH : %d --- \n' % epoch)
+        # Compute epoch loss and perplexity
         checkpointing.checkpoint(model, epoch, optimizer,
-                                 checkpoint, args.exp_folder)
+                                    checkpoint, args.exp_folder)
 
     return
 

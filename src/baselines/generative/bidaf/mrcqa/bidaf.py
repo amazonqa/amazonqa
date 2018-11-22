@@ -6,6 +6,7 @@ import torch
 from torch import nn
 from torch.nn.functional import nll_loss
 from torch.autograd import Variable
+import torch.nn.functional as F
 import numpy as np
 
 from DecoderRNN import DecoderRNN
@@ -116,7 +117,7 @@ class BidafModel(nn.Module):
         self.decoder = DecoderRNN(
             vocab_size,
             max_len,
-            4*self.bidir_hidden_size + self.bidir_hidden_size,
+            4 * self.bidir_hidden_size + self.bidir_hidden_size,
             sos_id,
             eos_id,
             n_layers=1,
@@ -269,7 +270,7 @@ class BidafModel(nn.Module):
             batch_size, p_num_tokens, self.bidir_hidden_size)
         return question_in_passage, passage_in_question
 
-    def forward(self, passage, p_lengths, question, q_lengths):
+    def forward(self, passage, p_lengths, question, q_lengths, targets, teacher_forcing_ratio):
         """
         Forward pass
         """
@@ -310,42 +311,50 @@ class BidafModel(nn.Module):
         # Also use it to as attention over the features.
         start_input = self.dropout(
             torch.cat([merged_passage, extracted], dim=2))
-        # [b, p_num_tokens, 4*h] -> [b, n, 1] -> [b, n]
-        start_projection = self.start_projection(start_input).squeeze(2)
-        # Mask
-        start_logits = start_projection*p_mask + (p_mask-1)*1e20
-        # And turns into probabilities
-        start_probs = nn.functional.softmax(start_logits, dim=1)
-        # And then into representation, as attention.
-        # [b, 1, hidden_size] -> [b, p_num_tokens, hidden_size]
-        start_reps = start_probs.unsqueeze(1).bmm(extracted)
-        start_reps = start_reps.expand(
-            batch_size, p_num_tokens, self.bidir_hidden_size)
 
-        # Uses various level of features to create the end point probability
-        # vectors.
-        # [b, n, 7*hidden_size]
-        end_reps = torch.cat([
-            merged_passage,
-            extracted,
-            start_reps,
-            extracted * start_reps],
-            dim=2)
-        enc_end = self.dropout(self._pack_and_unpack_lstm(
-            end_reps, p_lengths, self.end_encoder))
-        end_input = self.dropout(torch.cat([
-            merged_passage, enc_end], dim=2))
-        # [b, p_num_tokens, 7*h] -> [b, n, 1] -> [b, n]
-        end_projection = self.end_projection(end_input).squeeze(2)
-        # Mask
-        end_logits = end_projection*p_mask + (p_mask-1)*1e20
+        result = self.decoder(inputs=targets,
+            encoder_hidden=None,
+            encoder_outputs=start_input,
+            function=F.softmax,
+            teacher_forcing_ratio=teacher_forcing_ratio
+        )
 
-        # Applies the final log-softmax to get the actual log-probability
-        # vectors.
-        start_log_probs = nn.functional.log_softmax(start_logits, dim=1)
-        end_log_probs = nn.functional.log_softmax(end_logits, dim=1)
+        # # [b, p_num_tokens, 4*h] -> [b, n, 1] -> [b, n]
+        # start_projection = self.start_projection(start_input).squeeze(2)
+        # # Mask
+        # start_logits = start_projection*p_mask + (p_mask-1)*1e20
+        # # And turns into probabilities
+        # start_probs = nn.functional.softmax(start_logits, dim=1)
+        # # And then into representation, as attention.
+        # # [b, 1, hidden_size] -> [b, p_num_tokens, hidden_size]
+        # start_reps = start_probs.unsqueeze(1).bmm(extracted)
+        # start_reps = start_reps.expand(
+        #     batch_size, p_num_tokens, self.bidir_hidden_size)
 
-        return start_log_probs, end_log_probs
+        # # Uses various level of features to create the end point probability
+        # # vectors.
+        # # [b, n, 7*hidden_size]
+        # end_reps = torch.cat([
+        #     merged_passage,
+        #     extracted,
+        #     start_reps,
+        #     extracted * start_reps],
+        #     dim=2)
+        # enc_end = self.dropout(self._pack_and_unpack_lstm(
+        #     end_reps, p_lengths, self.end_encoder))
+        # end_input = self.dropout(torch.cat([
+        #     merged_passage, enc_end], dim=2))
+        # # [b, p_num_tokens, 7*h] -> [b, n, 1] -> [b, n]
+        # end_projection = self.end_projection(end_input).squeeze(2)
+        # # Mask
+        # end_logits = end_projection*p_mask + (p_mask-1)*1e20
+
+        # # Applies the final log-softmax to get the actual log-probability
+        # # vectors.
+        # start_log_probs = nn.functional.log_softmax(start_logits, dim=1)
+        # end_log_probs = nn.functional.log_softmax(end_logits, dim=1)
+
+        return result
 
     @classmethod
     def get_loss(cls, start_log_probs, end_log_probs, starts, ends):
@@ -470,11 +479,11 @@ class BidafModel(nn.Module):
         return args
 
     @classmethod
-    def from_config(cls, config, vocab, c_vocab):
+    def from_config(cls, config, vocab, c_vocab, sos_id, eos_id):
         """
         Create a model using the model description in the configuration file.
         """
-        model = cls(*cls._parse_config(config, vocab, c_vocab))
+        model = cls(*cls._parse_config(config, vocab, c_vocab, sos_id, eos_id))
         return model
 
     @classmethod
