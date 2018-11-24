@@ -9,6 +9,7 @@ from torch.autograd import Variable
 import torch.nn.functional as F
 import numpy as np
 
+import constants as C
 from DecoderRNN import DecoderRNN
 
 import modules
@@ -27,8 +28,6 @@ class BidafModel(nn.Module):
                  hidden_size,
                  dropout, 
                  max_len,
-                 sos_id,
-                 eos_id,
                  vocab_size):
         """
         Create a BiDAF model. The input is a tensor of indices, or a tuple of
@@ -118,8 +117,8 @@ class BidafModel(nn.Module):
             vocab_size,
             max_len,
             4 * self.bidir_hidden_size + self.bidir_hidden_size,
-            sos_id,
-            eos_id,
+            C.SOS_INDEX,
+            C.EOS_INDEX,
             n_layers=1,
             rnn_cell='lstm',
             bidirectional=True,
@@ -454,7 +453,7 @@ class BidafModel(nn.Module):
         return nll_loss(combined, labels)
 
     @classmethod
-    def _parse_config(cls, config, vocab, c_vocab, sos_id, eos_id):
+    def _parse_config(cls, config, vocab, c_vocab):
         num_tokens = len(vocab)
         num_chars = len(c_vocab)
 
@@ -475,15 +474,15 @@ class BidafModel(nn.Module):
                 config.get('hidden_size', 100),
                 config.get('dropout', 0.2),
                 config.get('max_len', 50),
-                sos_id, eos_id, num_tokens)
+                num_tokens)
         return args
 
     @classmethod
-    def from_config(cls, config, vocab, c_vocab, sos_id, eos_id):
+    def from_config(cls, config, vocab, c_vocab):
         """
         Create a model using the model description in the configuration file.
         """
-        model = cls(*cls._parse_config(config, vocab, c_vocab, sos_id, eos_id))
+        model = cls(*cls._parse_config(config, vocab, c_vocab))
         return model
 
     @classmethod

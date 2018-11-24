@@ -27,16 +27,21 @@ from dataset import SymbolEmbSourceText
 from dataset import symbol_injection
 
 
-def try_to_resume(force_restart, exp_folder):
+def try_to_resume(logger, force_restart, exp_folder):
     if force_restart:
+        logger.log('Ignoring any checkpoints...')
         return None, None, 0
     elif os.path.isfile(exp_folder + '/checkpoint'):
+        logger.log('Trying to resume from checkpoints...')
         checkpoint = h5py.File(exp_folder + '/checkpoint')
         epoch = checkpoint['training/epoch'][()] + 1
         # Try to load training state.
         try:
-            training_state = torch.load(exp_folder + '/checkpoint.opt')
+            checkpoint_file = exp_folder + '/checkpoint.opt'
+            training_state = torch.load(checkpoint_file)
+            logger.log('Loaded checkpoint from %s' % checkpoint_file)
         except FileNotFoundError:
+            logger.log('No checkpoint found.')
             training_state = None
     else:
         return None, None, 0
@@ -44,10 +49,11 @@ def try_to_resume(force_restart, exp_folder):
     return checkpoint, training_state, epoch
 
 
-def reload_state(checkpoint, training_state, config, args):
+def reload_state(logger, checkpoint, training_state, config, args):
     """
     Reload state when resuming training.
     """
+    logger.log('Loading model from checkpoint...')
     model, id_to_token, id_to_char = BidafModel.from_checkpoint(
         config['bidaf'], checkpoint)
     if torch.cuda.is_available() and args.cuda:
@@ -62,12 +68,16 @@ def reload_state(checkpoint, training_state, config, args):
     len_tok_voc = len(token_to_id)
     len_char_voc = len(char_to_id)
 
+    logger.log('Loading data...')
     with open(args.data) as f_o:
         data, _ = load_data(json.load(f_o),
                             span_only=True, answered_only=True)
     limit_passage = config.get('training', {}).get('limit')
+
+    logger.log('Tokenizing data...')
     data = tokenize_data(data, token_to_id, char_to_id, limit_passage)
 
+    logger.log('Creating dataloader...')
     data = get_loader(data, config)
 
     assert len(token_to_id) == len_tok_voc
@@ -103,27 +113,29 @@ def get_loader(data, config):
     return data
 
 
-def init_state(config, args):
-    token_to_id = {'': 0}
+def init_state(logger, config, args):
+    token_to_id = {C.PAD_TOKEN: C.PAD_INDEX, C.SOS_TOKEN: C.SOS_INDEX, C.EOS_TOKEN: C.EOS_INDEX, '': 3}
     char_to_id = {'': 0}
-    print('Loading data...')
+    logger.log('Loading data...')
     with open(args.data) as f_o:
         data, _ = load_data(json.load(f_o), span_only=True, answered_only=True)
-    print('Tokenizing data...')
+    
+    logger.log('Tokenizing data...')
     data = tokenize_data(data, token_to_id, char_to_id)
     data = get_loader(data, config)
 
     id_to_token = {id_: tok for tok, id_ in token_to_id.items()}
     id_to_char = {id_: char for char, id_ in char_to_id.items()}
 
-    sos_id = token_to_id[C.SOS_TOKEN]
-    eos_id = token_to_id[C.EOS_TOKEN]
+    assert(token_to_id[C.SOS_TOKEN] == C.SOS_INDEX)
+    assert(token_to_id[C.EOS_TOKEN] == C.EOS_INDEX)
+    assert(token_to_id[C.PAD_TOKEN] == C.PAD_INDEX)
 
-    print('Creating model...')
-    model = BidafModel.from_config(config['bidaf'], id_to_token, id_to_char, sos_id, eos_id)
+    logger.log('Creating model...')
+    model = BidafModel.from_config(config['bidaf'], id_to_token, id_to_char)
 
     if args.word_rep:
-        print('Loading pre-trained embeddings...')
+        logger.log('Loading pre-trained embeddings...')
         with open(args.word_rep) as f_o:
             pre_trained = SymbolEmbSourceText(
                     f_o,
@@ -208,20 +220,22 @@ def main():
     with open(config_filepath) as f:
         config = yaml.load(f)
 
-    checkpoint, training_state, epoch = try_to_resume(
+    logger = Logger()
+
+    checkpoint, training_state, epoch = try_to_resume(logger,
             args.force_restart, args.exp_folder)
 
-    logger = Logger()
 
     if checkpoint:
         logger.log('Resuming training...')
-        model, id_to_token, id_to_char, optimizer, data = reload_state(
-            checkpoint, training_state, config, args)
+        model, id_to_token, id_to_char, optimizer, data = reload_state(logger, checkpoint, training_state, config, args)
     else:
         logger.log('Preparing to train...')
-        model, id_to_token, id_to_char, optimizer, data = init_state(
+        model, id_to_token, id_to_char, optimizer, data = init_state(logger, 
             config, args)
         checkpoint = h5py.File(os.path.join(args.exp_folder, 'checkpoint'))
+
+        logger.log('Saving vocab...')
         checkpointing.save_vocab(checkpoint, 'vocab', id_to_token)
         checkpointing.save_vocab(checkpoint, 'c_vocab', id_to_char)
 
