@@ -236,12 +236,29 @@ def main():
         epochs = itertools.count(epoch)
 
     loss = Loss()
+    best_epoch = 0
+    losses, perplexities = [], []
+    min_loss, min_perplexity, best_epoch = np.nan, np.nan, 0
     for epoch in epochs:
         loss.reset()
         logger.log('\n  --- STARTING EPOCH : %d --- \n' % epoch)
         train(loss, model, optimizer, data, args, logger, teacher_forcing_ratio)
 
         logger.log('\n  --- END OF EPOCH : %d --- \n' % epoch)
+
+        epoch_loss = loss.epoch_loss()
+        epoch_perplexity = loss.epoch_perplexity()
+        losses.append(epoch_loss)
+        perplexities.append(epoch_perplexity)
+        min_loss, min_perplexity = np.nanmin(losses), np.nanmin(perplexities)
+        if min_loss == epoch_loss:
+            best_epoch = epoch
+
+        mode = 'train'.upper()
+        logger.log('\n\tEpoch [%s] Loss = %.4f, Min [%s] Loss = %.4f' % (mode, epoch_loss, mode, min_loss))
+        logger.log('\tEpoch [%s] Perplexity = %.2f, Min [%s] Perplexity = %.2f' % (mode, epoch_perplexity, mode, min_perplexity))
+        logger.log('\tBest Epoch = %d' % (best_epoch))
+
         # Compute epoch loss and perplexity
         checkpointing.checkpoint(model, epoch, optimizer,
                                     checkpoint, args.exp_folder)
