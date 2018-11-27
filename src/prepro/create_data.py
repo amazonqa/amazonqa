@@ -7,6 +7,7 @@ import pandas as pd
 import scipy.stats as st
 import nltk
 from nltk.corpus import stopwords
+from tqdm import tqdm
 
 import retrieval_models
 import classify_question
@@ -82,8 +83,13 @@ def main(args):
 	
 	wfp = open(args.output_file, 'w')
 	rfp = open(args.input_file, 'r')
+
+
+	classifier_model_answerable = classify_question.load_classification_model('../../data/model_answerable.pkl')
+	classifier_model_suggestive = classify_question.load_classification_model('../../data/model_suggestive.pkl')
+	classifier_vectorizers = classify_question.load_vectorizers('../../data/tfidf_vectorizer.pkl', '../../data/w2v_vectorizer.pkl')
 	
-	for line in rfp:
+	for line in tqdm(rfp):
 		row = json.loads(line)
 		if "reviews" not in row:
 			print("Wrong Format" + row)
@@ -97,8 +103,6 @@ def main(args):
 
 		inverted_index = create_inverted_index(review_tokens)
 		review_tokens = list(map(set, review_tokens))
-		classifier_model = classify_question.load_classification_model('../../data/model.pkl')
-		classifier_vectorizers = classify_question.load_vectorizers('../../data/tfidf_vectorizer.pkl', '../../data/w2v_vectorizer.pkl')
 
 		for question in row["questions"]:
 			question_text = question["questionText"]
@@ -124,8 +128,9 @@ def main(args):
 			final_json['questionType'] = question["questionType"]
 			final_json['review_snippets'] = top_reviews_q
 			final_json['answers'] = question["answers"]
-			final_json['is_answerable'] = classify_question.is_answerable(classifier_model, classifier_vectorizers, question_text, top_reviews_q)
-
+			final_json['is_answerable'] = classify_question.is_answerable(classifier_model_answerable, classifier_vectorizers, question_text, top_reviews_q)
+			final_json['is_suggestive'] = 0 if (final_json['is_answerable'] == 0) else classify_question.is_suggestive(classifier_model_suggestive, classifier_vectorizers, question_text, top_reviews_q)
+			#print(final_json)
 			wfp.write(json.dumps(final_json) + '\n')
 	wfp.close()
 

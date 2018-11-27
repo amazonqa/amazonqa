@@ -129,6 +129,14 @@ def compute_features(vectorizers, question, reviews):
         [n_q, n_r, intersection_n, intr_frac, w2v_sent, tfidf_sent, w2v_sent_mean, tfidf_sent_mean]
     ])
 
+def predictions_k(model, X, k):
+    probs = model.predict_proba(X)
+    return probs[:, 1] >= k
+
 def is_answerable(model, vectorizers, question, top_reviews):
     features = compute_features(vectorizers, question, get_combined_review(top_reviews))
-    return model.predict(features)[0]
+    return int(predictions_k(model, features, 0.7)[0])
+
+def is_suggestive(model, vectorizers, question, top_reviews):
+    features = compute_features(vectorizers, question, get_combined_review(top_reviews))
+    return 1 - int(predictions_k(model, features, 0.5)[0])

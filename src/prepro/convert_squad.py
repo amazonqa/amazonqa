@@ -11,7 +11,7 @@ from tqdm import tqdm
 
 
 def find_answer_spans(args, answer_span_lens, answers, context):
-	context = context.split(' ')
+	context = context.split()
 
 	gold_answers_dict = {}
 	gold_answers_dict[0] = [answer["answerText"] for answer in answers]
@@ -49,7 +49,7 @@ def main(args):
 		#	continue
 
 		reviews = row["review_snippets"]
-		context = ' '.join(reviews)
+		context = ' '.join(' '.join(reviews).split())
 
 		answers = row["answers"]
 		new_answers = find_answer_spans(args, answer_span_lens, answers, context)
