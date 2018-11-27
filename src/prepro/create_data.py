@@ -9,7 +9,7 @@ import nltk
 from nltk.corpus import stopwords
 
 import retrieval_models
-
+import classify_question
 
 def top_reviews_and_scores(question_tokens, review_tokens, inverted_index, reviews, review_ids, select_mode, num_reviews):
 	if select_mode == "random":
@@ -96,6 +96,8 @@ def main(args):
 
 		inverted_index = create_inverted_index(review_tokens)
 		review_tokens = list(map(set, review_tokens))
+		classifier_model = classify_question.load_classification_model('classifier_data/model.pkl')
+		classifier_vectorizers = classify_question.load_vectorizers('classifier_data/tfidf_vectorizer.pkl', 'classifier_data/w2v_vectorizer.pkl')
 
 		for question in row["questions"]:
 			question_text = question["questionText"]
@@ -121,6 +123,7 @@ def main(args):
 			final_json['questionType'] = question["questionType"]
 			final_json['review_snippets'] = top_reviews_q
 			final_json['answers'] = question["answers"]
+			final_json['is_answerable'] = classifier_model.is_answerable(classifier_model, classifier_vectorizers, question_text, top_reviews_q)
 
 			wfp.write(json.dumps(final_json) + '\n')
 	wfp.close()
