@@ -52,6 +52,9 @@ def process_reviews(reviews, review_max_len, stop_words):
 			else:
 				bufr.append(sentence)
 
+		if buffer_len > 0:
+			review_texts.append(' '.join(bufr))
+
 	review_tokens = [tokenize(r) for r in review_texts]
 	review_tokens = [[token for token in r if token not in stop_words and token not in string.punctuation] for r in review_tokens]
 	return review_texts, review_tokens
