@@ -118,17 +118,25 @@ def compute_features(vectorizers, question, reviews):
     intersection_n = len(set(q_tokens).intersection(set(r_tokens)))
     intr_frac = intersection_n / n_q
 
-    tfidf = tf_idf_sim(question, reviews, vectorizers['tfidf'])
-    w2v = w2v_sim(question, reviews, vectorizers['w2v'])
+    #tfidf = tf_idf_sim(question, reviews, vectorizers['tfidf'])
+    #w2v = w2v_sim(question, reviews, vectorizers['w2v'])
     w2v_sent = w2v_sim_sentence(question, r_sents, vectorizers['w2v'])
     tfidf_sent = tf_idf_sim_sentence(question, r_sents, vectorizers['tfidf'])
     w2v_sent_mean = w2v_sim_sentence_mean(question, r_sents, vectorizers['w2v'])
     tfidf_sent_mean = tf_idf_sim_sentence_mean(question, r_sents, vectorizers['tfidf'])
 
     return np.array([
-        [n_q, n_r, intersection_n, intr_frac, tfidf, w2v, w2v_sent, tfidf_sent, w2v_sent_mean, tfidf_sent_mean]
+        [n_q, n_r, intersection_n, intr_frac, w2v_sent, tfidf_sent, w2v_sent_mean, tfidf_sent_mean]
     ])
 
+def predictions_k(model, X, k):
+    probs = model.predict_proba(X)
+    return probs[:, 1] >= k
+
 def is_answerable(model, vectorizers, question, top_reviews):
-    features = compute_features(vectorizers, question, top_reviews)
-    return model.predict(features)[0]
+    features = compute_features(vectorizers, question, get_combined_review(top_reviews))
+    return int(predictions_k(model, features, 0.7)[0])
+
+def is_suggestive(model, vectorizers, question, top_reviews):
+    features = compute_features(vectorizers, question, get_combined_review(top_reviews))
+    return 1 - int(predictions_k(model, features, 0.5)[0])
