@@ -486,7 +486,7 @@ class BidafModel(nn.Module):
         return model
 
     @classmethod
-    def from_checkpoint(cls, config, checkpoint):
+    def from_checkpoint(cls, config, checkpoint, epoch):
         """
         Load a model, on CPU and eval mode.
 
@@ -519,10 +519,14 @@ class BidafModel(nn.Module):
                 model_vocab,
                 model_c_vocab)
 
+        if epoch is None:
+            epoch = checkpoint['training/best_epoch'][()]
+
+        model_name = 'model_%d' % epoch
         model.load_state_dict({
             name: torch.from_numpy(np.array(val))
             for name, val in
-            checkpoint['model'].items()})
+            checkpoint[model_name].items()})
         model.cpu().eval()
         return model, model_vocab, model_c_vocab
 

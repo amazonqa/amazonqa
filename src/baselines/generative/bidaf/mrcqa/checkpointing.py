@@ -34,32 +34,36 @@ def save_params(destination, path, params):
     return
 
 
-def save_model(model, destination):
+def save_model(model, epoch, destination):
     """
-    Save a model into destination.
+    Save a model at an epoch into destination.
     """
-    if 'model' not in destination:
-        destination.create_group('model')
+    model_name = 'model_%d' % epoch
+
+    if model_name not in destination:
+        destination.create_group(model_name)
 
     for name, value in model.state_dict().items():
-        save_params(destination, 'model/'+name, value)
+        save_params(destination, '%s/%s' % (model_name, name), value)
+
     return
 
 
-def save_epoch(epoch, destination):
+def save_epoch(epoch, best_epoch, destination):
     if 'training' not in destination:
         destination.create_dataset('training/epoch', data=epoch)
+        destination.create_dataset('training/best_epoch', data=best_epoch)
     else:
         destination['training/epoch'][()] = epoch
+        destination['training/best_epoch'][()] = best_epoch
     return
 
 
-def checkpoint(model, epoch, optimizer, dest, exp_folder):
+def checkpoint(model, epoch, best_epoch, optimizer, dest, exp_folder):
     """
     Checkpoint the current state of training.
     """
-    save_model(model, dest)
-    save_epoch(epoch, dest)
-    torch.save(optimizer.state_dict(),
-               os.path.join(exp_folder, 'checkpoint.opt'))
+    save_model(model, epoch, dest)
+    save_epoch(epoch, best_epoch, dest)
+    torch.save(optimizer.state_dict(), os.path.join(exp_folder, 'checkpoint_%d.opt' % epoch))
     return

@@ -13,6 +13,7 @@ import numpy as np
 import torch
 import torch.optim as optim
 import h5py
+import tqdm
 
 import constants as C
 
@@ -37,7 +38,7 @@ def try_to_resume(logger, force_restart, exp_folder):
         epoch = checkpoint['training/epoch'][()] + 1
         # Try to load training state.
         try:
-            checkpoint_file = exp_folder + '/checkpoint.opt'
+            checkpoint_file = exp_folder + ('/checkpoint_%d.opt' % epoch)
             training_state = torch.load(checkpoint_file)
             logger.log('Loaded checkpoint from %s' % checkpoint_file)
         except FileNotFoundError:
@@ -162,7 +163,7 @@ def init_state(logger, config, args):
     return model, id_to_token, id_to_char, optimizer, data
 
 
-def train(loss, model, optimizer, data, args, logger, teacher_forcing_ratio):
+def train_epoch(loss, model, optimizer, data, args, logger, teacher_forcing_ratio):
     """
     Train for one epoch.
     """
@@ -255,9 +256,9 @@ def main():
     min_loss, min_perplexity, best_epoch = np.nan, np.nan, 0
     for epoch in epochs:
         loss.reset()
-        logger.log('\n  --- STARTING EPOCH : %d --- \n' % epoch)
-        train(loss, model, optimizer, data, args, logger, teacher_forcing_ratio)
 
+        logger.log('\n  --- STARTING EPOCH : %d --- \n' % epoch)
+        train_epoch(loss, model, optimizer, data, args, logger, teacher_forcing_ratio)
         logger.log('\n  --- END OF EPOCH : %d --- \n' % epoch)
 
         epoch_loss = loss.epoch_loss()
@@ -274,8 +275,14 @@ def main():
         logger.log('\tBest Epoch = %d' % (best_epoch))
 
         # Compute epoch loss and perplexity
-        checkpointing.checkpoint(model, epoch, optimizer,
-                                    checkpoint, args.exp_folder)
+        checkpointing.checkpoint(
+            model,
+            epoch,
+            best_epoch,
+            optimizer,
+            checkpoint,
+            args.exp_folder
+        )
 
     return
 
