@@ -4,7 +4,7 @@ from nltk import sent_tokenize, word_tokenize
 
 import constants as C
 
-def rich_tokenize(text, vocab, c_vocab, update, is_target=False):
+def rich_tokenize(text, vocab, c_vocab, id_counts, update, is_target=False):
 
     tokens = list(
         itertools.chain.from_iterable(
@@ -44,14 +44,16 @@ def rich_tokenize(text, vocab, c_vocab, update, is_target=False):
         character_ids = [
             [c_vocab.setdefault(c, len(c_vocab)) for c in token]
             for token in tokens]
-        token_ids = [
-            vocab.setdefault(token, len(vocab)) for token in tokens]
+        token_ids = []
+        for token in tokens:
+            token_ids.append(vocab.setdefault(token, len(vocab)))
+            id_counts[vocab[token]] = id_counts.get(vocab[token], 0) + 1
     else:
         character_ids = [
             [c_vocab.get(c, 1) for c in token]
             for token in tokens]
         token_ids = [
-            vocab.get(token, 1) for token in tokens]
+            vocab.get(token, C.UNK_INDEX) for token in tokens]
 
     return token_ids, character_ids, length, c_lengths, mapping
 
@@ -66,8 +68,9 @@ def pad_to_size(token_ids, character_ids, t_length, c_length):
 
 
 def text_as_batch(text, vocab, c_vocab):
+    id_counts = {}
     tokens, chars, length, c_lengths, mapping = \
-        rich_tokenize(text, vocab, c_vocab, update=False)
+        rich_tokenize(text, vocab, c_vocab, {}, update=False)
     tokens, chars = pad_to_size(tokens, chars, length, max(5, c_lengths.max()))
     length = np.array([length])
     return tokens, chars, length, mapping

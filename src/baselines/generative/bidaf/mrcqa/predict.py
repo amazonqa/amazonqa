@@ -50,7 +50,8 @@ def reload_state(logger, checkpoint, config, args):
     logger.log('Loading data...')
     with open(args.data) as f_o:
         data, _ = load_data(json.load(f_o), span_only=True, answered_only=True)
-    data = tokenize_data(data, token_to_id, char_to_id)
+    limit_passage = config.get('training', {}).get('limit')
+    data = tokenize_data(logger, data, token_to_id, char_to_id, None, False, limit_passage)
 
     logger.log('Tokenizing data...')
     id_to_token = {id_: tok for tok, id_ in token_to_id.items()}

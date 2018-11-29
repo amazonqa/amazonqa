@@ -10,6 +10,7 @@ import torch
 from torch.autograd import Variable
 import numpy as np
 
+import constants as C
 from text_input import rich_tokenize
 
 
@@ -98,7 +99,7 @@ def _organize(flat, span_only, answered_only):
     return organized, filtered_out
 
 
-def tokenize_data(data, token_to_id, char_to_id, limit=None):
+def tokenize_data(logger, data, token_to_id, char_to_id, vocab_size, update, limit=None):
     """
     Tokenize a data set, with mapping of tokens to index in origin.
     Also create and update the vocabularies.
@@ -116,16 +117,16 @@ def tokenize_data(data, token_to_id, char_to_id, limit=None):
     tokenized = []
     
     # idx = 0
+    id_counts = dict([(key, np.inf) for key in token_to_id.values()])
     for qid, passage, query, answer, (start, stop) in data:
         
         # idx += 1
         a_tokens, a_chars, _, _, _ = \
-            rich_tokenize(answer[0], token_to_id, char_to_id, update=True, is_target=True)
+            rich_tokenize(answer[0], token_to_id, char_to_id, id_counts, update=update, is_target=True)
         q_tokens, q_chars, _, _, _ = \
-            rich_tokenize(query, token_to_id, char_to_id, update=True)
+            rich_tokenize(query, token_to_id, char_to_id, id_counts, update=update)
         p_tokens, p_chars, _, _, mapping = \
-            rich_tokenize(passage['passage_text'],
-                          token_to_id, char_to_id, update=True)
+            rich_tokenize(passage['passage_text'], token_to_id, char_to_id, id_counts, update=update)
         
         # if idx < 2:
         #     print("###################################################################################")
@@ -171,8 +172,34 @@ def tokenize_data(data, token_to_id, char_to_id, limit=None):
              (start, stop),
              mapping))
 
+    if update:
+        logger.log('Train vocab size: %d' % len(token_to_id))
+    if vocab_size is not None and len(token_to_id) > vocab_size:
+        logger.log('Trimming the vocab to %d tokens..' % vocab_size)
+        valid_ids = [token_id for token_id, _ in sorted(id_counts.items(), key=lambda x: x[1], reverse=True)[:vocab_size]]
+        for token, token_id in list(token_to_id.items()):
+            if token_id not in valid_ids:
+                del token_to_id[token]
+        new_tokenized = []
+        valid_ids = set(list(token_to_id.values()))
+        for qid, (p_tokens, p_chars), (q_tokens, q_chars), (a_tokens, a_chars), (start, stop), mapping in tokenized:
+            def update_by_new_vocab(tokens):
+                return [token_id if token_id in valid_ids else C.UNK_INDEX for token_id in tokens]
+            p_tokens, q_tokens, a_tokens = list(map(update_by_new_vocab, [p_tokens, q_tokens, a_tokens]))
+            new_tokenized.append(
+                (qid,
+                (p_tokens, p_chars),
+                (q_tokens, q_chars),
+                (a_tokens, a_chars),
+                (start, stop),
+                mapping))
+        tokenized = new_tokenized
+
     return tokenized
 
+
+def trim_vocab(token_to_id, vocab_size):
+    pass
 
 def symbol_injection(id_to_symb, start_at, embedding,
                      pre_trained_source, random_source):

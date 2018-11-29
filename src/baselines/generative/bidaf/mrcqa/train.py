@@ -74,9 +74,10 @@ def reload_state(logger, checkpoint, training_state, config, args):
         data, _ = load_data(json.load(f_o),
                             span_only=True, answered_only=True)
     limit_passage = config.get('training', {}).get('limit')
+    vocab_size = config.get('training', {}).get('vocab_size', None)
 
     logger.log('Tokenizing data...')
-    data = tokenize_data(data, token_to_id, char_to_id, limit_passage)
+    data = tokenize_data(logger, data, token_to_id, char_to_id, vocab_size, True, limit_passage)
 
     logger.log('Creating dataloader...')
     data = get_loader(data, config)
@@ -115,20 +116,32 @@ def get_loader(data, config):
 
 
 def init_state(logger, config, args):
-    token_to_id = {C.PAD_TOKEN: C.PAD_INDEX, C.SOS_TOKEN: C.SOS_INDEX, C.EOS_TOKEN: C.EOS_INDEX, '': 3}
+    token_to_id = {
+        C.PAD_TOKEN: C.PAD_INDEX,
+        C.UNK_TOKEN: C.UNK_INDEX,
+        C.SOS_TOKEN: C.SOS_INDEX,
+        C.EOS_TOKEN: C.EOS_INDEX,
+    }
+    token_to_id.setdefault('', len(token_to_id))
+
     char_to_id = {'': 0}
     logger.log('Loading data...')
+
     with open(args.data) as f_o:
         data, _ = load_data(json.load(f_o), span_only=True, answered_only=True)
     
+    limit_passage = config.get('training', {}).get('limit')
+    vocab_size = config.get('training', {}).get('vocab_size', None)
+
     logger.log('Tokenizing data...')
-    data = tokenize_data(data, token_to_id, char_to_id)
+    data = tokenize_data(logger, data, token_to_id, char_to_id, vocab_size, True, limit_passage)
     data = get_loader(data, config)
 
     id_to_token = {id_: tok for tok, id_ in token_to_id.items()}
     id_to_char = {id_: char for char, id_ in char_to_id.items()}
 
     assert(token_to_id[C.SOS_TOKEN] == C.SOS_INDEX)
+    assert(token_to_id[C.UNK_TOKEN] == C.UNK_INDEX)
     assert(token_to_id[C.EOS_TOKEN] == C.EOS_INDEX)
     assert(token_to_id[C.PAD_TOKEN] == C.PAD_INDEX)
 
