@@ -26,7 +26,7 @@ from dataset import load_data, tokenize_data, EpochGen
 from dataset import SymbolEmbSourceNorm
 from dataset import SymbolEmbSourceText
 from dataset import symbol_injection
-
+from dataset import default_vocab
 
 def try_to_resume(logger, force_restart, exp_folder):
     if force_restart:
@@ -116,14 +116,7 @@ def get_loader(data, config):
 
 
 def init_state(logger, config, args):
-    token_to_id = {
-        C.PAD_TOKEN: C.PAD_INDEX,
-        C.UNK_TOKEN: C.UNK_INDEX,
-        C.SOS_TOKEN: C.SOS_INDEX,
-        C.EOS_TOKEN: C.EOS_INDEX,
-    }
-    token_to_id.setdefault('', len(token_to_id))
-
+    token_to_id = default_vocab()
     char_to_id = {'': 0}
     logger.log('Loading data...')
 

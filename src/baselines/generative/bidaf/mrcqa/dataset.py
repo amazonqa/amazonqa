@@ -98,6 +98,16 @@ def _organize(flat, span_only, answered_only):
 
     return organized, filtered_out
 
+def default_vocab():
+    token_to_id = {
+        C.PAD_TOKEN: C.PAD_INDEX,
+        C.UNK_TOKEN: C.UNK_INDEX,
+        C.SOS_TOKEN: C.SOS_INDEX,
+        C.EOS_TOKEN: C.EOS_INDEX,
+    }
+    token_to_id.setdefault('', len(token_to_id))
+    return token_to_id
+
 
 def tokenize_data(logger, data, token_to_id, char_to_id, vocab_size, update, limit=None):
     """
@@ -174,18 +184,35 @@ def tokenize_data(logger, data, token_to_id, char_to_id, vocab_size, update, lim
 
     if update:
         logger.log('Train vocab size: %d' % len(token_to_id))
+
     if vocab_size is not None and len(token_to_id) > vocab_size:
         logger.log('Trimming the vocab to %d tokens..' % vocab_size)
         valid_ids = [token_id for token_id, _ in sorted(id_counts.items(), key=lambda x: x[1], reverse=True)[:vocab_size]]
+
+        ## valid_ids <-> top k token_ids with high freq, where k = vocab_size
         for token, token_id in list(token_to_id.items()):
             if token_id not in valid_ids:
                 del token_to_id[token]
+
+        ## new_token_to_id <-> new vocab with serial ids
+        existing_keys = default_vocab().keys()
+        old_token_to_new_token_id = dict([(i, i) for i in default_vocab().values()])
+        new_token_id = len(existing_keys)
+
+        for token, token_id in list(token_to_id.items()):
+            if token not in existing_keys:
+                old_token_to_new_token_id[token_id] = new_token_id
+                token_to_id[token] = new_token_id
+                new_token_id += 1
+
         new_tokenized = []
-        valid_ids = set(list(token_to_id.values()))
         for qid, (p_tokens, p_chars), (q_tokens, q_chars), (a_tokens, a_chars), (start, stop), mapping in tokenized:
-            def update_by_new_vocab(tokens):
-                return [token_id if token_id in valid_ids else C.UNK_INDEX for token_id in tokens]
-            p_tokens, q_tokens, a_tokens = list(map(update_by_new_vocab, [p_tokens, q_tokens, a_tokens]))
+            p_tokens, q_tokens, a_tokens = list(
+                map(
+                    lambda x: old_token_to_new_token_id.get(x, C.UNK_INDEX), 
+                    [p_tokens, q_tokens, a_tokens]
+                )
+            )
             new_tokenized.append(
                 (qid,
                 (p_tokens, p_chars),
@@ -196,10 +223,6 @@ def tokenize_data(logger, data, token_to_id, char_to_id, vocab_size, update, lim
         tokenized = new_tokenized
 
     return tokenized
-
-
-def trim_vocab(token_to_id, vocab_size):
-    pass
 
 def symbol_injection(id_to_symb, start_at, embedding,
                      pre_trained_source, random_source):
