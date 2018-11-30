@@ -135,7 +135,7 @@ def predictions_k(model, X, k):
 
 def is_answerable(model, vectorizers, question, top_reviews):
     features = compute_features(vectorizers, question, get_combined_review(top_reviews))
-    return int(predictions_k(model, features, 0.7)[0])
+    return int(predictions_k(model, features, 0.6)[0])
 
 def is_suggestive(model, vectorizers, question, top_reviews):
     features = compute_features(vectorizers, question, get_combined_review(top_reviews))
