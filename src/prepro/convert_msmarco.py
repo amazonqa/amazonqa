@@ -11,35 +11,36 @@ def main(args):
 	for line in tqdm(rfp):
 		row = json.loads(line)
 
-		reviews = row["review_snippets"]
-		passages = []
-		for review in reviews:
-			passage = {}
-			passage["is_selected"] = 1
-			passage["url"] = ""
-			passage["passage_text"] = review
-			passages.append(passage)
+		if row["is_answerable"] == 1:
+			reviews = row["review_snippets"]
+			passages = []
+			for review in reviews:
+				passage = {}
+				passage["is_selected"] = 1
+				passage["url"] = ""
+				passage["passage_text"] = review
+				passages.append(passage)
 
-		answers = row["answers"]
+			answers = row["answers"]
 
-		final_json = {}
-		final_json["answers"] = [answer["answerText"] for answer in answers]
-		final_json["passages"] = passages
-		final_json["query"] = row["questionText"]
-		final_json["query_id"] = qid
-		
-		if row["questionType"] == "descriptive":
-			final_json["query_type"] = "DESCRIPTION"
-		elif row["questionType"] == "yesno":
-			final_json["query_type"] = "YESNO"
-		else:
-			print("new query_type "+ row)
-			exit(0)
+			final_json = {}
+			final_json["answers"] = [answer["answerText"] for answer in answers]
+			final_json["passages"] = passages
+			final_json["query"] = row["questionText"]
+			final_json["query_id"] = qid
+			
+			if row["questionType"] == "descriptive":
+				final_json["query_type"] = "DESCRIPTION"
+			elif row["questionType"] == "yesno":
+				final_json["query_type"] = "YESNO"
+			else:
+				print("new query_type "+ row)
+				exit(0)
 
-		final_json["wellFormedAnswers"] = []
+			final_json["wellFormedAnswers"] = []
 
-		wfp.write(json.dumps(final_json) + '\n')
-		qid += 1
+			wfp.write(json.dumps(final_json) + '\n')
+			qid += 1
 
 	wfp.close()
 
