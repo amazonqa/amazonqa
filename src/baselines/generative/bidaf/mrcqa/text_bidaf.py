@@ -42,7 +42,7 @@ class TextBidaf(BidafModel):
             _tokens, _chars, length, _c_lengths, mapping = \
                 rich_tokenize(text,
                               self.vocab,
-                              self.c_vocab, update=False)
+                              self.c_vocab, {}, update=False)
             mappings.append(mapping)
             lengths.append(length)
             c_lengths.append(_c_lengths)
