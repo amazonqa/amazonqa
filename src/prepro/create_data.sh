@@ -3,7 +3,7 @@
 data_dir="../../data"
 parts=('train' 'val' 'test')
 parts=('train')
-num_process=90
+num_process=72
 
 for part in "${parts[@]}"; do
 	echo "processing $part"
@@ -26,15 +26,22 @@ for part in "${parts[@]}"; do
 	wait
 	echo "Creation Completed"
 
+	qar_all_temp="$data_dir/$part-qar_all.jsonl_temp" 
 	qar_all="$data_dir/$part-qar_all.jsonl" 
+
 	for output_file in $data_dir/$part-split-*.out; do
 		cat $output_file
-	done > $qar_all
+	done > $qar_all_temp
 	echo "Cat Completed"
 
-	shuf $qar_all -o $qar_all
+	shuf $qar_all_temp -o $qar_all_temp
 	rm $data_dir/$part-split-*
 	echo "Shuffle and Delete Completed"
+
+	python3 convert0.py --input_file $qar_all_temp --output_file $qar_all
+	rm $qar_all_temp
+
+	echo "qid done"
 done
 
 

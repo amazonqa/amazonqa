@@ -6,7 +6,6 @@ from tqdm import tqdm
 def main(args):
 	wfp = open(args.output_file, 'w')
 	rfp = open(args.input_file, 'r')
-	qid = 0
 
 	for line in tqdm(rfp):
 		row = json.loads(line)
@@ -27,7 +26,7 @@ def main(args):
 			final_json["answers"] = [answer["answerText"] for answer in answers]
 			final_json["passages"] = passages
 			final_json["query"] = row["questionText"]
-			final_json["query_id"] = qid
+			final_json["query_id"] = row["qid"]
 			
 			if row["questionType"] == "descriptive":
 				final_json["query_type"] = "DESCRIPTION"
@@ -40,7 +39,6 @@ def main(args):
 			final_json["wellFormedAnswers"] = []
 
 			wfp.write(json.dumps(final_json) + '\n')
-			qid += 1
 
 	wfp.close()
 

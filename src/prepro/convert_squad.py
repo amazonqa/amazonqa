@@ -40,7 +40,6 @@ def main(args):
 	
 	wfp = open(args.output_file, 'w')
 	rfp = open(args.input_file, 'r')
-	qid = 0
 
 	for line in tqdm(rfp):
 		row = json.loads(line)
@@ -48,27 +47,26 @@ def main(args):
 		#if row["questionType"] == "yesno":
 		#	continue
 
-		reviews = row["review_snippets"]
-		context = ' '.join(' '.join(reviews).split())
+		if row["is_answerable"] == 1:
+			reviews = row["review_snippets"]
+			context = ' '.join(' '.join(reviews).split())
 
-		answers = row["answers"]
-		new_answers = find_answer_spans(args, answer_span_lens, answers, context)
+			answers = row["answers"]
+			new_answers = find_answer_spans(args, answer_span_lens, answers, context)
 
-		qas = []
-		qas.append({
-			'id': qid,
-			'is_impossible': row["is_answerable"],
-			'question': row["questionText"],
-			'answers': new_answers,
-			'human_answers': [answer["answerText"] for answer in answers],
-		})
+			qas = []
+			qas.append({
+				'id': row["qid"],
+				'is_impossible': False,
+				'question': row["questionText"],
+				'answers': new_answers,
+				'human_answers': [answer["answerText"] for answer in answers],
+			})
 
-		wfp.write(json.dumps({
-				'context': context,
-				'qas': qas,
-		}) + '\n')
-
-		qid += 1
+			wfp.write(json.dumps({
+					'context': context,
+					'qas': qas,
+			}) + '\n')
 
 	wfp.close()
 
