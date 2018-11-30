@@ -2,8 +2,8 @@
 
 data_dir="../../data"
 parts=('train' 'val' 'test')
-parts=('test')
-num_process=3
+parts=('train')
+num_process=80
 
 for part in "${parts[@]}"; do
 	echo "processing $part"
@@ -32,7 +32,7 @@ for part in "${parts[@]}"; do
 	done > $qar_msmarco_all
 	echo "Cat Completed"
 
-	gshuf $qar_msmarco_all -o $qar_msmarco_all
+	shuf $qar_msmarco_all -o $qar_msmarco_all
 	rm $data_dir/$part-split-*
 	echo "Shuffle and Delete Completed"
 done

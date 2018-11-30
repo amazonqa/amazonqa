@@ -86,7 +86,7 @@ def main(args):
 
 
 	classifier_model_answerable = classify_question.load_classification_model('../../data/model_answerable.pkl')
-	classifier_model_suggestive = classify_question.load_classification_model('../../data/model_suggestive.pkl')
+	#classifier_model_suggestive = classify_question.load_classification_model('../../data/model_suggestive.pkl')
 	classifier_vectorizers = classify_question.load_vectorizers('../../data/tfidf_vectorizer.pkl', '../../data/w2v_vectorizer.pkl')
 	
 	for line in tqdm(rfp):
@@ -129,7 +129,7 @@ def main(args):
 			final_json['review_snippets'] = top_reviews_q
 			final_json['answers'] = question["answers"]
 			final_json['is_answerable'] = classify_question.is_answerable(classifier_model_answerable, classifier_vectorizers, question_text, top_reviews_q)
-			final_json['is_suggestive'] = 0 if (final_json['is_answerable'] == 0) else classify_question.is_suggestive(classifier_model_suggestive, classifier_vectorizers, question_text, top_reviews_q)
+			#final_json['is_suggestive'] = 0 if (final_json['is_answerable'] == 0) else classify_question.is_suggestive(classifier_model_suggestive, classifier_vectorizers, question_text, top_reviews_q)
 			#print(final_json)
 			wfp.write(json.dumps(final_json) + '\n')
 	wfp.close()
