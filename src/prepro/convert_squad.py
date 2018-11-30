@@ -57,7 +57,7 @@ def main(args):
 		qas = []
 		qas.append({
 			'id': qid,
-			'is_impossible': False,
+			'is_impossible': row["is_answerable"],
 			'question': row["questionText"],
 			'answers': new_answers,
 			'human_answers': [answer["answerText"] for answer in answers],
@@ -78,7 +78,7 @@ if __name__ == '__main__':
 	argParser = argparse.ArgumentParser(description="Convert Amazon QAR to Squad format")
 	argParser.add_argument("--input_file", type=str)
 	argParser.add_argument("--output_file", type=str)
-	argParser.add_argument("--span_min_len", type=int, default=2)
+	argParser.add_argument("--span_min_len", type=int, default=3)
 	argParser.add_argument("--span_max_len", type=int, default=10)
 	argParser.add_argument("--span_max_num", type=int, default=5)
 	argParser.add_argument("--evaluation_metric", type=str, default="Bleu_2")

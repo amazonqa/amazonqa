@@ -85,7 +85,7 @@ def main(args):
 	rfp = open(args.input_file, 'r')
 
 
-	classifier_model_answerable = classify_question.load_classification_model('../../data/model_answerable.pkl')
+	classifier_model_answerable = classify_question.load_classification_model('../../data/model_answerability.pkl')
 	classifier_model_suggestive = classify_question.load_classification_model('../../data/model_suggestive.pkl')
 	classifier_vectorizers = classify_question.load_vectorizers('../../data/tfidf_vectorizer.pkl', '../../data/w2v_vectorizer.pkl')
 	
