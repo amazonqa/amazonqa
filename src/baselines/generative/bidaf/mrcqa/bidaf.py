@@ -314,7 +314,7 @@ class BidafModel(nn.Module):
         result = self.decoder(inputs=targets,
             encoder_hidden=None,
             encoder_outputs=start_input,
-            function=F.softmax,
+            function=F.log_softmax,
             teacher_forcing_ratio=teacher_forcing_ratio
         )
 
