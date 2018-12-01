@@ -2,10 +2,11 @@ import tensorflow as tf
 import random
 from tqdm import tqdm
 import spacy
-import ujson as json
+import json
 from collections import Counter
 import numpy as np
 import os.path
+import pickle
 
 nlp = spacy.blank("en")
 
@@ -32,16 +33,16 @@ def process_file(config, data_type, word_counter, char_counter):
     print("Generating {} examples...".format(data_type))
     
     if data_type == "dev":
-        rfp = open(config.dev_file, 'rb')
-        wfp = open(config.dev_examples_file, 'wb')
-        wfp_eval = open(config.dev_eval_file, 'wb')
+        rfp = open(config.dev_file, 'r')
+        wfp = open(config.dev_examples_file, 'w')
+        wfp_eval = open(config.dev_eval_file, 'w')
     elif data_type == "test":
-        rfp = open(config.test_file, 'rb')
-        wfp = open(config.test_examples_file, 'wb')
-        wfp_eval = open(config.test_eval_file, 'wb')
+        rfp = open(config.test_file, 'r')
+        wfp = open(config.test_examples_file, 'w')
+        wfp_eval = open(config.test_eval_file, 'w')
     elif data_type == "train":
-        rfp = open(config.train_file, 'rb')
-        wfp_eval = open(config.train_eval_file, 'wb')
+        rfp = open(config.train_file, 'r')
+        wfp_eval = open(config.train_eval_file, 'w')
     else:
         exit(1)
 
@@ -99,17 +100,15 @@ def process_file(config, data_type, word_counter, char_counter):
     return
 
 
-def get_embedding(counter, data_type, limit=20000, emb_file=None, size=None, vec_size=None, token2idx_dict=None):
+def get_embedding(counter, data_type, limit=-1, emb_file=None, size=None, vec_size=None, token2idx_dict=None):
     print("Generating {} embedding...".format(data_type))
     embedding_dict = {}
-    filtered_elements = [k for k, v in counter.items() if v > limit]
+    filtered_elements = [k for k, v in counter.items() if v > limit][0:20000]
 
     assert vec_size is not None
     for token in filtered_elements:
-            embedding_dict[token] = [np.random.normal(
-                scale=0.01) for _ in range(vec_size)]
-        print("{} tokens have corresponding embedding vector".format(
-            len(filtered_elements)))
+        embedding_dict[token] = [np.random.normal(scale=0.01) for _ in range(vec_size)]
+    print("{} tokens have corresponding embedding vector".format(len(filtered_elements)))
 
     if emb_file is not None:
         assert size is not None
@@ -118,7 +117,7 @@ def get_embedding(counter, data_type, limit=20000, emb_file=None, size=None, vec
                 array = line.split()
                 word = "".join(array[0:-vec_size])
                 vector = list(map(float, array[-vec_size:]))
-                if word in counter and counter[word] > limit:
+                if word in filtered_elements:
                     embedding_dict[word] = vector
         print("{} / {} tokens have corresponding {} embedding vector".format(
             len(embedding_dict), len(filtered_elements), data_type))
@@ -137,6 +136,7 @@ def get_embedding(counter, data_type, limit=20000, emb_file=None, size=None, vec
     token2idx_dict[OOV] = 1
     embedding_dict[NULL] = [0. for _ in range(vec_size)]
     embedding_dict[OOV] = [0. for _ in range(vec_size)]
+
     idx2emb_dict = {idx: embedding_dict[token]
                     for token, idx in token2idx_dict.items()}
     emb_mat = [idx2emb_dict[idx] for idx in range(len(idx2emb_dict))]
@@ -237,11 +237,24 @@ def save(filename, obj, message=None):
             json.dump(obj, fh)
 
 
+def save_pickle(filename, obj, message=None):
+    if message is not None:
+        print("Saving {}...".format(message))
+    with open(filename, "wb") as fh:
+        pickle.dump(obj, fh)
+
+
 def prepro(config):
     word_counter, char_counter = Counter(), Counter()
     #process_file(config, "train", word_counter, char_counter)
     process_file(config, "dev", word_counter, char_counter)
     #process_file(config, "test", word_counter, char_counter)
+
+    save_pickle(config.word_counter_file, word_counter, message="word counter")
+    save_pickle(config.char_counter_file, char_counter, message="char counter")
+
+    #word_counter = load_pickle(config.word_counter_file)
+    #char_counter = load_pickle(config.char_counter_file)
 
     word_emb_file = config.fasttext_file if config.fasttext else config.glove_word_file
     char_emb_file = config.glove_char_file if config.pretrained_char else None
