@@ -209,7 +209,7 @@ def tokenize_data(logger, data, token_to_id, char_to_id, vocab_size, update, lim
         for qid, (p_tokens, p_chars), (q_tokens, q_chars), (a_tokens, a_chars), (start, stop), mapping in tokenized:
             p_tokens, q_tokens, a_tokens = list(
                 map(
-                    lambda x: old_token_to_new_token_id.get(x, C.UNK_INDEX), 
+                    lambda x: [old_token_to_new_token_id.get(i, C.UNK_INDEX) for i in x],
                     [p_tokens, q_tokens, a_tokens]
                 )
             )
