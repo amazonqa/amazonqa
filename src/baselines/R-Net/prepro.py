@@ -9,6 +9,77 @@ import os.path
 
 nlp = spacy.blank("en")
 
+
+def word_tokenize(sent):
+    doc = nlp(sent)
+    return [token.text for token in doc]
+
+
+def convert_idx(text, tokens):
+    current = 0
+    spans = []
+    for token in tokens:
+        current = text.find(token, current)
+        if current < 0:
+            print("Token {} cannot be found".format(token))
+            raise Exception()
+        spans.append((current, current + len(token)))
+        current += len(token)
+    return spans
+
+
+def process_file(filename, data_type, word_counter, char_counter):
+    print("Generating {} examples...".format(data_type))
+    examples = []
+    eval_examples = {}
+    total = 0
+    with open(filename, "r") as fh:
+        source = json.load(fh)
+        for article in tqdm(source["data"]):
+            for para in article["paragraphs"]:
+                context = para["context"].replace(
+                    "''", '" ').replace("``", '" ')
+                context_tokens = word_tokenize(context)
+                context_chars = [list(token) for token in context_tokens]
+                spans = convert_idx(context, context_tokens)
+                for token in context_tokens:
+                    word_counter[token] += len(para["qas"])
+                    for char in token:
+                        char_counter[char] += len(para["qas"])
+                for qa in para["qas"]:
+                    total += 1
+                    ques = qa["question"].replace(
+                        "''", '" ').replace("``", '" ')
+                    ques_tokens = word_tokenize(ques)
+                    ques_chars = [list(token) for token in ques_tokens]
+                    for token in ques_tokens:
+                        word_counter[token] += 1
+                        for char in token:
+                            char_counter[char] += 1
+                    y1s, y2s = [], []
+                    answer_texts = []
+                    for answer in qa["answers"]:
+                        answer_text = answer["text"]
+                        answer_start = answer['answer_start']
+                        answer_end = answer_start + len(answer_text)
+                        answer_texts.append(answer_text)
+                        answer_span = []
+                        for idx, span in enumerate(spans):
+                            if not (answer_end <= span[0] or answer_start >= span[1]):
+                                answer_span.append(idx)
+                        y1, y2 = answer_span[0], answer_span[-1]
+                        y1s.append(y1)
+                        y2s.append(y2)
+                    example = {"context_tokens": context_tokens, "context_chars": context_chars, "ques_tokens": ques_tokens,
+                               "ques_chars": ques_chars, "y1s": y1s, "y2s": y2s, "id": total}
+                    examples.append(example)
+                    eval_examples[str(total)] = {
+                        "context": context, "spans": spans, "answers": answer_texts, "uuid": qa["id"]}
+        random.shuffle(examples)
+        print("{} questions in total".format(len(examples)))
+    return examples, eval_examples
+
+
 def get_embedding(counter, data_type, limit=-1, emb_file=None, size=None, vec_size=None, token2idx_dict=None):
     print("Generating {} embedding...".format(data_type))
     embedding_dict = {}
@@ -126,19 +197,18 @@ def build_features(config, examples, data_type, out_file, word2idx_dict, char2id
 def save(filename, obj, message=None):
     if message is not None:
         print("Saving {}...".format(message))
-    with open(filename, "w") as fh:
-        json.dump(obj, fh)
+        with open(filename, "w") as fh:
+            json.dump(obj, fh)
 
-def load_pickle(filename, message=None):
-    if message is not None:
-        print("Loading {}...".format(message))
-    with open(filename, "rb") as fh:
-        obj = pickle.load(fh)
-    return obj
 
 def prepro(config):
-    word_counter = load_pickle(config.word_counter_file)
-    char_counter = load_pickle(config.char_counter_file)
+    word_counter, char_counter = Counter(), Counter()
+    train_examples, train_eval = process_file(
+        config.train_file, "train", word_counter, char_counter)
+    dev_examples, dev_eval = process_file(
+        config.dev_file, "dev", word_counter, char_counter)
+    test_examples, test_eval = process_file(
+        config.test_file, "test", word_counter, char_counter)
 
     word_emb_file = config.fasttext_file if config.fasttext else config.glove_word_file
     char_emb_file = config.glove_char_file if config.pretrained_char else None
@@ -149,31 +219,29 @@ def prepro(config):
     if os.path.isfile(config.word2idx_file):
         with open(config.word2idx_file, "r") as fh:
             word2idx_dict = json.load(fh)
-    
     word_emb_mat, word2idx_dict = get_embedding(word_counter, "word", emb_file=word_emb_file,
                                                 size=config.glove_word_size, vec_size=config.glove_dim, token2idx_dict=word2idx_dict)
-    save(config.word_emb_file, word_emb_mat, message="word embedding")
-    save(config.word2idx_file, word2idx_dict, message="word2idx")
-
 
     char2idx_dict = None
     if os.path.isfile(config.char2idx_file):
         with open(config.char2idx_file, "r") as fh:
             char2idx_dict = json.load(fh)
-    
     char_emb_mat, char2idx_dict = get_embedding(
         char_counter, "char", emb_file=char_emb_file, size=char_emb_size, vec_size=char_emb_dim, token2idx_dict=char2idx_dict)
-    save(config.char_emb_file, char_emb_mat, message="char embedding")
-    save(config.char2idx_file, char2idx_dict, message="char2idx")
 
-    dev_examples = load_pickle(config.dev_examples_file)
-    test_examples = load_pickle(config.test_examples_file)
-
+    build_features(config, train_examples, "train",
+                   config.train_record_file, word2idx_dict, char2idx_dict)
     dev_meta = build_features(config, dev_examples, "dev",
                               config.dev_record_file, word2idx_dict, char2idx_dict)
-    save(config.dev_meta, dev_meta, message="dev meta")
-
     test_meta = build_features(config, test_examples, "test",
                                config.test_record_file, word2idx_dict, char2idx_dict, is_test=True)
-    save(config.test_meta, test_meta, message="test meta")
 
+    save(config.word_emb_file, word_emb_mat, message="word embedding")
+    save(config.char_emb_file, char_emb_mat, message="char embedding")
+    save(config.train_eval_file, train_eval, message="train eval")
+    save(config.dev_eval_file, dev_eval, message="dev eval")
+    save(config.test_eval_file, test_eval, message="test eval")
+    save(config.dev_meta, dev_meta, message="dev meta")
+    save(config.word2idx_file, word2idx_dict, message="word2idx")
+    save(config.char2idx_file, char2idx_dict, message="char2idx")
+    save(config.test_meta, test_meta, message="test meta")
