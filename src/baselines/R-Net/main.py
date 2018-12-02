@@ -15,15 +15,17 @@ def train(config):
         char_mat = np.array(json.load(fh), dtype=np.float32)
 
     train_eval_file = {}
-    total = 0
     with open(config.train_eval_file, "r") as fh:
         for line in tqdm(fh):
-            row = json.loads(line)
-            train_eval_file[str(total)] = row
-            total += 1
+            id = json.loads(line)["id"]
+            train_eval_file[str(id)] = line
 
+    dev_eval_file = {}
     with open(config.dev_eval_file, "r") as fh:
-        dev_eval_file = json.load(fh)
+        for line in tqdm(fh):
+            id = json.loads(line)["id"]
+            dev_eval_file[str(id)] = line
+
     with open(config.dev_meta, "r") as fh:
         meta = json.load(fh)
 
