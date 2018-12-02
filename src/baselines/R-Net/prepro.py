@@ -42,6 +42,7 @@ def process_file(config, data_type, word_counter, char_counter):
         wfp_eval = open(config.test_eval_file, 'w')
     elif data_type == "train":
         rfp = open(config.train_file, 'r')
+        wfp = open(config.train_examples_file, 'w')
         wfp_eval = open(config.train_eval_file, 'w')
     else:
         exit(1)
@@ -84,18 +85,16 @@ def process_file(config, data_type, word_counter, char_counter):
                 y1s.append(y1)
                 y2s.append(y2)
             
-            if data_type != "train":
-                example = {"context_tokens": context_tokens, "context_chars": context_chars, "ques_tokens": ques_tokens,
-                       "ques_chars": ques_chars, "y1s": y1s, "y2s": y2s, "id": total}
-                wfp.write(json.dumps(example) + '\n')
+            example = {"context_tokens": context_tokens, "context_chars": context_chars, "ques_tokens": ques_tokens,
+                   "ques_chars": ques_chars, "y1s": y1s, "y2s": y2s, "id": total}
+            wfp.write(json.dumps(example) + '\n')
 
-            row = {"context": context, "spans": spans, "answers": answer_texts, "uuid": qa["id"]}
+            row = {"context": context, "spans": spans, "answers": answer_texts, "uuid": qa["id"], "id":total}
             wfp_eval.write(json.dumps(row) + '\n')
 
     rfp.close()
     wfp_eval.close()
-    if data_type != "train":
-        wfp.close()
+    wfp.close()
     #shuffle wfp
     return
 
@@ -151,6 +150,9 @@ def build_features(config, data_type, word2idx_dict, char2idx_dict, is_test=Fals
     elif data_type == "test":
         out_file = config.test_record_file
         rfp = open(config.test_examples_file, 'r')
+    elif data_type == "train":
+        out_file = config.train_record_file
+        rfp = open(config.train_examples_file, 'r')
     else:
         exit(1)
 
@@ -170,8 +172,13 @@ def build_features(config, data_type, word2idx_dict, char2idx_dict, is_test=Fals
         example = json.loads(line)
         total_ += 1
 
-        if filter_func(example, is_test):
-            continue
+        if len(example["context_tokens"]) > para_limit:
+            example["context_tokens"] = example["context_tokens"][0:para_limit]
+            example["context_chars"] = example["context_chars"][0:para_limit]
+
+        if len(example["ques_tokens"]) > ques_limit:
+            example["ques_tokens"] = example["ques_tokens"][0:ques_limit]
+            example["ques_chars"] = example["ques_chars"][0:ques_limit]
 
         total += 1
         context_idxs = np.zeros([para_limit], dtype=np.int32)
@@ -211,7 +218,8 @@ def build_features(config, data_type, word2idx_dict, char2idx_dict, is_test=Fals
                 ques_char_idxs[i, j] = _get_char(char)
 
         start, end = example["y1s"][-1], example["y2s"][-1]
-        y1[start], y2[end] = 1.0, 1.0
+        if start < len(y1) and end < len(y2):
+            y1[start], y2[end] = 1.0, 1.0
 
         record = tf.train.Example(features=tf.train.Features(feature={
                                   "context_idxs": tf.train.Feature(bytes_list=tf.train.BytesList(value=[context_idxs.tostring()])),
@@ -233,8 +241,16 @@ def build_features(config, data_type, word2idx_dict, char2idx_dict, is_test=Fals
 def save(filename, obj, message=None):
     if message is not None:
         print("Saving {}...".format(message))
-        with open(filename, "w") as fh:
-            json.dump(obj, fh)
+    with open(filename, "w") as fh:
+        json.dump(obj, fh)
+
+
+def load(filename, message=None):
+    if message is not None:
+        print("Loading {}...".format(message))
+    with open(filename, "r") as fh:
+        obj = json.load(fh)
+    return obj
 
 
 def save_pickle(filename, obj, message=None):
@@ -244,48 +260,64 @@ def save_pickle(filename, obj, message=None):
         pickle.dump(obj, fh)
 
 
+def load_pickle(filename, message=None):
+    if message is not None:
+        print("Loading {}...".format(message))
+    with open(filename, "rb") as fh:
+        obj = pickle.load(fh)
+    return obj
+
+
 def prepro(config):
-    word_counter, char_counter = Counter(), Counter()
-    #process_file(config, "train", word_counter, char_counter)
-    process_file(config, "dev", word_counter, char_counter)
-    #process_file(config, "test", word_counter, char_counter)
+    # word_counter, char_counter = Counter(), Counter()
+    
+    # process_file(config, "train", word_counter, char_counter)
+    # process_file(config, "dev", word_counter, char_counter)
+    # process_file(config, "test", word_counter, char_counter)
 
-    save_pickle(config.word_counter_file, word_counter, message="word counter")
-    save_pickle(config.char_counter_file, char_counter, message="char counter")
+    # save_pickle(config.word_counter_file, word_counter, message="word counter")
+    # save_pickle(config.char_counter_file, char_counter, message="char counter")
 
-    #word_counter = load_pickle(config.word_counter_file)
-    #char_counter = load_pickle(config.char_counter_file)
+    # word_counter = load_pickle(config.word_counter_file)
+    # char_counter = load_pickle(config.char_counter_file)
 
-    word_emb_file = config.fasttext_file if config.fasttext else config.glove_word_file
-    char_emb_file = config.glove_char_file if config.pretrained_char else None
-    char_emb_size = config.glove_char_size if config.pretrained_char else None
-    char_emb_dim = config.glove_dim if config.pretrained_char else config.char_dim
+    # word_emb_file = config.fasttext_file if config.fasttext else config.glove_word_file
+    # char_emb_file = config.glove_char_file if config.pretrained_char else None
+    # char_emb_size = config.glove_char_size if config.pretrained_char else None
+    # char_emb_dim = config.glove_dim if config.pretrained_char else config.char_dim
 
-    word2idx_dict = None
-    if os.path.isfile(config.word2idx_file):
-        with open(config.word2idx_file, "r") as fh:
-            word2idx_dict = json.load(fh)
-    word_emb_mat, word2idx_dict = get_embedding(
-        word_counter, "word", emb_file=word_emb_file,size=config.glove_word_size, 
-        vec_size=config.glove_dim, token2idx_dict=word2idx_dict)
+    # word2idx_dict = None
+    # if os.path.isfile(config.word2idx_file):
+    #     with open(config.word2idx_file, "r") as fh:
+    #         word2idx_dict = json.load(fh)
+    # word_emb_mat, word2idx_dict = get_embedding(
+    #     word_counter, "word", emb_file=word_emb_file,size=config.glove_word_size, 
+    #     vec_size=config.glove_dim, token2idx_dict=word2idx_dict)
 
-    char2idx_dict = None
-    if os.path.isfile(config.char2idx_file):
-        with open(config.char2idx_file, "r") as fh:
-            char2idx_dict = json.load(fh)
-    char_emb_mat, char2idx_dict = get_embedding(
-        char_counter, "char", emb_file=char_emb_file, size=char_emb_size, 
-        vec_size=char_emb_dim, token2idx_dict=char2idx_dict)
+    # char2idx_dict = None
+    # if os.path.isfile(config.char2idx_file):
+    #     with open(config.char2idx_file, "r") as fh:
+    #         char2idx_dict = json.load(fh)
+    # char_emb_mat, char2idx_dict = get_embedding(
+    #     char_counter, "char", emb_file=char_emb_file, size=char_emb_size, 
+    #     vec_size=char_emb_dim, token2idx_dict=char2idx_dict)
 
+    # save(config.word_emb_file, word_emb_mat, message="word embedding")
+    # save(config.char_emb_file, char_emb_mat, message="char embedding")
+
+    # save(config.word2idx_file, word2idx_dict, message="word2idx")
+    # save(config.char2idx_file, char2idx_dict, message="char2idx")
+
+    word_emb_mat = load(config.word_emb_file, message="word embedding")
+    char_emb_mat = load(config.char_emb_file, message="char embedding")
+
+    word2idx_dict = load(config.word2idx_file, message="word2idx")
+    char2idx_dict = load(config.char2idx_file, message="char2idx")
+
+    #train_meta = build_features(config, "train", word2idx_dict, char2idx_dict)
     dev_meta = build_features(config, "dev", word2idx_dict, char2idx_dict)
-    #test_meta = build_features(config, "test", word2idx_dict, char2idx_dict, is_test=True)
-
-    save(config.word_emb_file, word_emb_mat, message="word embedding")
-    save(config.char_emb_file, char_emb_mat, message="char embedding")
-
-    save(config.word2idx_file, word2idx_dict, message="word2idx")
-    save(config.char2idx_file, char2idx_dict, message="char2idx")
+    test_meta = build_features(config, "test", word2idx_dict, char2idx_dict, is_test=True)
 
     save(config.dev_meta, dev_meta, message="dev meta")
-    #save(config.test_meta, test_meta, message="test meta")
+    save(config.test_meta, test_meta, message="test meta")
 
