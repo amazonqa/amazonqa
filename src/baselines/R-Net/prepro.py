@@ -102,7 +102,7 @@ def process_file(config, data_type, word_counter, char_counter):
 def get_embedding(counter, data_type, limit=-1, emb_file=None, size=None, vec_size=None, token2idx_dict=None):
     print("Generating {} embedding...".format(data_type))
     embedding_dict = {}
-    filtered_elements = [k for k, v in counter.items() if v > limit][0:20000]
+    filtered_elements = [k for k, v in counter.items() if v > limit][0:50000]
 
     assert vec_size is not None
     for token in filtered_elements:
@@ -278,43 +278,43 @@ def prepro(config):
     # save_pickle(config.word_counter_file, word_counter, message="word counter")
     # save_pickle(config.char_counter_file, char_counter, message="char counter")
 
-    # word_counter = load_pickle(config.word_counter_file)
-    # char_counter = load_pickle(config.char_counter_file)
+    word_counter = load_pickle(config.word_counter_file)
+    char_counter = load_pickle(config.char_counter_file)
 
-    # word_emb_file = config.fasttext_file if config.fasttext else config.glove_word_file
-    # char_emb_file = config.glove_char_file if config.pretrained_char else None
-    # char_emb_size = config.glove_char_size if config.pretrained_char else None
-    # char_emb_dim = config.glove_dim if config.pretrained_char else config.char_dim
+    word_emb_file = config.fasttext_file if config.fasttext else config.glove_word_file
+    char_emb_file = config.glove_char_file if config.pretrained_char else None
+    char_emb_size = config.glove_char_size if config.pretrained_char else None
+    char_emb_dim = config.glove_dim if config.pretrained_char else config.char_dim
 
-    # word2idx_dict = None
-    # if os.path.isfile(config.word2idx_file):
-    #     with open(config.word2idx_file, "r") as fh:
-    #         word2idx_dict = json.load(fh)
-    # word_emb_mat, word2idx_dict = get_embedding(
-    #     word_counter, "word", emb_file=word_emb_file,size=config.glove_word_size, 
-    #     vec_size=config.glove_dim, token2idx_dict=word2idx_dict)
+    word2idx_dict = None
+    if os.path.isfile(config.word2idx_file):
+        with open(config.word2idx_file, "r") as fh:
+            word2idx_dict = json.load(fh)
+    word_emb_mat, word2idx_dict = get_embedding(
+        word_counter, "word", emb_file=word_emb_file,size=config.glove_word_size, 
+        vec_size=config.glove_dim, token2idx_dict=word2idx_dict)
 
-    # char2idx_dict = None
-    # if os.path.isfile(config.char2idx_file):
-    #     with open(config.char2idx_file, "r") as fh:
-    #         char2idx_dict = json.load(fh)
-    # char_emb_mat, char2idx_dict = get_embedding(
-    #     char_counter, "char", emb_file=char_emb_file, size=char_emb_size, 
-    #     vec_size=char_emb_dim, token2idx_dict=char2idx_dict)
+    char2idx_dict = None
+    if os.path.isfile(config.char2idx_file):
+        with open(config.char2idx_file, "r") as fh:
+            char2idx_dict = json.load(fh)
+    char_emb_mat, char2idx_dict = get_embedding(
+        char_counter, "char", emb_file=char_emb_file, size=char_emb_size, 
+        vec_size=char_emb_dim, token2idx_dict=char2idx_dict)
 
-    # save(config.word_emb_file, word_emb_mat, message="word embedding")
-    # save(config.char_emb_file, char_emb_mat, message="char embedding")
+    save(config.word_emb_file, word_emb_mat, message="word embedding")
+    save(config.char_emb_file, char_emb_mat, message="char embedding")
 
-    # save(config.word2idx_file, word2idx_dict, message="word2idx")
-    # save(config.char2idx_file, char2idx_dict, message="char2idx")
+    save(config.word2idx_file, word2idx_dict, message="word2idx")
+    save(config.char2idx_file, char2idx_dict, message="char2idx")
 
-    word_emb_mat = load(config.word_emb_file, message="word embedding")
-    char_emb_mat = load(config.char_emb_file, message="char embedding")
+    # word_emb_mat = load(config.word_emb_file, message="word embedding")
+    # char_emb_mat = load(config.char_emb_file, message="char embedding")
 
-    word2idx_dict = load(config.word2idx_file, message="word2idx")
-    char2idx_dict = load(config.char2idx_file, message="char2idx")
+    # word2idx_dict = load(config.word2idx_file, message="word2idx")
+    # char2idx_dict = load(config.char2idx_file, message="char2idx")
 
-    #train_meta = build_features(config, "train", word2idx_dict, char2idx_dict)
+    train_meta = build_features(config, "train", word2idx_dict, char2idx_dict)
     dev_meta = build_features(config, "dev", word2idx_dict, char2idx_dict)
     test_meta = build_features(config, "test", word2idx_dict, char2idx_dict, is_test=True)
 
