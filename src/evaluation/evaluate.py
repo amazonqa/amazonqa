@@ -37,13 +37,15 @@ def compute_evaluation_scores(reference_dict, prediction_dict, semantic=True, ve
         (Bleu(4), ["Bleu_1", "Bleu_2", "Bleu_3", "Bleu_4"], 'BLEU'),
         (Rouge(), "ROUGE_L", 'ROUGE'),
         # (Meteor(),"METEOR", "METEOR"),
-        (Cider(), "CIDEr", "CIDER")
+        # (Cider(), "CIDEr", "CIDER")
     ]
     final_scores = {}
     for scorer, method, method_name in scorers:
         if verbose:
             print('Computing %s..' % method_name)
         score, _ = scorer.compute_score(reference_dict, prediction_dict)
+        # score, scorers = scorer.compute_score(reference_dict, prediction_dict)
+        # print(scorers)
         if type(score) == list:
             for m, s in zip(method, score):
                 final_scores[m] = s
