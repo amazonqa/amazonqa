@@ -17,7 +17,7 @@ QUERY_ID_JSON_ID = 'qid'
 ANSWERS_JSON_ID = 'answers'
 NLP = None
 
-def compute_evaluation_scores(reference_dict, prediction_dict, semantic=True):
+def compute_evaluation_scores(reference_dict, prediction_dict, semantic=True, verbose=True):
     """
     reference_dict, dictionary of reference answers (qid, [answers])
     prediction_dict, dictionary of prediction answers (qid, [answer])
@@ -25,7 +25,7 @@ def compute_evaluation_scores(reference_dict, prediction_dict, semantic=True):
     """
 
     # Check if there are missing ids in prediction
-    reference_query_ids = set(reference_dictionary.keys())
+    reference_query_ids = set(reference_dict.keys())
     prediction_query_ids = set(prediction_dict.keys())
     common_query_ids = reference_query_ids.intersection(prediction_query_ids)
     assert (len(common_query_ids) == len(reference_query_ids)) and \
@@ -34,14 +34,16 @@ def compute_evaluation_scores(reference_dict, prediction_dict, semantic=True):
 
     # Scorers
     scorers = [
-        (Bleu(4), ["Bleu_1", "Bleu_2", "Bleu_3", "Bleu_4"]),
-        (Rouge(), "ROUGE_L"),
-        (Meteor(),"METEOR"),
-        (Cider(), "CIDEr")
+        (Bleu(4), ["Bleu_1", "Bleu_2", "Bleu_3", "Bleu_4"], 'BLEU'),
+        (Rouge(), "ROUGE_L", 'ROUGE'),
+        # (Meteor(),"METEOR", "METEOR"),
+        (Cider(), "CIDEr", "CIDER")
     ]
     final_scores = {}
-    for scorer, method in scorers:
-        score, scores = scorer.compute_score(reference_dict, prediction_dict)
+    for scorer, method, method_name in scorers:
+        if verbose:
+            print('Computing %s..' % method_name)
+        score, _ = scorer.compute_score(reference_dict, prediction_dict)
         if type(score) == list:
             for m, s in zip(method, score):
                 final_scores[m] = s

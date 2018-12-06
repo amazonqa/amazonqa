@@ -15,13 +15,15 @@ METEOR_JAR = 'meteor-1.5.jar'
 class Meteor:
 
     def __init__(self):
+        d = dict(os.environ.copy())
+        d['LANG'] = 'C'
         self.meteor_cmd = ['java', '-jar', '-Xmx2G', METEOR_JAR, \
                 '-', '-', '-stdio', '-l', 'en', '-norm']
         self.meteor_p = subprocess.Popen(self.meteor_cmd, \
                 cwd=os.path.dirname(os.path.abspath(__file__)), \
                 stdin=subprocess.PIPE, \
                 stdout=subprocess.PIPE, \
-                stderr=subprocess.PIPE)
+                stderr=subprocess.PIPE, encoding='utf8', env=d)
         # Used to guarantee thread safety
         self.lock = threading.Lock()
 
@@ -39,8 +41,8 @@ class Meteor:
 
         self.meteor_p.stdin.write('{}\n'.format(eval_line))
         for i in range(0,len(imgIds)):
-            scores.append(float(self.meteor_p.stdout.readline().strip()))
-        score = float(self.meteor_p.stdout.readline().strip())
+            scores.append(str_to_float(self.meteor_p.stdout.readline().strip()))
+        score = str_to_float(self.meteor_p.stdout.readline().strip())
         self.lock.release()
 
         return score, scores
@@ -78,3 +80,6 @@ class Meteor:
         self.meteor_p.kill()
         self.meteor_p.wait()
         self.lock.release()
+
+def str_to_float(s):
+    return float(s) if s != '' else 0.0
