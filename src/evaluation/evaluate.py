@@ -6,7 +6,9 @@ import json
 import sys
 import spacy
 import argparse
+import numpy as np
 
+from collections import OrderedDict
 from pycocoevalcap.bleu.bleu import Bleu
 from pycocoevalcap.rouge.rouge import Rouge
 from pycocoevalcap.meteor.meteor import Meteor
@@ -33,37 +35,53 @@ def compute_evaluation_scores(reference_dict, prediction_dict, semantic=True, mu
     assert (len(common_query_ids) == len(reference_query_ids)) and \
             (len(common_query_ids) == len(prediction_query_ids)), \
         'Reference and prediction same question ids'
+    query_ids = list(reference_dict.keys())
 
     # Scorers
     scorers = [
         (Bleu(4), ["Bleu_1", "Bleu_2", "Bleu_3", "Bleu_4"], 'BLEU'),
         (Rouge(), "ROUGE_L", 'ROUGE'),
         # (Meteor(),"METEOR", "METEOR"),
-        # (Cider(), "CIDEr", "CIDER")
+        (Cider(), "CIDEr", "CIDER")
     ]
-    final_scores = {}
+    final_scores = {'min': {}, 'mean': {}, 'max': {}} if multiple else {}
+
     for scorer, method, method_name in scorers:
         if verbose:
             print('Computing %s..' % method_name)
-        score, _ = scorer.compute_score(reference_dict, prediction_dict)
-        # score, scorers = scorer.compute_score(reference_dict, prediction_dict)
-        # print(scorers)
+        score, scores = scorer.compute_score(reference_dict, prediction_dict)
         if type(score) == list:
-            for m, s in zip(method, score):
-                final_scores[m] = s
+            if multiple:
+                for m, s in zip(method, scores):
+                    agg_scores = aggregate(query_ids, s)
+                    for key, value in agg_scores.items():
+                        final_scores[key][m] = value
+            else:
+                for m, s in zip(method, score):
+                    final_scores[m] = s
         else:
-            final_scores[method] = score
+            if multiple:
+                agg_scores = aggregate(query_ids, scores)
+                for key, value in agg_scores.items():
+                    final_scores[key][method] = value
+            else:
+                final_scores[method] = score
 
     if semantic:
-        similarity = 0
+        similarities = []
         for qid, ref_answers in reference_dict.items():
             prediction_answer = nlp(prediction_dict[qid][0])
             answersimilarity = 0
             for answer in ref_answers:
                 answersimilarity += prediction_answer.similarity(nlp(answer))
-            similarity += (answersimilarity / len(ref_answers))
-        semantic_similarity = similarity / len(reference_dict)
-        final_scores['Semantic_Similarity'] = semantic_similarity
+            similarities.append(answersimilarity / len(ref_answers))
+        method = 'Semantic_Similarity'
+        if multiple:
+            agg_scores = aggregate(query_ids, similarities)
+            for key, value in agg_scores.items():
+                final_scores[key][method] = value
+        else:
+            final_scores[method] = np.mean(similarities)
 
     return final_scores
 
@@ -101,7 +119,7 @@ def load_file(filename, multiple, normalize):
 
     all_normalized_answers = normalize_batch(all_answers) if normalize else all_answers
 
-    query_id_to_answers_map = {}
+    query_id_to_answers_map = OrderedDict()
     for i, normalized_answer in enumerate(all_normalized_answers):
         query_id = query_ids[i]
         if query_id not in query_id_to_answers_map:
@@ -114,14 +132,27 @@ def compute_metrics_from_files(reference_filename, prediction_filename, multiple
     reference_dictionary = load_file(reference_filename, multiple, True)
     prediction_dictionary = load_file(prediction_filename, multiple, True)
 
-    pp = pprint.PrettyPrinter(indent=4)
-    pp.pprint(reference_dictionary)
-    pp.pprint(prediction_dictionary)
+    # pp = pprint.PrettyPrinter(indent=4)
+    # pp.pprint(reference_dictionary)
+    # pp.pprint(prediction_dictionary)
+    # pp.pprint(list(reference_dictionary.keys()))
 
     for query_id, answers in prediction_dictionary.items():
         assert len(answers) <= 1, 'qid %d contains more than 1 answer \"%s\" in prediction file' % (query_id, str(answers))
 
     return compute_evaluation_scores(reference_dictionary, prediction_dictionary, multiple=multiple, semantic=True)
+
+def aggregate(idxs, scores):
+    d = {}
+    for (qid, _), score in zip(idxs, scores):
+        if qid not in d:
+            d[qid] = []
+        d[qid].append(score)
+    return {
+        'min': np.mean([np.min(value) for value in d.values()]),
+        'mean': np.mean([np.mean(value) for value in d.values()]),
+        'max': np.mean([np.max(value) for value in d.values()])
+    }
 
 def main():
     argparser = argparse.ArgumentParser()
@@ -132,8 +163,16 @@ def main():
 
     metrics = compute_metrics_from_files(args.path_to_reference_file, args.path_to_prediction_file, args.multiple)
     print('############################')
-    for metric in sorted(metrics):
-        print('%s: %.4f' % (metric, metrics[metric]))
+    # pp = pprint.PrettyPrinter(indent=4)
+    # pp.pprint(metrics)
+    if args.multiple:
+        for key, value in metrics.items():
+            print('## %s ##' % key)
+            for metric in sorted(value):
+                print('%s: %.4f' % (metric, value[metric]))
+    else:
+        for metric in sorted(metrics):
+            print('%s: %.4f' % (metric, metrics[metric]))
     print('############################')
 
 if __name__ == "__main__":
