@@ -17,7 +17,7 @@ QUERY_ID_JSON_ID = 'qid'
 ANSWERS_JSON_ID = 'answers'
 NLP = None
 
-def compute_evaluation_scores(reference_dict, prediction_dict, semantic=True, verbose=True):
+def compute_evaluation_scores(reference_dict, prediction_dict, semantic=True, multiple=False, verbose=True):
     """
     reference_dict, dictionary of reference answers (qid, [answers])
     prediction_dict, dictionary of prediction answers (qid, [answer])
@@ -99,11 +99,12 @@ def load_file(filename, normalize):
     query_id_to_answers_map = {}
     for i, normalized_answer in enumerate(all_normalized_answers):
         query_id = query_ids[i]
-        query_id_to_answers_map[query_id] = []
+        if query_id not in query_id_to_answers_map:
+            query_id_to_answers_map[query_id] = []
         query_id_to_answers_map[query_id].append(normalized_answer)
     return query_id_to_answers_map
 
-def compute_metrics_from_files(reference_filename, prediction_filename, normalize=False):
+def compute_metrics_from_files(reference_filename, prediction_filename, normalize=False, multiple=False):
 
     reference_dictionary = load_file(reference_filename, normalize)
     prediction_dictionary = load_file(prediction_filename, normalize)
@@ -111,7 +112,7 @@ def compute_metrics_from_files(reference_filename, prediction_filename, normaliz
     for query_id, answers in prediction_dictionary.items():
         assert len(answers) <= 1, 'qid %d contains more than 1 answer \"%s\" in prediction file' % (query_id, str(answers))
 
-    return compute_evaluation_scores(reference_dictionary, prediction_dictionary, semantic=True)
+    return compute_evaluation_scores(reference_dictionary, prediction_dictionary, multiple=multiple, semantic=True)
 
 def main():
     path_to_reference_file = sys.argv[1]
