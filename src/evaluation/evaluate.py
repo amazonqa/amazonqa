@@ -41,7 +41,7 @@ def compute_evaluation_scores(reference_dict, prediction_dict, semantic=True, mu
     scorers = [
         (Bleu(4), ["Bleu_1", "Bleu_2", "Bleu_3", "Bleu_4"], 'BLEU'),
         (Rouge(), "ROUGE_L", 'ROUGE'),
-        # (Meteor(),"METEOR", "METEOR"),
+        (Meteor(),"METEOR", "METEOR"),
         (Cider(), "CIDEr", "CIDER")
     ]
     final_scores = {'min': {}, 'mean': {}, 'max': {}} if multiple else {}
