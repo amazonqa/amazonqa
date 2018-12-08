@@ -11,6 +11,7 @@ def read_answers_from_full(input_filename):
                 qar = json.loads(line)
             except json.JSONDecodeError:
                 raise Exception('\"%s\" is not a valid json' % line)
+            qar = qar['qas'][0]
             spans = [a['text'] for a in qar['answers'] if a['text'] != '']
             all_answers.append((spans, qar['human_answers']))
     return all_answers
@@ -18,7 +19,7 @@ def read_answers_from_full(input_filename):
 def create_ref_and_pred(all_answers, ref_filename, prediction_filename):
     print('Writing files')
     with open(ref_filename + '_all_spans.jsonl', 'w', encoding='utf-8') as fp_ref:
-        with open(prediction_filename + '_all.jsonl', 'w', encoding='utf-8') as fp_pred:
+        with open(prediction_filename + '_all_spans.jsonl', 'w', encoding='utf-8') as fp_pred:
             for qid, (spans, answers) in enumerate(all_answers):
                 if len(spans) > 0 and len(answers) > 0:
                     for i, span in enumerate(spans):
@@ -33,7 +34,7 @@ def create_ref_and_pred(all_answers, ref_filename, prediction_filename):
                     fp_ref.write('%s\n' % json.dumps({'qid': qid, 'answers': answers}))
 
     with open(ref_filename + '_all_answers.jsonl', 'w', encoding='utf-8') as fp_ref:
-        with open(prediction_filename + '_all.jsonl', 'w', encoding='utf-8') as fp_pred:
+        with open(prediction_filename + '_all_answers.jsonl', 'w', encoding='utf-8') as fp_pred:
             for qid, answers in enumerate(all_answers):
                 if len(answers) > 1:
                     for i, answer in enumerate(answers):
@@ -42,7 +43,7 @@ def create_ref_and_pred(all_answers, ref_filename, prediction_filename):
                         fp_ref.write('%s\n' % json.dumps({'qid': qid, 'answers': ref_answers}))
 
     with open(ref_filename + '_first_answer.jsonl', 'w', encoding='utf-8') as fp_ref:
-        with open(prediction_filename + '_first.jsonl', 'w', encoding='utf-8') as fp_pred:
+        with open(prediction_filename + '_first_answer.jsonl', 'w', encoding='utf-8') as fp_pred:
             for qid, answers in enumerate(all_answers):
                 if len(answers) > 1:
                     fp_pred.write('%s\n' % json.dumps({'qid': qid, 'answers': [answers[0]]}))
