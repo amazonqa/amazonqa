@@ -28,8 +28,8 @@ def top_reviews_and_scores(question_tokens, review_tokens, inverted_index, revie
     else:
         raise 'Unimplemented Review Select Mode'
     
-    top_review_ids, scores = zip(*sorted(list(zip(scores, review_ids)), reverse=True)) if len(scores) > 0 else ([], [])
-    return top_review_ids[:num_reviews], scores[:num_reviews]
+    scores, top_review_ids = zip(*sorted(list(zip(scores, review_ids)), reverse=True)) if len(scores) > 0 else ([], [])
+    return scores[:num_reviews], top_review_ids[:num_reviews]
 
 def _top_review_ids(reviews, review_ids, sort_id):
     reviews_and_ids = [(r, rid) for r, rid in zip(reviews, review_ids)]
