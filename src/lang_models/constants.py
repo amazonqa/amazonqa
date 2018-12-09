@@ -82,6 +82,8 @@ REVIEWS = 'Reviews'
 
 ASIN = 'asin'
 
+IS_ANSWERABLE = 'is_answerable'
+
 REVIEW_TEXT = 'reviewText'
 REVIEW_TIME = 'reviewTime'
 REVIEWS_LIST = 'reviewsList'

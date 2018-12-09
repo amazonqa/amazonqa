@@ -23,7 +23,7 @@ class AmazonDataset(object):
         self.review_select_mode = params[C.REVIEW_SELECT_MODE]
         self.max_vocab_size = params[C.VOCAB_SIZE]
 
-        suffix = 'qar_all_small'
+        suffix = 'qar_all'
         train_path = '%s/train-%s.jsonl' % (C.INPUT_DATA_PATH, suffix)
         self.vocab = self.create_vocab(train_path)
         self.train = self.get_data(train_path)
@@ -61,6 +61,10 @@ class AmazonDataset(object):
                     question = json.loads(line)
                 except json.JSONDecodeError:
                     raise Exception('\"%s\" is not a valid json' % line)
+
+                if question[C.IS_ANSWERABLE] == 0:
+                    continue
+
                 tokens = self.truncate_tokens(question[C.QUESTION_TEXT], self.max_question_len)
                 vocab.add_sequence(tokens)
 
@@ -97,6 +101,9 @@ class AmazonDataset(object):
                     row = json.loads(line)
                 except json.JSONDecodeError:
                     raise Exception('\"%s\" is not a valid json' % line)
+
+                if row[C.IS_ANSWERABLE] == 0:
+                    continue
 
                 question = row[C.QUESTION_TEXT]
                 answers = row[C.ANSWERS]
@@ -140,6 +147,7 @@ class AmazonDataset(object):
         assert(len(answersDict) == answerId+1)
         assert(len(questionsDict) == questionId+1)
         assert(len(reviewsDict) == reviewId+1)
-        print("Number of samples in the data = %d" % (len(data)))
+        data_size = len(data)
+        print("Number of samples in the data = %d" % (data_size))
 
         return (answersDict, questionsDict, questionAnswersDict, reviewsDict, data)
