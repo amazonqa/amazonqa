@@ -115,6 +115,7 @@ def main(args):
 
         reviews = row["reviews"]
         if len(reviews) == 0:
+            print("Zero Reviews", row)
             continue
 
         review_texts, review_tokens, all_sentences, sentence_tokens = process_reviews(reviews, args.review_max_len, stop_words)
@@ -152,6 +153,7 @@ def main(args):
             _, top_sentences_random = top_reviews_and_scores(None, None, None, all_sentences, all_sentences, 'random', 1)
 
             if len(top_reviews_q) == 0:
+                print("Zero Top Reviews", row)
                 continue
 
             final_json = {}
