@@ -16,12 +16,20 @@ from pycocoevalcap.cider.cider import Cider
 import pprint
 
 from spacy.lang.en import English as NlpEnglish
+from nlgeval import NLGEval
+
 nlp = spacy.load('en_core_web_lg') 
 QUERY_ID_JSON_ID = 'qid'
 ANSWERS_JSON_ID = 'answers'
 NLP = None
 
-def compute_evaluation_scores(reference_dict, prediction_dict, semantic=True, multiple=False, verbose=True):
+def eval_using_nlgeval(ref_list, pred_list):
+    print('Loading the NLG eval model...')
+    nlge = NLGEval()
+    print('Computing scores...')
+    return nlge.compute_metrics(ref_list, pred_list)
+
+def compute_evaluation_scores(reference_dict, prediction_dict, semantic=True, multiple=False, verbose=True, using_nlgeval=True):
     """
     reference_dict, dictionary of reference answers (qid, [answers])
     prediction_dict, dictionary of prediction answers (qid, [answer])
@@ -36,6 +44,8 @@ def compute_evaluation_scores(reference_dict, prediction_dict, semantic=True, mu
             (len(common_query_ids) == len(prediction_query_ids)), \
         'Reference and prediction same question ids'
     query_ids = list(reference_dict.keys())
+    ref_list = [reference_dict[key] for key in query_ids]
+    pred_list = [prediction_dict[key][0] for key in query_ids]
 
     # Scorers
     scorers = [
@@ -46,26 +56,29 @@ def compute_evaluation_scores(reference_dict, prediction_dict, semantic=True, mu
     ]
     final_scores = {'min': {}, 'mean': {}, 'max': {}} if multiple else {}
 
-    for scorer, method, method_name in scorers:
-        if verbose:
-            print('Computing %s..' % method_name)
-        score, scores = scorer.compute_score(reference_dict, prediction_dict)
-        if type(score) == list:
-            if multiple:
-                for m, s in zip(method, scores):
-                    agg_scores = aggregate(query_ids, s)
+    if using_nlgeval:
+        final_scores = eval_using_nlgeval(ref_list, pred_list)
+    else:
+        for scorer, method, method_name in scorers:
+            if verbose:
+                print('Computing %s..' % method_name)
+            score, scores = scorer.compute_score(reference_dict, prediction_dict)
+            if type(score) == list:
+                if multiple:
+                    for m, s in zip(method, scores):
+                        agg_scores = aggregate(query_ids, s)
+                        for key, value in agg_scores.items():
+                            final_scores[key][m] = value
+                else:
+                    for m, s in zip(method, score):
+                        final_scores[m] = s
+            else:
+                if multiple:
+                    agg_scores = aggregate(query_ids, scores)
                     for key, value in agg_scores.items():
-                        final_scores[key][m] = value
-            else:
-                for m, s in zip(method, score):
-                    final_scores[m] = s
-        else:
-            if multiple:
-                agg_scores = aggregate(query_ids, scores)
-                for key, value in agg_scores.items():
-                    final_scores[key][method] = value
-            else:
-                final_scores[method] = score
+                        final_scores[key][method] = value
+                else:
+                    final_scores[method] = score
 
     if semantic:
         similarities = []
