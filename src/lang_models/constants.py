@@ -85,6 +85,7 @@ ASIN = 'asin'
 REVIEW_TEXT = 'reviewText'
 REVIEW_TIME = 'reviewTime'
 REVIEWS_LIST = 'reviewsList'
+REVIEW_SNIPPETS = 'review_snippets'
 
 QUESTION_TEXT = 'questionText'
 QUESTION_TIME = 'questionTime'
