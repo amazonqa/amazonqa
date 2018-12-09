@@ -7,6 +7,7 @@ import sys
 import spacy
 import argparse
 import numpy as np
+from logger import Logger
 
 from collections import OrderedDict
 from pycocoevalcap.bleu.bleu import Bleu
@@ -29,7 +30,7 @@ def eval_using_nlgeval(ref_list, pred_list, multiple):
     print('\nComputing Scores...')
     return nlge.compute_metrics(ref_list, pred_list, multiple=multiple)
 
-def compute_evaluation_scores(reference_dict, prediction_dict, semantic=True, multiple=False, verbose=True, using_nlgeval=True):
+def compute_evaluation_scores(reference_dict, prediction_dict, semantic=True, multiple=False, verbose=True, use_nlgeval=True):
     """
     reference_dict, dictionary of reference answers (qid, [answers])
     prediction_dict, dictionary of prediction answers (qid, [answer])
@@ -56,7 +57,7 @@ def compute_evaluation_scores(reference_dict, prediction_dict, semantic=True, mu
     ]
     final_scores = {'min': {}, 'mean': {}, 'max': {}} if multiple else {}
 
-    if using_nlgeval:
+    if use_nlgeval:
         scores = eval_using_nlgeval(ref_list, pred_list, multiple)
         if multiple:
             for m, s in scores.items():
@@ -147,7 +148,7 @@ def load_file(filename, multiple, normalize):
         query_id_to_answers_map[query_id].append(normalized_answer)
     return query_id_to_answers_map
 
-def compute_metrics_from_files(reference_filename, prediction_filename, multiple=False):
+def compute_metrics_from_files(reference_filename, prediction_filename, multiple, use_nlgeval):
 
     reference_dictionary = load_file(reference_filename, multiple, True)
     prediction_dictionary = load_file(prediction_filename, multiple, True)
@@ -160,7 +161,7 @@ def compute_metrics_from_files(reference_filename, prediction_filename, multiple
     for query_id, answers in prediction_dictionary.items():
         assert len(answers) <= 1, 'qid %d contains more than 1 answer \"%s\" in prediction file' % (query_id, str(answers))
 
-    return compute_evaluation_scores(reference_dictionary, prediction_dictionary, multiple=multiple, semantic=True)
+    return compute_evaluation_scores(reference_dictionary, prediction_dictionary, multiple=multiple, semantic=True, use_nlgeval=use_nlgeval)
 
 def aggregate(idxs, scores):
     d = {}
@@ -178,22 +179,26 @@ def main():
     argparser = argparse.ArgumentParser()
     argparser.add_argument('path_to_reference_file')
     argparser.add_argument('path_to_prediction_file')
-    argparser.add_argument("--multiple", action="store_true", default=False,)
-    args = argparser.parse_args()
 
-    metrics = compute_metrics_from_files(args.path_to_reference_file, args.path_to_prediction_file, args.multiple)
-    print('############################')
-    # pp = pprint.PrettyPrinter(indent=4)
-    # pp.pprint(metrics)
+    argparser.add_argument("--multiple", action="store_true", default=False,)
+    argparser.add_argument("--no_nlgeval", action="store_true", default=False,)
+    args, _ = argparser.parse_known_args()
+
+    logger = Logger()
+    metrics = compute_metrics_from_files(args.path_to_reference_file, args.path_to_prediction_file, args.multiple, not args.no_nlgeval)
+    logger.log('############################')
+    pp = pprint.PrettyPrinter(indent=4)
+    pp.pprint(metrics)
     if args.multiple:
         for key, value in metrics.items():
-            print('## %s ##' % key)
+            logger.log('## %s ##' % key)
             for metric in sorted(value):
-                print('%s: %.4f' % (metric, value[metric]))
+                logger.log('%s\t%.4f' % (metric, value[metric]))
+            logger.log('')
     else:
         for metric in sorted(metrics):
-            print('%s: %.4f' % (metric, metrics[metric]))
-    print('############################')
+            logger.log('%s\t%.4f' % (metric, metrics[metric]))
+    logger.log('############################')
 
 if __name__ == "__main__":
     main()
