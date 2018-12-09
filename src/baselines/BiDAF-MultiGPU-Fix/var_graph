@@ -1,0 +1,286 @@
+False
+before ema.apply
+<tf.Variable 'global_step:0' shape=() dtype=int32_ref>
+<tf.Variable 'emb/emb_var/char_emb_mat:0' shape=(281, 8) dtype=float32_ref>
+<tf.Variable 'emb/char/conv/xx/conv1d_5/filter:0' shape=(1, 5, 8, 100) dtype=float32_ref>
+<tf.Variable 'emb/char/conv/xx/conv1d_5/bias:0' shape=(100,) dtype=float32_ref>
+<tf.Variable 'emb/emb_var/word_emb_mat:0' shape=(1229, 100) dtype=float32_ref>
+<tf.Variable 'highway/highway_network/layer_0/trans/kernel:0' shape=(200, 200) dtype=float32_ref>
+<tf.Variable 'highway/highway_network/layer_0/trans/bias:0' shape=(200,) dtype=float32_ref>
+<tf.Variable 'highway/highway_network/layer_0/gate/kernel:0' shape=(200, 200) dtype=float32_ref>
+<tf.Variable 'highway/highway_network/layer_0/gate/bias:0' shape=(200,) dtype=float32_ref>
+<tf.Variable 'highway/highway_network/layer_1/trans/kernel:0' shape=(200, 200) dtype=float32_ref>
+<tf.Variable 'highway/highway_network/layer_1/trans/bias:0' shape=(200,) dtype=float32_ref>
+<tf.Variable 'highway/highway_network/layer_1/gate/kernel:0' shape=(200, 200) dtype=float32_ref>
+<tf.Variable 'highway/highway_network/layer_1/gate/bias:0' shape=(200,) dtype=float32_ref>
+<tf.Variable 'prepro/u1/fw/basic_lstm_cell/kernel:0' shape=(300, 400) dtype=float32_ref>
+<tf.Variable 'prepro/u1/fw/basic_lstm_cell/bias:0' shape=(400,) dtype=float32_ref>
+<tf.Variable 'prepro/u1/bw/basic_lstm_cell/kernel:0' shape=(300, 400) dtype=float32_ref>
+<tf.Variable 'prepro/u1/bw/basic_lstm_cell/bias:0' shape=(400,) dtype=float32_ref>
+<tf.Variable 'main/p0/bi_attention/u_logits/first/kernel:0' shape=(600, 1) dtype=float32_ref>
+<tf.Variable 'main/p0/bi_attention/u_logits/first/bias:0' shape=(1,) dtype=float32_ref>
+<tf.Variable 'main/g0/fw/basic_lstm_cell/kernel:0' shape=(900, 400) dtype=float32_ref>
+<tf.Variable 'main/g0/fw/basic_lstm_cell/bias:0' shape=(400,) dtype=float32_ref>
+<tf.Variable 'main/g0/bw/basic_lstm_cell/kernel:0' shape=(900, 400) dtype=float32_ref>
+<tf.Variable 'main/g0/bw/basic_lstm_cell/bias:0' shape=(400,) dtype=float32_ref>
+<tf.Variable 'main/g1/fw/basic_lstm_cell/kernel:0' shape=(300, 400) dtype=float32_ref>
+<tf.Variable 'main/g1/fw/basic_lstm_cell/bias:0' shape=(400,) dtype=float32_ref>
+<tf.Variable 'main/g1/bw/basic_lstm_cell/kernel:0' shape=(300, 400) dtype=float32_ref>
+<tf.Variable 'main/g1/bw/basic_lstm_cell/bias:0' shape=(400,) dtype=float32_ref>
+<tf.Variable 'main/logits1/first/kernel:0' shape=(1000, 1) dtype=float32_ref>
+<tf.Variable 'main/logits1/first/bias:0' shape=(1,) dtype=float32_ref>
+<tf.Variable 'main/g2/fw/basic_lstm_cell/kernel:0' shape=(1500, 400) dtype=float32_ref>
+<tf.Variable 'main/g2/fw/basic_lstm_cell/bias:0' shape=(400,) dtype=float32_ref>
+<tf.Variable 'main/g2/bw/basic_lstm_cell/kernel:0' shape=(1500, 400) dtype=float32_ref>
+<tf.Variable 'main/g2/bw/basic_lstm_cell/bias:0' shape=(400,) dtype=float32_ref>
+<tf.Variable 'main/logits2/first/kernel:0' shape=(1000, 1) dtype=float32_ref>
+<tf.Variable 'main/logits2/first/bias:0' shape=(1,) dtype=float32_ref>
+<tf.Variable 'emb/emb_var/char_emb_mat/ExponentialMovingAverage:0' shape=(281, 8) dtype=float32_ref>
+<tf.Variable 'emb/char/conv/xx/conv1d_5/filter/ExponentialMovingAverage:0' shape=(1, 5, 8, 100) dtype=float32_ref>
+<tf.Variable 'emb/char/conv/xx/conv1d_5/bias/ExponentialMovingAverage:0' shape=(100,) dtype=float32_ref>
+<tf.Variable 'emb/emb_var/word_emb_mat/ExponentialMovingAverage:0' shape=(1229, 100) dtype=float32_ref>
+<tf.Variable 'highway/highway_network/layer_0/trans/kernel/ExponentialMovingAverage:0' shape=(200, 200) dtype=float32_ref>
+<tf.Variable 'highway/highway_network/layer_0/trans/bias/ExponentialMovingAverage:0' shape=(200,) dtype=float32_ref>
+<tf.Variable 'highway/highway_network/layer_0/gate/kernel/ExponentialMovingAverage:0' shape=(200, 200) dtype=float32_ref>
+<tf.Variable 'highway/highway_network/layer_0/gate/bias/ExponentialMovingAverage:0' shape=(200,) dtype=float32_ref>
+<tf.Variable 'highway/highway_network/layer_1/trans/kernel/ExponentialMovingAverage:0' shape=(200, 200) dtype=float32_ref>
+<tf.Variable 'highway/highway_network/layer_1/trans/bias/ExponentialMovingAverage:0' shape=(200,) dtype=float32_ref>
+<tf.Variable 'highway/highway_network/layer_1/gate/kernel/ExponentialMovingAverage:0' shape=(200, 200) dtype=float32_ref>
+<tf.Variable 'highway/highway_network/layer_1/gate/bias/ExponentialMovingAverage:0' shape=(200,) dtype=float32_ref>
+<tf.Variable 'prepro/u1/fw/basic_lstm_cell/kernel/ExponentialMovingAverage:0' shape=(300, 400) dtype=float32_ref>
+<tf.Variable 'prepro/u1/fw/basic_lstm_cell/bias/ExponentialMovingAverage:0' shape=(400,) dtype=float32_ref>
+<tf.Variable 'prepro/u1/bw/basic_lstm_cell/kernel/ExponentialMovingAverage:0' shape=(300, 400) dtype=float32_ref>
+<tf.Variable 'prepro/u1/bw/basic_lstm_cell/bias/ExponentialMovingAverage:0' shape=(400,) dtype=float32_ref>
+<tf.Variable 'main/p0/bi_attention/u_logits/first/kernel/ExponentialMovingAverage:0' shape=(600, 1) dtype=float32_ref>
+<tf.Variable 'main/p0/bi_attention/u_logits/first/bias/ExponentialMovingAverage:0' shape=(1,) dtype=float32_ref>
+<tf.Variable 'main/g0/fw/basic_lstm_cell/kernel/ExponentialMovingAverage:0' shape=(900, 400) dtype=float32_ref>
+<tf.Variable 'main/g0/fw/basic_lstm_cell/bias/ExponentialMovingAverage:0' shape=(400,) dtype=float32_ref>
+<tf.Variable 'main/g0/bw/basic_lstm_cell/kernel/ExponentialMovingAverage:0' shape=(900, 400) dtype=float32_ref>
+<tf.Variable 'main/g0/bw/basic_lstm_cell/bias/ExponentialMovingAverage:0' shape=(400,) dtype=float32_ref>
+<tf.Variable 'main/g1/fw/basic_lstm_cell/kernel/ExponentialMovingAverage:0' shape=(300, 400) dtype=float32_ref>
+<tf.Variable 'main/g1/fw/basic_lstm_cell/bias/ExponentialMovingAverage:0' shape=(400,) dtype=float32_ref>
+<tf.Variable 'main/g1/bw/basic_lstm_cell/kernel/ExponentialMovingAverage:0' shape=(300, 400) dtype=float32_ref>
+<tf.Variable 'main/g1/bw/basic_lstm_cell/bias/ExponentialMovingAverage:0' shape=(400,) dtype=float32_ref>
+<tf.Variable 'main/logits1/first/kernel/ExponentialMovingAverage:0' shape=(1000, 1) dtype=float32_ref>
+<tf.Variable 'main/logits1/first/bias/ExponentialMovingAverage:0' shape=(1,) dtype=float32_ref>
+<tf.Variable 'main/g2/fw/basic_lstm_cell/kernel/ExponentialMovingAverage:0' shape=(1500, 400) dtype=float32_ref>
+<tf.Variable 'main/g2/fw/basic_lstm_cell/bias/ExponentialMovingAverage:0' shape=(400,) dtype=float32_ref>
+<tf.Variable 'main/g2/bw/basic_lstm_cell/kernel/ExponentialMovingAverage:0' shape=(1500, 400) dtype=float32_ref>
+<tf.Variable 'main/g2/bw/basic_lstm_cell/bias/ExponentialMovingAverage:0' shape=(400,) dtype=float32_ref>
+<tf.Variable 'main/logits2/first/kernel/ExponentialMovingAverage:0' shape=(1000, 1) dtype=float32_ref>
+<tf.Variable 'main/logits2/first/bias/ExponentialMovingAverage:0' shape=(1,) dtype=float32_ref>
+variables after getting model
+global_step:0
+emb/emb_var/char_emb_mat:0
+emb/char/conv/xx/conv1d_5/filter:0
+emb/char/conv/xx/conv1d_5/bias:0
+emb/emb_var/word_emb_mat:0
+highway/highway_network/layer_0/trans/kernel:0
+highway/highway_network/layer_0/trans/bias:0
+highway/highway_network/layer_0/gate/kernel:0
+highway/highway_network/layer_0/gate/bias:0
+highway/highway_network/layer_1/trans/kernel:0
+highway/highway_network/layer_1/trans/bias:0
+highway/highway_network/layer_1/gate/kernel:0
+highway/highway_network/layer_1/gate/bias:0
+prepro/u1/fw/basic_lstm_cell/kernel:0
+prepro/u1/fw/basic_lstm_cell/bias:0
+prepro/u1/bw/basic_lstm_cell/kernel:0
+prepro/u1/bw/basic_lstm_cell/bias:0
+main/p0/bi_attention/u_logits/first/kernel:0
+main/p0/bi_attention/u_logits/first/bias:0
+main/g0/fw/basic_lstm_cell/kernel:0
+main/g0/fw/basic_lstm_cell/bias:0
+main/g0/bw/basic_lstm_cell/kernel:0
+main/g0/bw/basic_lstm_cell/bias:0
+main/g1/fw/basic_lstm_cell/kernel:0
+main/g1/fw/basic_lstm_cell/bias:0
+main/g1/bw/basic_lstm_cell/kernel:0
+main/g1/bw/basic_lstm_cell/bias:0
+main/logits1/first/kernel:0
+main/logits1/first/bias:0
+main/g2/fw/basic_lstm_cell/kernel:0
+main/g2/fw/basic_lstm_cell/bias:0
+main/g2/bw/basic_lstm_cell/kernel:0
+main/g2/bw/basic_lstm_cell/bias:0
+main/logits2/first/kernel:0
+main/logits2/first/bias:0
+emb/emb_var/char_emb_mat/ExponentialMovingAverage:0
+emb/char/conv/xx/conv1d_5/filter/ExponentialMovingAverage:0
+emb/char/conv/xx/conv1d_5/bias/ExponentialMovingAverage:0
+emb/emb_var/word_emb_mat/ExponentialMovingAverage:0
+highway/highway_network/layer_0/trans/kernel/ExponentialMovingAverage:0
+highway/highway_network/layer_0/trans/bias/ExponentialMovingAverage:0
+highway/highway_network/layer_0/gate/kernel/ExponentialMovingAverage:0
+highway/highway_network/layer_0/gate/bias/ExponentialMovingAverage:0
+highway/highway_network/layer_1/trans/kernel/ExponentialMovingAverage:0
+highway/highway_network/layer_1/trans/bias/ExponentialMovingAverage:0
+highway/highway_network/layer_1/gate/kernel/ExponentialMovingAverage:0
+highway/highway_network/layer_1/gate/bias/ExponentialMovingAverage:0
+prepro/u1/fw/basic_lstm_cell/kernel/ExponentialMovingAverage:0
+prepro/u1/fw/basic_lstm_cell/bias/ExponentialMovingAverage:0
+prepro/u1/bw/basic_lstm_cell/kernel/ExponentialMovingAverage:0
+prepro/u1/bw/basic_lstm_cell/bias/ExponentialMovingAverage:0
+main/p0/bi_attention/u_logits/first/kernel/ExponentialMovingAverage:0
+main/p0/bi_attention/u_logits/first/bias/ExponentialMovingAverage:0
+main/g0/fw/basic_lstm_cell/kernel/ExponentialMovingAverage:0
+main/g0/fw/basic_lstm_cell/bias/ExponentialMovingAverage:0
+main/g0/bw/basic_lstm_cell/kernel/ExponentialMovingAverage:0
+main/g0/bw/basic_lstm_cell/bias/ExponentialMovingAverage:0
+main/g1/fw/basic_lstm_cell/kernel/ExponentialMovingAverage:0
+main/g1/fw/basic_lstm_cell/bias/ExponentialMovingAverage:0
+main/g1/bw/basic_lstm_cell/kernel/ExponentialMovingAverage:0
+main/g1/bw/basic_lstm_cell/bias/ExponentialMovingAverage:0
+main/logits1/first/kernel/ExponentialMovingAverage:0
+main/logits1/first/bias/ExponentialMovingAverage:0
+main/g2/fw/basic_lstm_cell/kernel/ExponentialMovingAverage:0
+main/g2/fw/basic_lstm_cell/bias/ExponentialMovingAverage:0
+main/g2/bw/basic_lstm_cell/kernel/ExponentialMovingAverage:0
+main/g2/bw/basic_lstm_cell/bias/ExponentialMovingAverage:0
+main/logits2/first/kernel/ExponentialMovingAverage:0
+main/logits2/first/bias/ExponentialMovingAverage:0
+model_0/loss/ExponentialMovingAverage:0
+>>>>>>>>>>> GPU Index = 1>>>>>>>>>>>
+variables before getting model
+global_step:0
+emb/emb_var/char_emb_mat:0
+emb/char/conv/xx/conv1d_5/filter:0
+emb/char/conv/xx/conv1d_5/bias:0
+emb/emb_var/word_emb_mat:0
+highway/highway_network/layer_0/trans/kernel:0
+highway/highway_network/layer_0/trans/bias:0
+highway/highway_network/layer_0/gate/kernel:0
+highway/highway_network/layer_0/gate/bias:0
+highway/highway_network/layer_1/trans/kernel:0
+highway/highway_network/layer_1/trans/bias:0
+highway/highway_network/layer_1/gate/kernel:0
+highway/highway_network/layer_1/gate/bias:0
+prepro/u1/fw/basic_lstm_cell/kernel:0
+prepro/u1/fw/basic_lstm_cell/bias:0
+prepro/u1/bw/basic_lstm_cell/kernel:0
+prepro/u1/bw/basic_lstm_cell/bias:0
+main/p0/bi_attention/u_logits/first/kernel:0
+main/p0/bi_attention/u_logits/first/bias:0
+main/g0/fw/basic_lstm_cell/kernel:0
+main/g0/fw/basic_lstm_cell/bias:0
+main/g0/bw/basic_lstm_cell/kernel:0
+main/g0/bw/basic_lstm_cell/bias:0
+main/g1/fw/basic_lstm_cell/kernel:0
+main/g1/fw/basic_lstm_cell/bias:0
+main/g1/bw/basic_lstm_cell/kernel:0
+main/g1/bw/basic_lstm_cell/bias:0
+main/logits1/first/kernel:0
+main/logits1/first/bias:0
+main/g2/fw/basic_lstm_cell/kernel:0
+main/g2/fw/basic_lstm_cell/bias:0
+main/g2/bw/basic_lstm_cell/kernel:0
+main/g2/bw/basic_lstm_cell/bias:0
+main/logits2/first/kernel:0
+main/logits2/first/bias:0
+emb/emb_var/char_emb_mat/ExponentialMovingAverage:0
+emb/char/conv/xx/conv1d_5/filter/ExponentialMovingAverage:0
+emb/char/conv/xx/conv1d_5/bias/ExponentialMovingAverage:0
+emb/emb_var/word_emb_mat/ExponentialMovingAverage:0
+highway/highway_network/layer_0/trans/kernel/ExponentialMovingAverage:0
+highway/highway_network/layer_0/trans/bias/ExponentialMovingAverage:0
+highway/highway_network/layer_0/gate/kernel/ExponentialMovingAverage:0
+highway/highway_network/layer_0/gate/bias/ExponentialMovingAverage:0
+highway/highway_network/layer_1/trans/kernel/ExponentialMovingAverage:0
+highway/highway_network/layer_1/trans/bias/ExponentialMovingAverage:0
+highway/highway_network/layer_1/gate/kernel/ExponentialMovingAverage:0
+highway/highway_network/layer_1/gate/bias/ExponentialMovingAverage:0
+prepro/u1/fw/basic_lstm_cell/kernel/ExponentialMovingAverage:0
+prepro/u1/fw/basic_lstm_cell/bias/ExponentialMovingAverage:0
+prepro/u1/bw/basic_lstm_cell/kernel/ExponentialMovingAverage:0
+prepro/u1/bw/basic_lstm_cell/bias/ExponentialMovingAverage:0
+main/p0/bi_attention/u_logits/first/kernel/ExponentialMovingAverage:0
+main/p0/bi_attention/u_logits/first/bias/ExponentialMovingAverage:0
+main/g0/fw/basic_lstm_cell/kernel/ExponentialMovingAverage:0
+main/g0/fw/basic_lstm_cell/bias/ExponentialMovingAverage:0
+main/g0/bw/basic_lstm_cell/kernel/ExponentialMovingAverage:0
+main/g0/bw/basic_lstm_cell/bias/ExponentialMovingAverage:0
+main/g1/fw/basic_lstm_cell/kernel/ExponentialMovingAverage:0
+main/g1/fw/basic_lstm_cell/bias/ExponentialMovingAverage:0
+main/g1/bw/basic_lstm_cell/kernel/ExponentialMovingAverage:0
+main/g1/bw/basic_lstm_cell/bias/ExponentialMovingAverage:0
+main/logits1/first/kernel/ExponentialMovingAverage:0
+main/logits1/first/bias/ExponentialMovingAverage:0
+main/g2/fw/basic_lstm_cell/kernel/ExponentialMovingAverage:0
+main/g2/fw/basic_lstm_cell/bias/ExponentialMovingAverage:0
+main/g2/bw/basic_lstm_cell/kernel/ExponentialMovingAverage:0
+main/g2/bw/basic_lstm_cell/bias/ExponentialMovingAverage:0
+main/logits2/first/kernel/ExponentialMovingAverage:0
+main/logits2/first/bias/ExponentialMovingAverage:0
+model_0/loss/ExponentialMovingAverage:0
+True
+before ema.apply
+<tf.Variable 'global_step:0' shape=() dtype=int32_ref>
+<tf.Variable 'emb/emb_var/char_emb_mat:0' shape=(281, 8) dtype=float32_ref>
+<tf.Variable 'emb/char/conv/xx/conv1d_5/filter:0' shape=(1, 5, 8, 100) dtype=float32_ref>
+<tf.Variable 'emb/char/conv/xx/conv1d_5/bias:0' shape=(100,) dtype=float32_ref>
+<tf.Variable 'emb/emb_var/word_emb_mat:0' shape=(1229, 100) dtype=float32_ref>
+<tf.Variable 'highway/highway_network/layer_0/trans/kernel:0' shape=(200, 200) dtype=float32_ref>
+<tf.Variable 'highway/highway_network/layer_0/trans/bias:0' shape=(200,) dtype=float32_ref>
+<tf.Variable 'highway/highway_network/layer_0/gate/kernel:0' shape=(200, 200) dtype=float32_ref>
+<tf.Variable 'highway/highway_network/layer_0/gate/bias:0' shape=(200,) dtype=float32_ref>
+<tf.Variable 'highway/highway_network/layer_1/trans/kernel:0' shape=(200, 200) dtype=float32_ref>
+<tf.Variable 'highway/highway_network/layer_1/trans/bias:0' shape=(200,) dtype=float32_ref>
+<tf.Variable 'highway/highway_network/layer_1/gate/kernel:0' shape=(200, 200) dtype=float32_ref>
+<tf.Variable 'highway/highway_network/layer_1/gate/bias:0' shape=(200,) dtype=float32_ref>
+<tf.Variable 'prepro/u1/fw/basic_lstm_cell/kernel:0' shape=(300, 400) dtype=float32_ref>
+<tf.Variable 'prepro/u1/fw/basic_lstm_cell/bias:0' shape=(400,) dtype=float32_ref>
+<tf.Variable 'prepro/u1/bw/basic_lstm_cell/kernel:0' shape=(300, 400) dtype=float32_ref>
+<tf.Variable 'prepro/u1/bw/basic_lstm_cell/bias:0' shape=(400,) dtype=float32_ref>
+<tf.Variable 'main/p0/bi_attention/u_logits/first/kernel:0' shape=(600, 1) dtype=float32_ref>
+<tf.Variable 'main/p0/bi_attention/u_logits/first/bias:0' shape=(1,) dtype=float32_ref>
+<tf.Variable 'main/g0/fw/basic_lstm_cell/kernel:0' shape=(900, 400) dtype=float32_ref>
+<tf.Variable 'main/g0/fw/basic_lstm_cell/bias:0' shape=(400,) dtype=float32_ref>
+<tf.Variable 'main/g0/bw/basic_lstm_cell/kernel:0' shape=(900, 400) dtype=float32_ref>
+<tf.Variable 'main/g0/bw/basic_lstm_cell/bias:0' shape=(400,) dtype=float32_ref>
+<tf.Variable 'main/g1/fw/basic_lstm_cell/kernel:0' shape=(300, 400) dtype=float32_ref>
+<tf.Variable 'main/g1/fw/basic_lstm_cell/bias:0' shape=(400,) dtype=float32_ref>
+<tf.Variable 'main/g1/bw/basic_lstm_cell/kernel:0' shape=(300, 400) dtype=float32_ref>
+<tf.Variable 'main/g1/bw/basic_lstm_cell/bias:0' shape=(400,) dtype=float32_ref>
+<tf.Variable 'main/logits1/first/kernel:0' shape=(1000, 1) dtype=float32_ref>
+<tf.Variable 'main/logits1/first/bias:0' shape=(1,) dtype=float32_ref>
+<tf.Variable 'main/g2/fw/basic_lstm_cell/kernel:0' shape=(1500, 400) dtype=float32_ref>
+<tf.Variable 'main/g2/fw/basic_lstm_cell/bias:0' shape=(400,) dtype=float32_ref>
+<tf.Variable 'main/g2/bw/basic_lstm_cell/kernel:0' shape=(1500, 400) dtype=float32_ref>
+<tf.Variable 'main/g2/bw/basic_lstm_cell/bias:0' shape=(400,) dtype=float32_ref>
+<tf.Variable 'main/logits2/first/kernel:0' shape=(1000, 1) dtype=float32_ref>
+<tf.Variable 'main/logits2/first/bias:0' shape=(1,) dtype=float32_ref>
+<tf.Variable 'emb/emb_var/char_emb_mat/ExponentialMovingAverage:0' shape=(281, 8) dtype=float32_ref>
+<tf.Variable 'emb/char/conv/xx/conv1d_5/filter/ExponentialMovingAverage:0' shape=(1, 5, 8, 100) dtype=float32_ref>
+<tf.Variable 'emb/char/conv/xx/conv1d_5/bias/ExponentialMovingAverage:0' shape=(100,) dtype=float32_ref>
+<tf.Variable 'emb/emb_var/word_emb_mat/ExponentialMovingAverage:0' shape=(1229, 100) dtype=float32_ref>
+<tf.Variable 'highway/highway_network/layer_0/trans/kernel/ExponentialMovingAverage:0' shape=(200, 200) dtype=float32_ref>
+<tf.Variable 'highway/highway_network/layer_0/trans/bias/ExponentialMovingAverage:0' shape=(200,) dtype=float32_ref>
+<tf.Variable 'highway/highway_network/layer_0/gate/kernel/ExponentialMovingAverage:0' shape=(200, 200) dtype=float32_ref>
+<tf.Variable 'highway/highway_network/layer_0/gate/bias/ExponentialMovingAverage:0' shape=(200,) dtype=float32_ref>
+<tf.Variable 'highway/highway_network/layer_1/trans/kernel/ExponentialMovingAverage:0' shape=(200, 200) dtype=float32_ref>
+<tf.Variable 'highway/highway_network/layer_1/trans/bias/ExponentialMovingAverage:0' shape=(200,) dtype=float32_ref>
+<tf.Variable 'highway/highway_network/layer_1/gate/kernel/ExponentialMovingAverage:0' shape=(200, 200) dtype=float32_ref>
+<tf.Variable 'highway/highway_network/layer_1/gate/bias/ExponentialMovingAverage:0' shape=(200,) dtype=float32_ref>
+<tf.Variable 'prepro/u1/fw/basic_lstm_cell/kernel/ExponentialMovingAverage:0' shape=(300, 400) dtype=float32_ref>
+<tf.Variable 'prepro/u1/fw/basic_lstm_cell/bias/ExponentialMovingAverage:0' shape=(400,) dtype=float32_ref>
+<tf.Variable 'prepro/u1/bw/basic_lstm_cell/kernel/ExponentialMovingAverage:0' shape=(300, 400) dtype=float32_ref>
+<tf.Variable 'prepro/u1/bw/basic_lstm_cell/bias/ExponentialMovingAverage:0' shape=(400,) dtype=float32_ref>
+<tf.Variable 'main/p0/bi_attention/u_logits/first/kernel/ExponentialMovingAverage:0' shape=(600, 1) dtype=float32_ref>
+<tf.Variable 'main/p0/bi_attention/u_logits/first/bias/ExponentialMovingAverage:0' shape=(1,) dtype=float32_ref>
+<tf.Variable 'main/g0/fw/basic_lstm_cell/kernel/ExponentialMovingAverage:0' shape=(900, 400) dtype=float32_ref>
+<tf.Variable 'main/g0/fw/basic_lstm_cell/bias/ExponentialMovingAverage:0' shape=(400,) dtype=float32_ref>
+<tf.Variable 'main/g0/bw/basic_lstm_cell/kernel/ExponentialMovingAverage:0' shape=(900, 400) dtype=float32_ref>
+<tf.Variable 'main/g0/bw/basic_lstm_cell/bias/ExponentialMovingAverage:0' shape=(400,) dtype=float32_ref>
+<tf.Variable 'main/g1/fw/basic_lstm_cell/kernel/ExponentialMovingAverage:0' shape=(300, 400) dtype=float32_ref>
+<tf.Variable 'main/g1/fw/basic_lstm_cell/bias/ExponentialMovingAverage:0' shape=(400,) dtype=float32_ref>
+<tf.Variable 'main/g1/bw/basic_lstm_cell/kernel/ExponentialMovingAverage:0' shape=(300, 400) dtype=float32_ref>
+<tf.Variable 'main/g1/bw/basic_lstm_cell/bias/ExponentialMovingAverage:0' shape=(400,) dtype=float32_ref>
+<tf.Variable 'main/logits1/first/kernel/ExponentialMovingAverage:0' shape=(1000, 1) dtype=float32_ref>
+<tf.Variable 'main/logits1/first/bias/ExponentialMovingAverage:0' shape=(1,) dtype=float32_ref>
+<tf.Variable 'main/g2/fw/basic_lstm_cell/kernel/ExponentialMovingAverage:0' shape=(1500, 400) dtype=float32_ref>
+<tf.Variable 'main/g2/fw/basic_lstm_cell/bias/ExponentialMovingAverage:0' shape=(400,) dtype=float32_ref>
+<tf.Variable 'main/g2/bw/basic_lstm_cell/kernel/ExponentialMovingAverage:0' shape=(1500, 400) dtype=float32_ref>
+<tf.Variable 'main/g2/bw/basic_lstm_cell/bias/ExponentialMovingAverage:0' shape=(400,) dtype=float32_ref>
+<tf.Variable 'main/logits2/first/kernel/ExponentialMovingAverage:0' shape=(1000, 1) dtype=float32_ref>
+<tf.Variable 'main/logits2/first/bias/ExponentialMovingAverage:0' shape=(1,) dtype=float32_ref>
+<tf.Variable 'model_0/loss/ExponentialMovingAverage:0' shape=() dtype=float32_ref>
