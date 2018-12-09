@@ -52,7 +52,7 @@ def process_reviews(reviews, review_max_len, stop_words):
     all_sentences = []
     for review in reviews:
 		sentences = nltk.sent_tokenize(review["reviewText"])
-        all_sentences += sentences
+		all_sentences += sentences
 		bufr = []
 		buffer_len = 0
 		for sentence in sentences:
@@ -115,6 +115,7 @@ def main(args):
 
 		inverted_index = create_inverted_index(review_tokens)
 		review_tokens = list(map(set, review_tokens))
+		sentence_tokens = list(map(set, sentence_tokens))
 
 		for question in row["questions"]:
 			question_text = question["questionText"]
