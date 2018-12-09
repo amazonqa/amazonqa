@@ -46,7 +46,6 @@ def tokenize(text):
 			tokens[i] = token.lower()
 	return tokens
 
-
 def process_reviews(reviews, review_max_len, stop_words):
     review_tokens = []
     review_texts = []
@@ -58,12 +57,11 @@ def process_reviews(reviews, review_max_len, stop_words):
 		buffer_len = 0
 		for sentence in sentences:
 			buffer_len += len(tokenize(sentence))
+			bufr.append(sentence)
 			if buffer_len > review_max_len:
 				review_texts.append(' '.join(bufr))
 				bufr = []
 				buffer_len = 0
-			else:
-				bufr.append(sentence)
 
 		if buffer_len > 0:
 			review_texts.append(' '.join(bufr))
