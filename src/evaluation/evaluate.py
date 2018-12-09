@@ -184,7 +184,7 @@ def main():
     argparser.add_argument("--no_nlgeval", action="store_true", default=False,)
     args, _ = argparser.parse_known_args()
 
-    logger = Logger()
+    logger = Logger(base_dir='results')
     metrics = compute_metrics_from_files(args.path_to_reference_file, args.path_to_prediction_file, args.multiple, not args.no_nlgeval)
     logger.log('############################')
     pp = pprint.PrettyPrinter(indent=4)
