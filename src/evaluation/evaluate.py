@@ -18,6 +18,7 @@ import pprint
 
 from spacy.lang.en import English as NlpEnglish
 from nlgeval import NLGEval
+import time
 
 nlp = spacy.load('en_core_web_lg') 
 QUERY_ID_JSON_ID = 'qid'
@@ -185,10 +186,12 @@ def main():
     args, _ = argparser.parse_known_args()
 
     logger = Logger(base_dir='results')
+    start_time = time.time()
     metrics = compute_metrics_from_files(args.path_to_reference_file, args.path_to_prediction_file, args.multiple, not args.no_nlgeval)
+    time_taken = (time.time() - start_time) / 60.0
     logger.log('############################')
-    pp = pprint.PrettyPrinter(indent=4)
-    pp.pprint(metrics)
+    # pp = pprint.PrettyPrinter(indent=4)
+    # pp.pprint(metrics)
     if args.multiple:
         for key, value in metrics.items():
             logger.log('## %s ##' % key)
@@ -198,6 +201,7 @@ def main():
     else:
         for metric in sorted(metrics):
             logger.log('%s\t%.4f' % (metric, metrics[metric]))
+    logger.log('Time taken = %.2f minutes' % time_taken)
     logger.log('############################')
 
 if __name__ == "__main__":
