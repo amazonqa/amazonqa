@@ -23,14 +23,15 @@ class AmazonDataset(object):
         self.review_select_mode = params[C.REVIEW_SELECT_MODE]
         self.max_vocab_size = params[C.VOCAB_SIZE]
 
-        train_path = '%s/train-qar_all.jsonl' % (C.INPUT_DATA_PATH)
+        suffix = 'qar_all_small'
+        train_path = '%s/train-%s.jsonl' % (C.INPUT_DATA_PATH, suffix)
         self.vocab = self.create_vocab(train_path)
         self.train = self.get_data(train_path)
 
-        val_path = '%s/val-qar_all.json' % (C.INPUT_DATA_PATH)
+        val_path = '%s/val-%s.jsonl' % (C.INPUT_DATA_PATH, suffix)
         self.val = self.get_data(val_path)
 
-        test_path = '%s/test-qar_all.json' % (C.INPUT_DATA_PATH)
+        test_path = '%s/test-%s.jsonl' % (C.INPUT_DATA_PATH, suffix)
         self.test = self.get_data(test_path)
 
     @staticmethod

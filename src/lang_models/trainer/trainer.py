@@ -210,8 +210,8 @@ class Trainer:
 
         self.model.eval()
 
-        if not dataloader:
-            raise 'No [%s] Dataset' % mode
+        if dataloader is None:
+            raise ('No [%s] Dataset' % mode)
         else:
             self.logger.log('Evaluating on [%s] dataset (epoch %d)' % (mode.upper(), epoch))
 
