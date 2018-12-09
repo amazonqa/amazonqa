@@ -23,11 +23,11 @@ QUERY_ID_JSON_ID = 'qid'
 ANSWERS_JSON_ID = 'answers'
 NLP = None
 
-def eval_using_nlgeval(ref_list, pred_list):
+def eval_using_nlgeval(ref_list, pred_list, multiple):
     print('Loading the NLG eval model...')
     nlge = NLGEval()
-    print('Computing scores...')
-    return nlge.compute_metrics(ref_list, pred_list)
+    print('\nComputing Scores...')
+    return nlge.compute_metrics(ref_list, pred_list, multiple=multiple)
 
 def compute_evaluation_scores(reference_dict, prediction_dict, semantic=True, multiple=False, verbose=True, using_nlgeval=True):
     """
@@ -57,7 +57,14 @@ def compute_evaluation_scores(reference_dict, prediction_dict, semantic=True, mu
     final_scores = {'min': {}, 'mean': {}, 'max': {}} if multiple else {}
 
     if using_nlgeval:
-        final_scores = eval_using_nlgeval(ref_list, pred_list)
+        scores = eval_using_nlgeval(ref_list, pred_list, multiple)
+        if multiple:
+            for m, s in scores.items():
+                agg_scores = aggregate(query_ids, s)
+                for key, value in agg_scores.items():
+                    final_scores[key][m] = value
+        else:
+            final_scores = scores
     else:
         for scorer, method, method_name in scorers:
             if verbose:

@@ -38,7 +38,7 @@ class Embedding(object):
             return self.unk
 
 
-def eval_emb_metrics(hypothesis, references, emb=None, metrics_to_omit=None):
+def eval_emb_metrics(hypothesis, references, emb=None, metrics_to_omit=None, multiple=False):
     from sklearn.metrics.pairwise import cosine_similarity
     from nltk.tokenize import word_tokenize
     import numpy as np
@@ -89,21 +89,26 @@ def eval_emb_metrics(hypothesis, references, emb=None, metrics_to_omit=None):
         avg_emb_refs.append(avg_emb_refsource)
         extreme_emb_refs.append(extreme_emb_refsource)
 
-    rval = []
+    rval = {}
     if 'EmbeddingAverageCosineSimilairty' not in metrics_to_omit:
+        print('\tComputing EmbeddingAverageCosineSimilairty...')
         cos_similarity = list(map(lambda refv: cosine_similarity(refv, avg_emb_hyps).diagonal(), avg_emb_refs))
-        cos_similarity = np.array([np.max(i) for i in cos_similarity]).mean()
-        # cos_similarity = np.max(cos_similarity, axis=0).mean()
-        rval.append("EmbeddingAverageCosineSimilairty: %0.6f" % (cos_similarity))
+        cos_similarity = np.array([np.max(i) for i in cos_similarity])
+        if not multiple:
+            cos_similarity = cos_similarity.mean()
+        rval['EmbeddingAverageCosineSimilairty'] = cos_similarity
 
     if 'VectorExtremaCosineSimilarity' not in metrics_to_omit:
+        print('\tComputing VectorExtremaCosineSimilarity...')
         cos_similarity = list(map(lambda refv: cosine_similarity(refv, extreme_emb_hyps).diagonal(), extreme_emb_refs))
-        # cos_similarity = np.max(cos_similarity, axis=0).mean()
-        cos_similarity = np.array([np.max(i) for i in cos_similarity]).mean()
-        rval.append("VectorExtremaCosineSimilarity: %0.6f" % (cos_similarity))
+        cos_similarity = np.array([np.max(i) for i in cos_similarity])
+        if not multiple:
+            cos_similarity = cos_similarity.mean()
+        rval['VectorExtremaCosineSimilarity'] = cos_similarity
 
     if 'GreedyMatchingScore' not in metrics_to_omit:
         scores = []
+        print('\tComputing GreedyMatchingScore...')
         for emb_refsource in emb_refs:
             score_source = []
             for emb_ref, emb_hyp in zip(emb_refsource, emb_hyps):
@@ -112,13 +117,12 @@ def eval_emb_metrics(hypothesis, references, emb=None, metrics_to_omit=None):
                 dir2 = simi_matrix.max(axis=1).mean()
                 score_source.append((dir1 + dir2) / 2)
             scores.append(score_source)
-        # scores = np.max(scores, axis=0).mean()
-        scores = np.array([np.max(i) for i in scores]).mean()
-        rval.append("GreedyMatchingScore: %0.6f" % (scores))
+        scores = np.array([np.max(i) for i in scores])
+        if not multiple:
+            scores = scores.mean()
+        rval['GreedyMatchingScore'] = scores
 
-    rval = "\n".join(rval)
     return rval
-
 
 if __name__ == '__main__':
     emb = Embedding()

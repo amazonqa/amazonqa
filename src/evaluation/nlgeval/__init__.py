@@ -275,7 +275,7 @@ class NLGEval(object):
 
         return ret_scores
 
-    def compute_metrics(self, ref_list, hyp_list):
+    def compute_metrics(self, ref_list, hyp_list, multiple=False):
         # ref_list = [list(map(_strip, refs)) for refs in zip(*ref_list)]
         refs = {idx: strippedlines for (idx, strippedlines) in enumerate(ref_list)}
         hyps = {idx: [lines.strip()] for (idx, lines) in enumerate(hyp_list)}
@@ -286,30 +286,30 @@ class NLGEval(object):
         ret_scores = {}
         if not self.no_overlap:
             for scorer, method in self.scorers:
+                print('\tComputing %s...' % method)
                 score, scores = scorer.compute_score(refs, hyps)
                 if isinstance(method, list):
                     for sc, scs, m in zip(score, scores, method):
-                        ret_scores[m] = sc
+                        ret_scores[m] = scs if multiple else sc
                 else:
-                    ret_scores[method] = score
+                    ret_scores[method] = scores if multiple else score
 
         if not self.no_skipthoughts:
             vector_hyps = self.skipthought_encoder.encode([h.strip() for h in hyp_list], verbose=False)
             ref_list_T = self.np.array(ref_list).T.tolist()
             vector_refs = map(lambda refl: self.skipthought_encoder.encode([r.strip() for r in refl], verbose=False), ref_list_T)
             cosine_similarity = list(map(lambda refv: self.cosine_similarity(refv, vector_hyps).diagonal(), vector_refs))
-            cosine_similarity = self.np.array([self.np.max(i) for i in cosine_similarity]).mean()
+            cosine_similarity = self.np.array([self.np.max(i) for i in cosine_similarity])
+            if not multiple:
+                cosine_similarity = cosine_similarity.mean()
             ret_scores['SkipThoughtCS'] = cosine_similarity
 
         if not self.no_glove:
             glove_hyps = [h.strip() for h in hyp_list]
             ref_list_T = self.np.array(ref_list).T.tolist()
             glove_refs = map(lambda refl: [r.strip() for r in refl], ref_list_T)
-            scores = self.eval_emb_metrics(glove_hyps, glove_refs, emb=self.glove_emb)
-            scores = scores.split('\n')
-            for score in scores:
-                name, value = score.split(':')
-                value = float(value.strip())
-                ret_scores[name] = value
+            scores = self.eval_emb_metrics(glove_hyps, glove_refs, emb=self.glove_emb, multiple=multiple)
+            for key, value in scores.items():
+                ret_scores[key] = value
 
         return ret_scores
