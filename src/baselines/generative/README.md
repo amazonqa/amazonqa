@@ -1,5 +1,6 @@
 # Generative Model Baseline
-quick-run
+
+# Quick-run
 ~~~
 python train.py ../exp ../data/train-qar_all.jsonl --force_restart
 ~~~
