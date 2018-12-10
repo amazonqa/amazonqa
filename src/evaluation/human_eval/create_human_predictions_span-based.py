@@ -40,7 +40,7 @@ def create_ref_and_pred(all_answers, ref_filename, prediction_filename):
 
     with open(ref_filename + '_human_answers_all.jsonl', 'w', encoding='utf-8') as fp_ref:
         with open(prediction_filename + '_human_answers_all.jsonl', 'w', encoding='utf-8') as fp_pred:
-            for qid, answers in enumerate(all_answers):
+            for qid, (spans, answers) in enumerate(all_answers):
                 if len(answers) > 1:
                     for i, answer in enumerate(answers):
                         ref_answers = answers[:i] + answers[i+1:]
