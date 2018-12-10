@@ -12,7 +12,7 @@ import numpy as np
 
 import json
 import constants as C
-from tqdm import tqdm
+from tqdm import *
 from text_input import rich_tokenize
 
 
@@ -36,7 +36,7 @@ def load_data(source_filename):
 
     flat = []
     with open(source_filename, 'r') as fp:
-        for line in fp:
+        for line in tqdm(fp):
             q = json.loads(line)
             if q['is_answerable'] == 0:
                 continue

@@ -19,8 +19,8 @@ training:
         - 0.999
     eps: 0.00000001
     weigth_decay: 0
-    epochs: 5
-    batch_size: 30
-    vocab_size: 10
+    epochs: 20
+    batch_size: 32
+    vocab_size: 50000
     limit: 400
     teacher_forcing_ratio: 1.0
