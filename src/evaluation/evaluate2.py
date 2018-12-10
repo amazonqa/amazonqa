@@ -28,8 +28,8 @@ NLP = None
 
 def eval_using_nlgeval(ref_list, pred_list, multiple):
     print('Loading the NLG eval model...')
-    nlge = NLGEval(metrics_to_omit=['METEOR', 'CIDEr'], no_skipthoughts=True, no_glove=True)
-    # nlge = NLGEval(metrics_to_omit=['Bleu_1', 'Bleu_2', 'Bleu_3', 'Bleu_4', 'CIDEr', 'ROUGE_L'], no_skipthoughts=True, no_glove=True)
+    # nlge = NLGEval(metrics_to_omit=['METEOR', 'CIDEr'], no_skipthoughts=True, no_glove=True)
+    nlge = NLGEval(metrics_to_omit=['Bleu_1', 'Bleu_2', 'Bleu_3', 'Bleu_4', 'CIDEr', 'ROUGE_L'], no_skipthoughts=True, no_glove=True)
     print('\nComputing Scores...')
     return nlge.compute_metrics(ref_list, pred_list, multiple=multiple)
 
