@@ -28,11 +28,12 @@ NLP = None
 
 def eval_using_nlgeval(ref_list, pred_list, multiple):
     print('Loading the NLG eval model...')
-    nlge = NLGEval(metrics_to_omit=['METEOR'], no_skipthoughts=False, no_glove=False)
+    nlge = NLGEval(metrics_to_omit=['METEOR', 'CIDEr'], no_skipthoughts=False, no_glove=False)
+    # nlge = NLGEval(metrics_to_omit=['Bleu_1', 'Bleu_2', 'Bleu_3', 'Bleu_4', 'CIDEr', 'ROUGE_L'], no_skipthoughts=False, no_glove=False)
     print('\nComputing Scores...')
     return nlge.compute_metrics(ref_list, pred_list, multiple=multiple)
 
-def compute_evaluation_scores(reference_dict, prediction_dict, semantic=True, multiple=False, verbose=True, use_nlgeval=True):
+def compute_evaluation_scores(logger, reference_dict, prediction_dict, semantic=True, multiple=False, verbose=True, use_nlgeval=True):
     """
     reference_dict, dictionary of reference answers (qid, [answers])
     prediction_dict, dictionary of prediction answers (qid, [answer])
@@ -55,7 +56,7 @@ def compute_evaluation_scores(reference_dict, prediction_dict, semantic=True, mu
         (Bleu(4), ["Bleu_1", "Bleu_2", "Bleu_3", "Bleu_4"], 'BLEU'),
         (Rouge(), "ROUGE_L", 'ROUGE'),
         # (Meteor(),"METEOR", "METEOR"),
-        (Cider(), "CIDEr", "CIDER")
+        # (Cider(), "CIDEr", "CIDER")
     ]
     final_scores = {'min': {}, 'mean': {}, 'max': {}} if multiple else {}
 
@@ -65,8 +66,11 @@ def compute_evaluation_scores(reference_dict, prediction_dict, semantic=True, mu
             for m, s in scores.items():
                 agg_scores = aggregate(query_ids, s)
                 for key, value in agg_scores.items():
+                    logger.log('%s\t%s\t%.4f' % (key, m, value))
                     final_scores[key][m] = value
         else:
+            for key, value in scores.items():
+                logger.log('%s\t%.4f' % (key, value))
             final_scores = scores
     else:
         for scorer, method, method_name in scorers:
@@ -78,16 +82,20 @@ def compute_evaluation_scores(reference_dict, prediction_dict, semantic=True, mu
                     for m, s in zip(method, scores):
                         agg_scores = aggregate(query_ids, s)
                         for key, value in agg_scores.items():
+                            logger.log('%s\t%s\t%.4f' % (key, m, value))
                             final_scores[key][m] = value
                 else:
                     for m, s in zip(method, score):
+                        logger.log('%s\t%.4f' % (m, s))
                         final_scores[m] = s
             else:
                 if multiple:
                     agg_scores = aggregate(query_ids, scores)
                     for key, value in agg_scores.items():
+                        logger.log('%s\t%s\t%.4f' % (key, method, value))
                         final_scores[key][method] = value
                 else:
+                    logger.log('%s\t%.4f' % (method, score))
                     final_scores[method] = score
 
     if semantic:
@@ -102,9 +110,12 @@ def compute_evaluation_scores(reference_dict, prediction_dict, semantic=True, mu
         if multiple:
             agg_scores = aggregate(query_ids, similarities)
             for key, value in agg_scores.items():
+                logger.log('%s\t%s\t%.4f' % (key, method, value))
                 final_scores[key][method] = value
         else:
-            final_scores[method] = np.mean(similarities)
+            value = np.mean(similarities)
+            final_scores[method] = value
+            logger.log('%s\t%.4f' % (method, value))
 
     return final_scores
 
@@ -151,7 +162,7 @@ def load_file(filename, multiple, normalize=False):
         query_id_to_answers_map[query_id].append(normalized_answer)
     return query_id_to_answers_map
 
-def compute_metrics_from_files(reference_filename, prediction_filename, multiple, use_nlgeval):
+def compute_metrics_from_files(logger, reference_filename, prediction_filename, multiple, use_nlgeval):
 
     print('Loading reference file...')
     reference_dictionary = load_file(reference_filename, multiple, True)
@@ -167,7 +178,7 @@ def compute_metrics_from_files(reference_filename, prediction_filename, multiple
     for query_id, answers in prediction_dictionary.items():
         assert len(answers) <= 1, 'qid %d contains more than 1 answer \"%s\" in prediction file' % (query_id, str(answers))
 
-    return compute_evaluation_scores(reference_dictionary, prediction_dictionary, multiple=multiple, semantic=True, use_nlgeval=use_nlgeval)
+    return compute_evaluation_scores(logger, reference_dictionary, prediction_dictionary, multiple=multiple, semantic=True, use_nlgeval=use_nlgeval)
 
 def aggregate(idxs, scores):
     d = {}
@@ -192,7 +203,7 @@ def main():
 
     logger = Logger(base_dir='results')
     start_time = time.time()
-    metrics = compute_metrics_from_files(args.path_to_reference_file, args.path_to_prediction_file, args.multiple, not args.no_nlgeval)
+    metrics = compute_metrics_from_files(logger, args.path_to_reference_file, args.path_to_prediction_file, args.multiple, not args.no_nlgeval)
     time_taken = (time.time() - start_time) / 60.0
     logger.log('############################')
     # pp = pprint.PrettyPrinter(indent=4)
