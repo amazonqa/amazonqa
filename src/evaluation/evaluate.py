@@ -8,6 +8,7 @@ import spacy
 import argparse
 import numpy as np
 from logger import Logger
+from tqdm import tqdm
 
 from collections import OrderedDict
 from pycocoevalcap.bleu.bleu import Bleu
@@ -27,7 +28,7 @@ NLP = None
 
 def eval_using_nlgeval(ref_list, pred_list, multiple):
     print('Loading the NLG eval model...')
-    nlge = NLGEval()
+    nlge = NLGEval(metrics_to_omit=['METEOR'], no_skipthoughts=False, no_glove=False)
     print('\nComputing Scores...')
     return nlge.compute_metrics(ref_list, pred_list, multiple=multiple)
 
@@ -108,22 +109,23 @@ def compute_evaluation_scores(reference_dict, prediction_dict, semantic=True, mu
     return final_scores
 
 def normalize_batch(p_iter, p_batch_size=1000, p_thread_count=5):
-    global NLP
-    if not NLP:
-        NLP = NlpEnglish(parser=False)
+    # global NLP
+    # if not NLP:
+    #     NLP = NlpEnglish(parser=False)
 
-    output_iter = NLP.pipe(p_iter, batch_size=p_batch_size, n_threads=p_thread_count)
+    # output_iter = NLP.pipe(p_iter, batch_size=p_batch_size, n_threads=p_thread_count)
+    output_iter = p_iter
 
     for doc in output_iter:
         tokens = [str(w).strip().lower() for w in doc]
         yield ' '.join(tokens)
 
-def load_file(filename, multiple, normalize):
+def load_file(filename, multiple, normalize=False):
     all_answers = []
     query_ids = []
     with open(filename, 'r', encoding='utf-8') as data_file:
         idx = 0
-        for line in data_file:
+        for line in tqdm(data_file):
             try:
                 json_object = json.loads(line)
             except json.JSONDecodeError:
@@ -142,7 +144,7 @@ def load_file(filename, multiple, normalize):
     all_normalized_answers = normalize_batch(all_answers) if normalize else all_answers
 
     query_id_to_answers_map = OrderedDict()
-    for i, normalized_answer in enumerate(all_normalized_answers):
+    for i, normalized_answer in enumerate(tqdm(all_normalized_answers)):
         query_id = query_ids[i]
         if query_id not in query_id_to_answers_map:
             query_id_to_answers_map[query_id] = []
