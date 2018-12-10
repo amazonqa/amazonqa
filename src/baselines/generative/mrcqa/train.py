@@ -70,9 +70,7 @@ def reload_state(logger, checkpoint, training_state, config, args):
     len_char_voc = len(char_to_id)
 
     logger.log('Loading data...')
-    with open(args.data) as f_o:
-        data, _ = load_data(json.load(f_o),
-                            span_only=True, answered_only=True)
+    data, _ = load_data(args.data)
     limit_passage = config.get('training', {}).get('limit')
     vocab_size = config.get('training', {}).get('vocab_size', None)
 
@@ -121,7 +119,7 @@ def init_state(logger, config, args):
     logger.log('Loading data...')
 
     with open(args.data) as f_o:
-        data, _ = load_data(json.load(f_o), span_only=True, answered_only=True)
+        data, _ = load_data(args.data)
     
     limit_passage = config.get('training', {}).get('limit')
     vocab_size = config.get('training', {}).get('vocab_size', None)
