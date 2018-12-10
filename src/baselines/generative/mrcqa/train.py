@@ -13,7 +13,7 @@ import numpy as np
 import torch
 import torch.optim as optim
 import h5py
-import tqdm
+from tqdm import tqdm
 
 import constants as C
 

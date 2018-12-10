@@ -19,26 +19,26 @@ def rich_tokenize(text, vocab, c_vocab, id_counts, update, is_target=False):
     length = len(tokens)
     mapping = np.zeros((length, 2), dtype='int32')
     c_lengths = np.zeros(length, dtype='int32')
-    start = 0
-    for ind, token in enumerate(tokens):
-        _start = text.find(token, start)
-        t_l = len(token)
-        if _start < 0 and token[0] == '"':
-            t_l = 2
-            _a = text.find("''"+token[1:], start)
-            _b = text.find("``"+token[1:], start)
-            if _a != -1 and _b != -1:
-                _start = min(_a, _b)
-            elif _a != -1:
-                _start = _a
-            else:
-                _start = _b
-        start = _start
-        assert start >= 0
-        mapping[ind, 0] = start
-        mapping[ind, 1] = start + t_l
-        c_lengths[ind] = t_l
-        start = start + t_l
+    # start = 0
+    # for ind, token in enumerate(tokens):
+    #     _start = text.find(token, start)
+    #     t_l = len(token)
+    #     if _start < 0 and token[0] == '"':
+    #         t_l = 2
+    #         _a = text.find("''"+token[1:], start)
+    #         _b = text.find("``"+token[1:], start)
+    #         if _a != -1 and _b != -1:
+    #             _start = min(_a, _b)
+    #         elif _a != -1:
+    #             _start = _a
+    #         else:
+    #             _start = _b
+    #     start = _start
+    #     # assert start >= 0
+    #     mapping[ind, 0] = start
+    #     mapping[ind, 1] = start + t_l
+    #     c_lengths[ind] = t_l
+    #     start = start + t_l
 
     if update:
         character_ids = [
