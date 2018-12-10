@@ -92,7 +92,7 @@ def compute_evaluation_scores(reference_dict, prediction_dict, semantic=True, mu
 
     if semantic:
         similarities = []
-        for qid, ref_answers in reference_dict.items():
+        for qid, ref_answers in tqdm(reference_dict.items()):
             prediction_answer = nlp(prediction_dict[qid][0])
             answersimilarity = 0
             for answer in ref_answers:
