@@ -53,7 +53,7 @@ def compute_evaluation_scores(reference_dict, prediction_dict, semantic=True, mu
     scorers = [
         (Bleu(4), ["Bleu_1", "Bleu_2", "Bleu_3", "Bleu_4"], 'BLEU'),
         (Rouge(), "ROUGE_L", 'ROUGE'),
-        (Meteor(),"METEOR", "METEOR"),
+        # (Meteor(),"METEOR", "METEOR"),
         (Cider(), "CIDEr", "CIDER")
     ]
     final_scores = {'min': {}, 'mean': {}, 'max': {}} if multiple else {}
@@ -151,8 +151,11 @@ def load_file(filename, multiple, normalize):
 
 def compute_metrics_from_files(reference_filename, prediction_filename, multiple, use_nlgeval):
 
+    print('Loading reference file...')
     reference_dictionary = load_file(reference_filename, multiple, True)
+    print('Loading prediction file...')
     prediction_dictionary = load_file(prediction_filename, multiple, True)
+    print('')
 
     # pp = pprint.PrettyPrinter(indent=4)
     # pp.pprint(reference_dictionary)
