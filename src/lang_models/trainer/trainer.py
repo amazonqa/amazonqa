@@ -124,14 +124,13 @@ class Trainer:
         # self.dev_loader = list(self.dev_loader)[:5]
         # self.test_loader = list(self.test_loader)[:5]
 
-        if not self.resume_training:
-            self.logger.log('Evaluating on DEV before epoch : 0')
-            self.eval(self.dev_loader, C.DEV_TYPE, epoch=-1)
-
+        #if not self.resume_training:
+            #self.logger.log('Evaluating on DEV before epoch : 0')
+            #self.eval(self.dev_loader, C.DEV_TYPE, epoch=-1)
             # Add train loss entry for a corresponding dev loss entry before epoch 0
-            self.loss.reset()
+            #self.loss.reset()
             #self.metrics.add_loss(self.loss, C.TRAIN_TYPE)
-            self.eval(self.dataloader, C.TRAIN_TYPE, epoch=-1)
+            #self.eval(self.dataloader, C.TRAIN_TYPE, epoch=-1)
 
         for epoch in range(self.start_epoch, self.params[C.NUM_EPOCHS]):
             self.logger.log('\n  --- STARTING EPOCH : %d --- \n' % epoch)
@@ -139,6 +138,8 @@ class Trainer:
             # refresh loss, perplexity 
             self.loss.reset()
             for batch_itr, inputs in enumerate(tqdm(self.dataloader)):
+                if batch_itr % 1000 == 0:
+                    print("BATCH_ITR: ", batch_itr)
                 answer_seqs, question_seqs, question_ids, review_seqs, \
                     answer_lengths = _extract_input_attributes(inputs, self.model_name)
                 batch_loss, batch_perplexity = self.train_batch(

@@ -38,8 +38,8 @@ def create_ref_and_pred(all_answers, ref_filename, prediction_filename):
                             fp_pred.write('%s\n' % json.dumps({'qid': qid, 'answers': [span]}))
                             fp_ref.write('%s\n' % json.dumps({'qid': qid, 'answers': answers}))
 
-    with open(ref_filename + '_all_answers.jsonl', 'w', encoding='utf-8') as fp_ref:
-        with open(prediction_filename + '_all_answers.jsonl', 'w', encoding='utf-8') as fp_pred:
+    with open(ref_filename + '_human_answers_all.jsonl', 'w', encoding='utf-8') as fp_ref:
+        with open(prediction_filename + '_human_answers_all.jsonl', 'w', encoding='utf-8') as fp_pred:
             for qid, answers in enumerate(all_answers):
                 if len(answers) > 1:
                     for i, answer in enumerate(answers):
