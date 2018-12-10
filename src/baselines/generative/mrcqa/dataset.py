@@ -88,11 +88,9 @@ def tokenize_data(logger, data, token_to_id, char_to_id, vocab_size, update, lim
     """
     tokenized = []
     
-    # idx = 0
     id_counts = dict([(key, np.inf) for key in token_to_id.values()])
     for qid, passage, query, answer, (start, stop) in data:
         
-        # idx += 1
         a_tokens, a_chars, _, _, _ = \
             rich_tokenize(answer[0], token_to_id, char_to_id, id_counts, update=update, is_target=True)
         q_tokens, q_chars, _, _, _ = \
@@ -100,13 +98,6 @@ def tokenize_data(logger, data, token_to_id, char_to_id, vocab_size, update, lim
         p_tokens, p_chars, _, _, mapping = \
             rich_tokenize(passage['passage_text'], token_to_id, char_to_id, id_counts, update=update)
         
-        # if idx < 2:
-        #     print("###################################################################################")
-        #     print(query, q_tokens, q_chars)
-        #     print("-----------------------------------------------------------------------------------")
-        #     print(answer[0], a_tokens, a_chars)
-        #     print("###################################################################################")
-
         if start == 0 and stop == 0:
             pass  # No answer; nop, since 0 == 0
         elif start == 0 and stop == len(passage):
