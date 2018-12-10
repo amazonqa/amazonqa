@@ -34,7 +34,7 @@ QA_DATA_PATH = '../../data/answers_multiple'
 REVIEWS_DATA_PATH = '../../data/reviews_small'
 TEXT_DATA_PATH = '../../data/text_data'
 JSON_DATA_PATH = '../../data/json_data'
-INPUT_DATA_PATH = '../../data/full'
+INPUT_DATA_PATH = '../data'
 
 # Types of categories
 AUTOMOTIVE = 'Automotive'
@@ -187,26 +187,27 @@ LM_HP = {
     REVIEW_SELECT_MODE:           [None,              None,               HELPFUL],
     REVIEW_SELECT_NUM:            [None,              None,               5],
     NUM_EPOCHS:                   [25,                25,                 25],
-    BATCH_SIZE:                   [64,                64,                 64],
+    BATCH_SIZE:                   [64,                100,                64],
     DROPOUT:                      [0.2,               0.2,                0.2],
     LR:                           [0.01,              0.01,               0.01],
-    HDIM_A:                       [512,               512,                512],
-    HDIM_Q:                       [None,              512,                256],
-    HDIM_R:                       [None,              None,               256],
-    EMBEDDING_DIM:                [512,               512,                512],
+    HDIM_A:                       [100,               128,                128],
+    HDIM_Q:                       [None,              128,                128],
+    HDIM_R:                       [None,              None,               128],
+    EMBEDDING_DIM:                [100,               128,                128],
     H_LAYERS:                     [2,                 2,                  2],
-    DECAY_START_EPOCH:            [3,                 3,                  3],
+    DECAY_START_EPOCH:            [None,              None,               None],
     LR_DECAY:                     [None,              None,               None],
     GLOBAL_NORM_MAX:              [5,                 5,                  5],
-    VOCAB_SIZE:                   [20000,             20000,              20000],
-    TEACHER_FORCING_RATIO:        [0.9,               0.9,                0.9],
+    VOCAB_SIZE:                   [30000,             30000,              35000],
+    TEACHER_FORCING_RATIO:        [1.0,               1.0,                1.0],
     OUTPUT_MAX_LEN:               [128,               128,                128],
-    USE_ATTENTION:                [False] * 3,
+    USE_ATTENTION:                [False,             False,              True],
     CATEGORY:                     [VIDEO_GAMES] * 3,
     LOG_FILENAME:                 ['log.log'] * 3,
-    MAX_QUESTION_LEN:             [100] * 3,
+    MAX_QUESTION_LEN:             [50] * 3,
     MAX_ANSWER_LEN:               [100] * 3,
-    MAX_REVIEW_LEN:               [200] * 3,
+    MAX_REVIEW_LEN:               [100] * 3,
     OPTIMIZER_TYPE:               [ADAM] * 3,
-    SAVE_DIR:                     [None]*3
+    SAVE_DIR:                     [LM_MODELS]*3,
+    "data_mode":                  [''] * 3
 }
