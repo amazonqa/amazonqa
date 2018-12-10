@@ -21,7 +21,6 @@ RANDOM_SEED = 1
 CACHE_DATASET = False
 
 def main():
-
     _set_random_seeds(RANDOM_SEED)
     args = config.get_main_params()
     model_name, mode = args.model_name, args.mode
@@ -54,8 +53,15 @@ def main():
         dataset = AmazonDataset(params)
         logger.log('\n Model: %s, Mode = %s \n' % (model_name, mode))
         logger.log('\nLoading dataloader..')
-        train_loader = AmazonDataLoader(dataset.train, model_name, params[C.BATCH_SIZE])
-        dev_loader = AmazonDataLoader(dataset.val, model_name, params[C.BATCH_SIZE])
+
+        if CACHE_DATASET:
+            train_loader = pickle.load(open('train.pickle', 'rb'))
+            dev_loader = pickle.load(open('dev.pickle', 'rb'))
+        else:
+            train_loader = AmazonDataLoader(dataset.train, model_name, params[C.BATCH_SIZE])
+            dev_loader = AmazonDataLoader(dataset.val, model_name, params[C.BATCH_SIZE])
+            pickle.dump(train_loader, open('train.pickle', 'wb'))
+            pickle.dump(dev_loader, open('dev.pickle', 'wb'))
 
         logger.log('\nInstantiating training..')
         trainer = Trainer(
@@ -70,7 +76,6 @@ def main():
         trainer.train()
 
     elif mode in [C.DEV_TYPE, C.TEST_TYPE]:
-
         logger.log('\nBeginning evaluation ..\n')
 
         # Load saved params and vocabs
