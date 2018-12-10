@@ -10,11 +10,12 @@ import torch
 from torch.autograd import Variable
 import numpy as np
 
+import json
 import constants as C
 from text_input import rich_tokenize
 
 
-def load_data(source, span_only, answered_only):
+def load_data(source_filename):
     """
     Load the data, and use it to create example triples.
     Input is a dictionary, output is a list of example triples, with added
@@ -32,70 +33,31 @@ def load_data(source, span_only, answered_only):
     If the answer is not a span, answer_start = 0, answer_stop = len(passage)
     """
 
-    query_ids = source['query_id']
-    queries = source['query']
-    passages = source['passages']
-    answers = source.get('answers', {})
+    flat = []
+    with open(source_filename, 'r') as fp:
+        for line in fp:
+            q = json.load(line)
+            if q['is_answerable'] == 0:
+                continue
+            answers = [a['answerText'] for a in q['answers']]
+            reviews = ' '.join(q['review_snippets'][:3])
+            flat.append((q['qid'], reviews, q['questionText'], answers))
 
-    flat = ((qid, passages[qid], queries[qid], answers.get(qid))
-            for qid in query_ids)
-
-    organized, filtered_out = _organize(flat, span_only, answered_only)
+    organized, filtered_out = _organize(flat)
     return organized, filtered_out
 
-
-def _organize(flat, span_only, answered_only):
+def _organize(flat):
     """
     Filter the queries and consolidate the answer as needed.
     """
     filtered_out = set()
-
     organized = []
-
-    # idx = 0
-    for qid, passages, query, answers in flat:
-        
-        # idx += 1
-        # if idx < 2:
-        #     print("###################################################################################")
-        #     print(qid, passages, query, answers)
-        #     print("###################################################################################")
-
-        if answers is None and not answered_only:
-            filtered_out.add(qid)
-            continue  # Skip non-answered queries
-
-        matching = set()
+    for qid, reviews, query, answers in flat:
         for ans in answers:
             if len(ans) == 0:
                 continue
-            for ind, passage in enumerate(passages):
-                pos = passage['passage_text'].find(ans)
-                if pos >= 0:
-                    matching.add(ind)
-                    organized.append((qid, passage, query, [ans],
-                                      (pos, pos+len(ans))))
-        # OK, found all spans.
-        if not span_only or not answered_only:
-            for ind, passage in enumerate(passages):
-                if ind in matching:
-                    continue
-                if passage.get('is_selected', False):
-                    matching.add(ind)
-                    organized.append((qid, passage, query, answers,
-                                      (0, len(passage))))
-                elif not answered_only:
-                    matching.add(ind)
-                    organized.append((qid, passage, query, answers,
-                                      (0, 0)))
-        # Went through the whole thing. If there's still not match, then it got
-        # filtered out.
-        if len(matching) == 0:
-            filtered_out.add(qid)
-
-    if len(filtered_out) > 0:
-        assert span_only or answered_only
-
+            pos = 0
+            organized.append((qid, reviews, query, [ans], (pos, pos+len(ans))))
     return organized, filtered_out
 
 def default_vocab():

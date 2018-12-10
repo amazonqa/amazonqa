@@ -49,7 +49,7 @@ def reload_state(logger, checkpoint, config, args):
 
     logger.log('Loading data...')
     with open(args.data) as f_o:
-        data, _ = load_data(json.load(f_o), span_only=True, answered_only=True)
+        data, _ = load_data(args.data)
     limit_passage = config.get('training', {}).get('limit')
     data = tokenize_data(logger, data, token_to_id, char_to_id, None, False, limit_passage)
 
