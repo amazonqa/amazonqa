@@ -14,6 +14,8 @@ import json
 import constants as C
 from tqdm import *
 from text_input import rich_tokenize
+import pickle
+import os
 
 
 def load_data(source_filename):
@@ -44,6 +46,7 @@ def load_data(source_filename):
             reviews = ' '.join(q['review_snippets'][:3])
             flat.append((q['qid'], reviews, q['questionText'], answers))
 
+    print("Number of items in flat: ", len(flat))
     organized, filtered_out = _organize(flat)
     return organized, filtered_out
 
@@ -72,7 +75,8 @@ def default_vocab():
     return token_to_id
 
 
-def tokenize_data(logger, data, token_to_id, char_to_id, vocab_size, update, limit=None):
+def tokenize_data(logger, data, vocab_size, update, limit=None):
+
     """
     Tokenize a data set, with mapping of tokens to index in origin.
     Also create and update the vocabularies.
@@ -87,98 +91,97 @@ def tokenize_data(logger, data, token_to_id, char_to_id, vocab_size, update, lim
     Passage and queries are tokenized into a tuple (token, chars).
     Answer indexes are start:stop range of tokens.
     """
+    token_to_id = default_vocab()
+    char_to_id = {'': 0}
+
     tokenized = []
     
     id_counts = dict([(key, np.inf) for key in token_to_id.values()])
-    for qid, reviews, query, answer, (start, stop) in tqdm(data):
-        
-        a_tokens, a_chars, _, _, _ = \
-            rich_tokenize(answer[0], token_to_id, char_to_id, id_counts, update=update, is_target=True)
-        q_tokens, q_chars, _, _, _ = \
-            rich_tokenize(query, token_to_id, char_to_id, id_counts, update=update)
-        p_tokens, p_chars, _, _, mapping = \
-            rich_tokenize(reviews, token_to_id, char_to_id, id_counts, update=update)
-        
-        start = stop = 0
 
-        # if start == 0 and stop == 0:
-        #     pass  # No answer; nop, since 0 == 0
-        # elif start == 0 and stop == len(reviews):
-        #     stop = len(p_tokens)  # Now point to just after last token.
-        # else:
-        #     t_start = None
-        #     t_end = len(p_tokens)
-        #     for t_ind, (_start, _end) in enumerate(mapping):
-        #         if start < _end:
-        #             t_start = t_ind
-        #             break
-        #     assert t_start is not None
-        #     for t_ind, (_start, _end) in \
-        #             enumerate(mapping[t_start:], t_start):
-        #         if stop < _start:
-        #             t_end = t_ind
-        #             break
-        #     start = t_start  # Now point to first token in answer.
-        #     stop = t_end  # Now point to after the last token in answer.
+    if not os.path.isfile('tokenized.pkl'):
+        print("Starting tokenization...")
+        for qid, reviews, query, answer, (start, stop) in tqdm(data[:10]):
+            
+            a_tokens, a_chars, _, _, _ = \
+                rich_tokenize(answer[0], token_to_id, char_to_id, id_counts, update=update, is_target=True)
+            q_tokens, q_chars, _, _, _ = \
+                rich_tokenize(query, token_to_id, char_to_id, id_counts, update=update)
+            p_tokens, p_chars, _, _, mapping = \
+                rich_tokenize(reviews, token_to_id, char_to_id, id_counts, update=update)
+            
+            start = stop = 0
 
-        # # Keep or not based on length of passage.
-        # if limit is not None and len(p_tokens) > limit:
-        #     if stop <= limit:
-        #         # Passage is too long, but it can be trimmed.
-        #         p_tokens = p_tokens[:limit]
-        #     else:
-        #         # Passage is too long, but it cannot be trimmed.
-        #         continue
-
-        tokenized.append(
-            (qid,
-             (p_tokens, p_chars),
-             (q_tokens, q_chars),
-             (a_tokens, a_chars),
-             (start, stop),
-             mapping))
-
-    if update:
-        logger.log('Train vocab size: %d' % len(token_to_id))
-
-    if vocab_size is not None and len(token_to_id) > vocab_size:
-        logger.log('Trimming the vocab to %d tokens..' % vocab_size)
-        valid_ids = [token_id for token_id, _ in sorted(id_counts.items(), key=lambda x: x[1], reverse=True)[:vocab_size]]
-
-        ## valid_ids <-> top k token_ids with high freq, where k = vocab_size
-        for token, token_id in list(token_to_id.items()):
-            if token_id not in valid_ids:
-                del token_to_id[token]
-
-        ## new_token_to_id <-> new vocab with serial ids
-        existing_keys = default_vocab().keys()
-        old_token_to_new_token_id = dict([(i, i) for i in default_vocab().values()])
-        new_token_id = len(existing_keys)
-
-        for token, token_id in list(token_to_id.items()):
-            if token not in existing_keys:
-                old_token_to_new_token_id[token_id] = new_token_id
-                token_to_id[token] = new_token_id
-                new_token_id += 1
-
-        new_tokenized = []
-        for qid, (p_tokens, p_chars), (q_tokens, q_chars), (a_tokens, a_chars), (start, stop), mapping in tokenized:
-            p_tokens, q_tokens, a_tokens = list(
-                map(
-                    lambda x: [old_token_to_new_token_id.get(i, C.UNK_INDEX) for i in x],
-                    [p_tokens, q_tokens, a_tokens]
-                )
-            )
-            new_tokenized.append(
+            tokenized.append(
                 (qid,
                 (p_tokens, p_chars),
                 (q_tokens, q_chars),
                 (a_tokens, a_chars),
                 (start, stop),
                 mapping))
-        tokenized = new_tokenized
 
-    return tokenized
+        if update:
+            logger.log('Train vocab size: %d' % len(token_to_id))
+
+        if vocab_size is not None and len(token_to_id) > vocab_size:
+            logger.log('Trimming the vocab to %d tokens..' % vocab_size)
+            valid_ids = [token_id for token_id, _ in sorted(id_counts.items(), key=lambda x: x[1], reverse=True)[:vocab_size]]
+
+            ## valid_ids <-> top k token_ids with high freq, where k = vocab_size
+            for token, token_id in list(token_to_id.items()):
+                if token_id not in valid_ids:
+                    del token_to_id[token]
+
+            ## new_token_to_id <-> new vocab with serial ids
+            existing_keys = default_vocab().keys()
+            old_token_to_new_token_id = dict([(i, i) for i in default_vocab().values()])
+            new_token_id = len(existing_keys)
+
+            for token, token_id in list(token_to_id.items()):
+                if token not in existing_keys:
+                    old_token_to_new_token_id[token_id] = new_token_id
+                    token_to_id[token] = new_token_id
+                    new_token_id += 1
+
+            new_tokenized = []
+            for qid, (p_tokens, p_chars), (q_tokens, q_chars), (a_tokens, a_chars), (start, stop), mapping in tokenized:
+                p_tokens, q_tokens, a_tokens = list(
+                    map(
+                        lambda x: [old_token_to_new_token_id.get(i, C.UNK_INDEX) for i in x],
+                        [p_tokens, q_tokens, a_tokens]
+                    )
+                )
+                new_tokenized.append(
+                    (qid,
+                    (p_tokens, p_chars),
+                    (q_tokens, q_chars),
+                    (a_tokens, a_chars),
+                    (start, stop),
+                    mapping))
+            tokenized = new_tokenized
+
+        # Checkpoint tokenized output
+        with open('tokenized.pkl', 'wb') as fp:
+            pickle.dump(tokenized, fp)
+
+        with open('token_to_id.pkl', 'wb') as fp:
+            pickle.dump(token_to_id, fp)
+
+        with open('char_to_id.pkl', 'wb') as fp:
+            pickle.dump(char_to_id, fp)
+
+    else:
+        # Load tokenized list if exists
+        print("Loading existing tokenizations...")
+        with open('tokenized.pkl', 'rb') as fp:
+            tokenized = pickle.load(fp)
+
+        with open('token_to_id.pkl', 'rb') as fp:
+            token_to_id = pickle.load(fp)
+
+        with open('char_to_id.pkl', 'rb') as fp:
+            char_to_id = pickle.load(fp)
+
+    return tokenized, token_to_id, char_to_id
 
 def symbol_injection(id_to_symb, start_at, embedding,
                      pre_trained_source, random_source):

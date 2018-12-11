@@ -6,15 +6,18 @@ LOG_FILENAME = 'log_filename'
 
 class Logger:
 
-    def __init__(self, logfilename = None, clear_file=True, base_dir='logs'):
+    def __init__(self, logfilename = None, clear_file=True, base_dir='logs', verbose = True):
         self.logfilename = logfilename if logfilename else _log_file_name(base_dir)
-        self.log('', clear=clear_file)
+        self.verbose = verbose
+        if self.verbose:
+            self.log('', clear=clear_file)
 
     def log(self, line, clear=False):
         assert clear in [True, False]
-        print(line)
-        with open(self.logfilename, 'w' if clear else 'a') as fp:
-            fp.write('%s\n' % line)
+        if self.verbose:
+            print(line)
+            with open(self.logfilename, 'w' if clear else 'a') as fp:
+                fp.write('%s\n' % line)
 
 def _log_file_name(base_dir):
     parser = argparse.ArgumentParser()

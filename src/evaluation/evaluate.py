@@ -21,16 +21,22 @@ from spacy.lang.en import English as NlpEnglish
 from nlgeval import NLGEval
 import time
 
-nlp = spacy.load('en_core_web_lg') 
+SEMANTIC = False
+VERBOSE = True
+
+if SEMANTIC:
+    nlp = spacy.load('en_core_web_lg') 
 QUERY_ID_JSON_ID = 'qid'
 ANSWERS_JSON_ID = 'answers'
 NLP = None
 
 def eval_using_nlgeval(ref_list, pred_list, multiple):
-    print('Loading the NLG eval model...')
+    if VERBOSE:
+        print('Loading the NLG eval model...')
     nlge = NLGEval(metrics_to_omit=['METEOR', 'CIDEr'], no_skipthoughts=True, no_glove=True)
     # nlge = NLGEval(metrics_to_omit=['Bleu_1', 'Bleu_2', 'Bleu_3', 'Bleu_4', 'CIDEr', 'ROUGE_L'], no_skipthoughts=True, no_glove=True)
-    print('\nComputing Scores...')
+    if VERBOSE:
+        print('\nComputing Scores...')
     return nlge.compute_metrics(ref_list, pred_list, multiple=multiple)
 
 def compute_evaluation_scores(logger, reference_dict, prediction_dict, semantic=True, multiple=False, verbose=True, use_nlgeval=True):
@@ -74,7 +80,7 @@ def compute_evaluation_scores(logger, reference_dict, prediction_dict, semantic=
             final_scores = scores
     else:
         for scorer, method, method_name in scorers:
-            if verbose:
+            if VERBOSE:
                 print('Computing %s..' % method_name)
             score, scores = scorer.compute_score(reference_dict, prediction_dict)
             if type(score) == list:
@@ -164,11 +170,14 @@ def load_file(filename, multiple, normalize=False):
 
 def compute_metrics_from_files(logger, reference_filename, prediction_filename, multiple, use_nlgeval):
 
-    print('Loading reference file...')
+    if VERBOSE:
+        print('Loading reference file...')
     reference_dictionary = load_file(reference_filename, multiple, True)
-    print('Loading prediction file...')
+    if VERBOSE:
+        print('Loading prediction file...')
     prediction_dictionary = load_file(prediction_filename, multiple, True)
-    print('')
+    if VERBOSE:
+        print('')
 
     # pp = pprint.PrettyPrinter(indent=4)
     # pp.pprint(reference_dictionary)
@@ -178,7 +187,7 @@ def compute_metrics_from_files(logger, reference_filename, prediction_filename, 
     for query_id, answers in prediction_dictionary.items():
         assert len(answers) <= 1, 'qid %d contains more than 1 answer \"%s\" in prediction file' % (query_id, str(answers))
 
-    return compute_evaluation_scores(logger, reference_dictionary, prediction_dictionary, multiple=multiple, semantic=True, use_nlgeval=use_nlgeval)
+    return compute_evaluation_scores(logger, reference_dictionary, prediction_dictionary, multiple=multiple, semantic=False, use_nlgeval=use_nlgeval)
 
 def aggregate(idxs, scores):
     d = {}
@@ -201,7 +210,7 @@ def main():
     argparser.add_argument("--no_nlgeval", action="store_true", default=False,)
     args, _ = argparser.parse_known_args()
 
-    logger = Logger(base_dir='results')
+    logger = Logger(base_dir='results', verbose=VERBOSE)
     start_time = time.time()
     metrics = compute_metrics_from_files(logger, args.path_to_reference_file, args.path_to_prediction_file, args.multiple, not args.no_nlgeval)
     time_taken = (time.time() - start_time) / 60.0
@@ -219,6 +228,8 @@ def main():
             logger.log('%s\t%.4f' % (metric, metrics[metric]))
     logger.log('Time taken = %.2f minutes' % time_taken)
     logger.log('############################')
+    if not VERBOSE:
+        print(json.dumps(metrics))
 
 if __name__ == "__main__":
     main()
