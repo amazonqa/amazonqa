@@ -1,5 +1,10 @@
 # Generative Model Baseline
 
+# Quick-run
+~~~
+python train.py ../exp ../data/train-qar_all.jsonl --force_restart
+~~~
+
 ## Requirements
 Python 3.5
 CUDA 9.0 
