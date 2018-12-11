@@ -58,8 +58,8 @@ def reload_state(logger, checkpoint, training_state, config, args):
     model, id_to_token, id_to_char = BidafModel.from_checkpoint(
         config['bidaf'], checkpoint)
 
-    # if torch.cuda.is_available() and args.cuda:
-    #     model.cuda()
+    if torch.cuda.is_available() and args.cuda:
+        model.cuda()
 
     model.train()
 
@@ -110,7 +110,7 @@ def get_optimizer(model, config, state):
 def get_loader(data, config):
     data = EpochGen(
         data,
-        batch_size=config.get('training', {}).get('batch_size', 32),
+        batch_size=config.get('training', {}).get('batch_size', 16),
         shuffle=True)
     return data
 
@@ -159,8 +159,8 @@ def init_state(logger, config, args):
 
     # Char embeddings are already random, so we don't need to update them.
 
-    # if torch.cuda.is_available() and args.cuda:
-    #     model.cuda()
+    if torch.cuda.is_available() and args.cuda:
+        model.cuda()
 
     model.train()
 
@@ -239,14 +239,15 @@ def main():
         logger.log('Preparing to train...')
         model, id_to_token, id_to_char, optimizer, data = init_state(logger, 
             config, args)
-        checkpoint = h5py.File(os.path.join(args.exp_folder, 'checkpoint'))
 
-        logger.log('Saving vocab...')
-        checkpointing.save_vocab(checkpoint, 'vocab', id_to_token)
-        checkpointing.save_vocab(checkpoint, 'c_vocab', id_to_char)
+        #checkpoint = h5py.File(os.path.join(args.exp_folder, 'checkpoint'))
 
-    # if torch.cuda.is_available() and args.cuda:
-    #     data.tensor_type = torch.cuda.LongTensor
+        #logger.log('Saving vocab...')
+        #checkpointing.save_vocab(checkpoint, 'vocab', id_to_token)
+        #checkpointing.save_vocab(checkpoint, 'c_vocab', id_to_char)
+
+    if torch.cuda.is_available() and args.cuda:
+        data.tensor_type = torch.cuda.LongTensor
 
     print("TENSOR TYPE:", data.tensor_type)
 

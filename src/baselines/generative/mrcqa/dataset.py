@@ -100,7 +100,7 @@ def tokenize_data(logger, data, vocab_size, update, limit=None):
 
     if not os.path.isfile('tokenized.pkl'):
         print("Starting tokenization...")
-        for qid, reviews, query, answer, (start, stop) in tqdm(data[:10]):
+        for qid, reviews, query, answer, (start, stop) in tqdm(data):
             
             a_tokens, a_chars, _, _, _ = \
                 rich_tokenize(answer[0], token_to_id, char_to_id, id_counts, update=update, is_target=True)

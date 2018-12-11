@@ -2,8 +2,8 @@ bidaf:
     dropout: 0.2
     num_highways: 2
     num_lstm: 2
-    hidden_size: 100
-    embedding_dim: 300
+    hidden_size: 128
+    embedding_dim: 128
     embedding_reduce: 100
     max_len: 50
     characters:
@@ -13,14 +13,14 @@ bidaf:
             - 5
 
 training:
-    lr: 0.001
+    lr: 0.01
     betas:
         - 0.9
         - 0.999
     eps: 0.00000001
     weigth_decay: 0
     epochs: 20
-    batch_size: 32
+    batch_size: 16
     vocab_size: 50000
     limit: 400
     teacher_forcing_ratio: 1.0
