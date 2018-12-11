@@ -37,14 +37,16 @@ def load_data(source_filename):
     """
 
     flat = []
+    def clip(s, n):
+        return ' '.join(s.split(' ')[:n])
     with open(source_filename, 'r') as fp:
         for line in tqdm(fp):
             q = json.loads(line)
             if q['is_answerable'] == 0:
                 continue
-            answers = [a['answerText'] for a in q['answers']]
+            answers = [clip(a['answerText'], 100) for a in q['answers']]
             reviews = ' '.join(q['review_snippets'][:3])
-            flat.append((q['qid'], reviews, q['questionText'], answers))
+            flat.append((q['qid'], clip(reviews, 300), clip(q['questionText'], 50), answers))
 
     print("Number of items in flat: ", len(flat))
     organized, filtered_out = _organize(flat)
@@ -110,6 +112,9 @@ def tokenize_data(logger, data, vocab_size, update, limit=None):
                 rich_tokenize(reviews, token_to_id, char_to_id, id_counts, update=update)
             
             start = stop = 0
+
+            # if len(q_tokens) == 0 or len(a_tokens) == 0 or len(p_tokens) == 0:
+            #     continue
 
             tokenized.append(
                 (qid,
@@ -346,20 +351,33 @@ class EpochGen(object):
         self.data = data
         return
 
-    def process_batch_for_length(self, sequences, c_sequences):
+    def process_batch_for_length(self, type, sequences, c_sequences):
         """
         Assemble and pad data.
         """
         assert len(sequences) == len(c_sequences)
         lengths = Variable(self.tensor_type([len(seq) for seq in sequences]))
         max_length = max(len(seq) for seq in sequences)
+
+        # if type == "passages":
+        #     max_length = min(max_length, 300)
+        # elif type == "queries":
+        #     max_length = min(max_length, 50)
+        # else:
+        #     max_length = min(max_length, 50)
+        
         max_c_length = max(max(len(chars) for chars in seq)
                            for seq in c_sequences)
 
         def _padded(seq, max_length):
             _padded_seq = self.tensor_type(max_length).zero_()
-            _padded_seq[:len(seq)] = self.tensor_type(seq)
+            if len(seq) > max_length:
+                _padded_seq[:len(seq)] = self.tensor_type(seq[0:max_length])
+            else:
+                _padded_seq[:len(seq)] = self.tensor_type(seq)
+
             return _padded_seq
+        
         sequences = Variable(torch.stack(
                 [_padded(seq, max_length) for seq in sequences]))
 
@@ -404,11 +422,11 @@ class EpochGen(object):
             span_answers = [self.data[ind][4] for ind in batch_idx]
             mappings = [self.data[ind][5] for ind in batch_idx]
 
-            passages = self.process_batch_for_length(
+            passages = self.process_batch_for_length('passages',
                     passages, c_passages)
-            queries = self.process_batch_for_length(
+            queries = self.process_batch_for_length('queries',
                     queries, c_queries)
-            targets = self.process_batch_for_length(
+            targets = self.process_batch_for_length('targets',
                     targets, c_targets)
 
             answers = Variable(self.tensor_type(span_answers))

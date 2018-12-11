@@ -19,6 +19,7 @@ def rich_tokenize(text, vocab, c_vocab, id_counts, update, is_target=False):
     length = len(tokens)
     mapping = np.zeros((length, 2), dtype='int32')
     c_lengths = np.zeros(length, dtype='int32')
+    
     # start = 0
     # for ind, token in enumerate(tokens):
     #     _start = text.find(token, start)

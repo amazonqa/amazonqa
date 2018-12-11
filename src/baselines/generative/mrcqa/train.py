@@ -110,7 +110,7 @@ def get_optimizer(model, config, state):
 def get_loader(data, config):
     data = EpochGen(
         data,
-        batch_size=config.get('training', {}).get('batch_size', 16),
+        batch_size=config.get('training', {}).get('batch_size', 32),
         shuffle=True)
     return data
 
@@ -172,14 +172,21 @@ def train_epoch(loss, model, optimizer, data, args, logger, teacher_forcing_rati
     """
     Train for one epoch.
     """
-
+    batch_skipped = 0
     for batch_id, (qids, passages, queries, targets, _, _) in enumerate(data):
-        outputs, _, _ = model(
-            passages[:2], passages[2],
-            queries[:2], queries[2],
-            targets[0],
-            teacher_forcing_ratio
-        )
+        print(batch_id)
+
+        try:
+            outputs, _, _ = model(
+                passages[:2], passages[2],
+                queries[:2], queries[2],
+                targets[0],
+                teacher_forcing_ratio
+            )
+        except:
+            print("Skipping batch:", batch_id)
+            batch_skipped += 1
+            continue
 
         # loss and gradient computation
         batch_loss, batch_perplexity = loss.eval_batch_loss(outputs, targets[0])
