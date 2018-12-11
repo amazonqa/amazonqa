@@ -30,8 +30,7 @@ class Saver:
             self.save_dir = save_dir
             self.params = _json_load(self._params_filename())
         else:
-            self.params = params
-            self.save_dir = self._save_dir(datetime.now())
+            raise Exception("save_dir argument not found")
 
         _ensure_path(self.save_dir)
 

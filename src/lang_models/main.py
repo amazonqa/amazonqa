@@ -50,18 +50,18 @@ def main():
 
     if mode == C.TRAIN_TYPE:
         logger.log('\nLoading dataset..')
-        dataset = AmazonDataset(params)
+        dataset = AmazonDataset(params, mode)
         logger.log('\n Model: %s, Mode = %s \n' % (model_name, mode))
         logger.log('\nLoading dataloader..')
 
         if CACHE_DATASET:
-            train_loader = pickle.load(open('train.pickle', 'rb'))
-            dev_loader = pickle.load(open('dev.pickle', 'rb'))
+            train_loader = pickle.load(open(model_name + 'train.pickle', 'rb'))
+            dev_loader = pickle.load(open(model_name + 'dev.pickle', 'rb'))
         else:
             train_loader = AmazonDataLoader(dataset.train, model_name, params[C.BATCH_SIZE])
             dev_loader = AmazonDataLoader(dataset.val, model_name, params[C.BATCH_SIZE])
-            pickle.dump(train_loader, open('train.pickle', 'wb'))
-            pickle.dump(dev_loader, open('dev.pickle', 'wb'))
+            pickle.dump(train_loader, open(model_name + 'train.pickle', 'wb'))
+            pickle.dump(dev_loader, open(model_name + 'dev.pickle', 'wb'))
 
         logger.log('\nInstantiating training..')
         trainer = Trainer(
@@ -83,8 +83,10 @@ def main():
         logger.log('Loading vocab..')
         vocab = saver.load_vocab()
         model_name = params[C.MODEL_NAME]
-        dataset = AmazonDataset(params)
-        dataset_typed = dataset.val if mode == C.DEV_TYPE else dataset.test
+        dataset = AmazonDataset(params, mode)
+        #TODO: next line is a temporary change only. 
+        dataset_typed = dataset.test
+        #dataset_typed = dataset.val if mode == C.DEV_TYPE else dataset.test
         loader = AmazonDataLoader(dataset_typed, model_name, params[C.BATCH_SIZE])
 
         # Load model
@@ -100,7 +102,7 @@ def main():
         logger.log('Instantiating trainer..')
         trainer = Trainer(
             None,
-            params,
+                params,
             dev_loader=loader,
             saver=saver,
             vocab=vocab

@@ -14,7 +14,7 @@ import json
 DEBUG = False
 
 class AmazonDataset(object):
-    def __init__(self, params):
+    def __init__(self, params, mode):
         self.model = params[C.MODEL_NAME]
         self.max_question_len = params[C.MAX_QUESTION_LEN]
         self.max_answer_len = params[C.MAX_ANSWER_LEN]
@@ -22,17 +22,20 @@ class AmazonDataset(object):
         self.review_select_num = params[C.REVIEW_SELECT_NUM]
         self.review_select_mode = params[C.REVIEW_SELECT_MODE]
         self.max_vocab_size = params[C.VOCAB_SIZE]
-
         suffix = 'qar_all'
+
         train_path = '%s/train-%s.jsonl' % (C.INPUT_DATA_PATH, suffix)
         self.vocab = self.create_vocab(train_path)
-        self.train = self.get_data(train_path)
 
-        val_path = '%s/val-%s.jsonl' % (C.INPUT_DATA_PATH, suffix)
-        self.val = self.get_data(val_path)
+        if mode == C.TRAIN_TYPE:
+            self.train = self.get_data(train_path)
 
-        test_path = '%s/test-%s.jsonl' % (C.INPUT_DATA_PATH, suffix)
-        self.test = self.get_data(test_path)
+            val_path = '%s/val-%s.jsonl' % (C.INPUT_DATA_PATH, suffix)
+            self.val = self.get_data(val_path)
+
+        if mode == C.DEV_TYPE or mode == C.TEST_TYPE:
+            test_path = '%s/test-%s.jsonl' % (C.INPUT_DATA_PATH, suffix)
+            self.test = self.get_data(test_path)
 
     @staticmethod
     def tokenize(text):
