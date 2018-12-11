@@ -57,8 +57,10 @@ def reload_state(logger, checkpoint, training_state, config, args):
     logger.log('Loading model from checkpoint...')
     model, id_to_token, id_to_char = BidafModel.from_checkpoint(
         config['bidaf'], checkpoint)
-    if torch.cuda.is_available() and args.cuda:
-        model.cuda()
+
+    # if torch.cuda.is_available() and args.cuda:
+    #     model.cuda()
+
     model.train()
 
     optimizer = get_optimizer(model, config, training_state)
@@ -114,8 +116,6 @@ def get_loader(data, config):
 
 
 def init_state(logger, config, args):
-    token_to_id = default_vocab()
-    char_to_id = {'': 0}
     logger.log('Loading data...')
 
     with open(args.data) as f_o:
@@ -125,7 +125,7 @@ def init_state(logger, config, args):
     vocab_size = config.get('training', {}).get('vocab_size', None)
 
     logger.log('Tokenizing data...')
-    data = tokenize_data(logger, data, token_to_id, char_to_id, vocab_size, True, limit_passage)
+    data, token_to_id, char_to_id = tokenize_data(logger, data, vocab_size, True, limit_passage)
     data = get_loader(data, config)
 
     id_to_token = {id_: tok for tok, id_ in token_to_id.items()}
@@ -159,8 +159,9 @@ def init_state(logger, config, args):
 
     # Char embeddings are already random, so we don't need to update them.
 
-    if torch.cuda.is_available() and args.cuda:
-        model.cuda()
+    # if torch.cuda.is_available() and args.cuda:
+    #     model.cuda()
+
     model.train()
 
     optimizer = get_optimizer(model, config, state=None)
@@ -244,8 +245,10 @@ def main():
         checkpointing.save_vocab(checkpoint, 'vocab', id_to_token)
         checkpointing.save_vocab(checkpoint, 'c_vocab', id_to_char)
 
-    if torch.cuda.is_available() and args.cuda:
-        data.tensor_type = torch.cuda.LongTensor
+    # if torch.cuda.is_available() and args.cuda:
+    #     data.tensor_type = torch.cuda.LongTensor
+
+    print("TENSOR TYPE:", data.tensor_type)
 
     train_for_epochs = config.get('training', {}).get('epochs')
     teacher_forcing_ratio = config.get('training', {}).get('teacher_forcing_ratio', 1.0)
