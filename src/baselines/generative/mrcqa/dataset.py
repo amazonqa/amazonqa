@@ -113,8 +113,8 @@ def tokenize_data(logger, data, vocab_size, update, limit=None):
             
             start = stop = 0
 
-            # if len(q_tokens) == 0 or len(a_tokens) == 0 or len(p_tokens) == 0:
-            #     continue
+            if len(q_tokens) == 0 or len(a_tokens) == 0 or len(p_tokens) == 0:
+                continue
 
             tokenized.append(
                 (qid,
