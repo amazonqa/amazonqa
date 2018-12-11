@@ -107,9 +107,10 @@ class AmazonDataset(object):
 
                 question = row[C.QUESTION_TEXT]
                 answers = row[C.ANSWERS]
-                reviews = row[C.REVIEW_SNIPPETS]
+                reviews = row[C.REVIEW_SNIPPETS][:5]    # TODO: Make this limit (5) a parameter
 
                 review_tokens = []
+                reviewsDictList = []
                 for review in reviews:
                     tokens = self.tokenize(review)
                     review_tokens.append(tokens)

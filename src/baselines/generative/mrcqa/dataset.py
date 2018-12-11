@@ -12,6 +12,7 @@ import numpy as np
 
 import json
 import constants as C
+from tqdm import *
 from text_input import rich_tokenize
 
 
@@ -35,8 +36,8 @@ def load_data(source_filename):
 
     flat = []
     with open(source_filename, 'r') as fp:
-        for line in fp:
-            q = json.load(line)
+        for line in tqdm(fp):
+            q = json.loads(line)
             if q['is_answerable'] == 0:
                 continue
             answers = [a['answerText'] for a in q['answers']]
@@ -89,43 +90,45 @@ def tokenize_data(logger, data, token_to_id, char_to_id, vocab_size, update, lim
     tokenized = []
     
     id_counts = dict([(key, np.inf) for key in token_to_id.values()])
-    for qid, passage, query, answer, (start, stop) in data:
+    for qid, reviews, query, answer, (start, stop) in tqdm(data):
         
         a_tokens, a_chars, _, _, _ = \
             rich_tokenize(answer[0], token_to_id, char_to_id, id_counts, update=update, is_target=True)
         q_tokens, q_chars, _, _, _ = \
             rich_tokenize(query, token_to_id, char_to_id, id_counts, update=update)
         p_tokens, p_chars, _, _, mapping = \
-            rich_tokenize(passage['passage_text'], token_to_id, char_to_id, id_counts, update=update)
+            rich_tokenize(reviews, token_to_id, char_to_id, id_counts, update=update)
         
-        if start == 0 and stop == 0:
-            pass  # No answer; nop, since 0 == 0
-        elif start == 0 and stop == len(passage):
-            stop = len(p_tokens)  # Now point to just after last token.
-        else:
-            t_start = None
-            t_end = len(p_tokens)
-            for t_ind, (_start, _end) in enumerate(mapping):
-                if start < _end:
-                    t_start = t_ind
-                    break
-            assert t_start is not None
-            for t_ind, (_start, _end) in \
-                    enumerate(mapping[t_start:], t_start):
-                if stop < _start:
-                    t_end = t_ind
-                    break
-            start = t_start  # Now point to first token in answer.
-            stop = t_end  # Now point to after the last token in answer.
+        start = stop = 0
 
-        # Keep or not based on length of passage.
-        if limit is not None and len(p_tokens) > limit:
-            if stop <= limit:
-                # Passage is too long, but it can be trimmed.
-                p_tokens = p_tokens[:limit]
-            else:
-                # Passage is too long, but it cannot be trimmed.
-                continue
+        # if start == 0 and stop == 0:
+        #     pass  # No answer; nop, since 0 == 0
+        # elif start == 0 and stop == len(reviews):
+        #     stop = len(p_tokens)  # Now point to just after last token.
+        # else:
+        #     t_start = None
+        #     t_end = len(p_tokens)
+        #     for t_ind, (_start, _end) in enumerate(mapping):
+        #         if start < _end:
+        #             t_start = t_ind
+        #             break
+        #     assert t_start is not None
+        #     for t_ind, (_start, _end) in \
+        #             enumerate(mapping[t_start:], t_start):
+        #         if stop < _start:
+        #             t_end = t_ind
+        #             break
+        #     start = t_start  # Now point to first token in answer.
+        #     stop = t_end  # Now point to after the last token in answer.
+
+        # # Keep or not based on length of passage.
+        # if limit is not None and len(p_tokens) > limit:
+        #     if stop <= limit:
+        #         # Passage is too long, but it can be trimmed.
+        #         p_tokens = p_tokens[:limit]
+        #     else:
+        #         # Passage is too long, but it cannot be trimmed.
+        #         continue
 
         tokenized.append(
             (qid,

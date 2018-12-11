@@ -22,7 +22,7 @@ from collections import defaultdict
 
 import six
 from six.moves import xrange as range
-
+from tqdm import tqdm
 
 def precook(s, n=4, out=False):
     """Takes a string as input and returns an object that can be given to
@@ -217,7 +217,7 @@ class BleuScorer(object):
         totalcomps = {'testlen':0, 'reflen':0, 'guess':[0]*n, 'correct':[0]*n}
 
         # for each sentence
-        for comps in self.ctest:
+        for comps in tqdm(self.ctest):
             testlen = comps['testlen']
             self._testlen += testlen
 

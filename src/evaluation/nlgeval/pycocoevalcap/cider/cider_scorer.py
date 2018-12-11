@@ -9,6 +9,7 @@ from collections import defaultdict
 import numpy as np
 from six.moves import xrange as range
 import six
+from tqdm import tqdm
 
 def precook(s, n=4, out=False):
     """
@@ -164,7 +165,7 @@ class CiderScorer(object):
         self.ref_len = np.log(float(len(self.crefs)))
 
         scores = []
-        for test, refs in zip(self.ctest, self.crefs):
+        for test, refs in tqdm(zip(self.ctest, self.crefs)):
             # compute vector for test captions
             vec, norm, length = counts2vec(test)
             # compute vector for ref captions

@@ -2,6 +2,7 @@
 # Licensed under the MIT license. See LICENSE.md file in the project root for full license information.
 import os
 import numpy as np
+from tqdm import tqdm
 try:
     from gensim.models import KeyedVectors
 except ImportError:
@@ -51,7 +52,7 @@ def eval_emb_metrics(hypothesis, references, emb=None, metrics_to_omit=None, mul
     emb_hyps = []
     avg_emb_hyps = []
     extreme_emb_hyps = []
-    for hyp in hypothesis:
+    for hyp in tqdm(hypothesis):
         embs = [emb.vec(word) for word in word_tokenize(hyp)]
 
         avg_emb = np.sum(embs, axis=0) / np.linalg.norm(np.sum(embs, axis=0))
@@ -68,7 +69,7 @@ def eval_emb_metrics(hypothesis, references, emb=None, metrics_to_omit=None, mul
     emb_refs = []
     avg_emb_refs = []
     extreme_emb_refs = []
-    for refsource in references:
+    for refsource in tqdm(references):
         emb_refsource = []
         avg_emb_refsource = []
         extreme_emb_refsource = []
@@ -109,7 +110,7 @@ def eval_emb_metrics(hypothesis, references, emb=None, metrics_to_omit=None, mul
     if 'GreedyMatchingScore' not in metrics_to_omit:
         scores = []
         print('\tComputing GreedyMatchingScore...')
-        for emb_refsource in emb_refs:
+        for emb_refsource in tqdm(emb_refs):
             score_source = []
             for emb_ref, emb_hyp in zip(emb_refsource, emb_hyps):
                 simi_matrix = cosine_similarity(emb_ref, emb_hyp)
