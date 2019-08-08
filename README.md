@@ -1,16 +1,31 @@
-# Amazon QA
-Evidence-based QA system for community question answering.
+# AmazonQA: A Review-Based Question Answering Task
+Every day, thousands of customers post questions on Amazon product pages. After some time, if they are fortunate, a knowledgeable customer might answer their question. Observing that many questions can be answered based upon the available product reviews, we propose the task of review-based QA. Given a corpus of reviews and a question, the QA system synthesizes an answer.
 
-Datasets:
+# Dataset Creation
+Our dataset consists of 923k questions, 3.6M answers and 14M reviews across 156k products. We build on the well-known Amazon dataset -  
 * [Amazon Product Data](http://jmcauley.ucsd.edu/data/amazon/)
 * [Amazon QA Data](http://jmcauley.ucsd.edu/data/amazon/qa/)
 
+Addionally, we collect additional annotations, marking each question as either answerable or unanswerable based on the available reviews.
 
-Language Models:
+## Preliminary processing
+### Length based
+### Answerability Annotation
+### Question Annotation
 
-Sources - [Pytorch Word Level Language Model Example](https://github.com/pytorch/examples/tree/master/word_language_model)
+## Two versions
 
-# Running:
+### Raw Dataset
+
+### Processed dataset 
+
+#### Explanation of different fields with an example
+
+## Auxilliary Datasets
+### Span-based 
+### Generative
+-------------------------------------------------------
+
 ## Generating the data after pruning by length
 * run utils/download\_data.py to get raw data from the website
 * Open the jupyter notebook - src/notebooks/length\_percentile\_analysis
