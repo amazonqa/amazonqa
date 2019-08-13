@@ -42,7 +42,34 @@ We build on the well-known Amazon dataset -
  
 Additionally, we collect additional annotations, marking each question as either answerable or unanswerable based on the available reviews.
  
-## Preliminary processing scripts
-The amazonqa/src/prepro/ folder contains all the scripts for downloading and preprocessing this dataset.
+# Data Processing
  
-[preprocess.sh] (https://github.com/amazonqa/amazonqa/blob/master/src/prepro/preprocess_data.sh) 
+## Scripts
+The src/prepro/ folder contains all the scripts for generating raw and different processed datsets.
+ 
+## Raw Products Dataset
+The [script](https://github.com/amazonqa/amazonqa/blob/master/src/prepro/preprocess_data.sh) generates the raw train/val/test product splits by combining the well known amazon reviews and questions dataset for all the categories.
+ 
+[train](https://amazon-qa.s3-us-west-2.amazonaws.com/train-qar_products.jsonl)
+[val](https://amazon-qa.s3-us-west-2.amazonaws.com/val-qar_products.jsonl)
+ 
+ 
+## Processed Dataset
+The [script](https://github.com/amazonqa/amazonqa/blob/master/src/prepro/create_data.sh) creates question-answers pairs with query-relevant review snippets and is_answerable annotation by a trained classifier. More details regarding this step are mentioned in the section 3.1 Data Processing.
+ 
+[train](https://amazon-qa.s3-us-west-2.amazonaws.com/train-qar.jsonl)
+[val](https://amazon-qa.s3-us-west-2.amazonaws.com/val-qar.jsonl)
+
+## Auxilliary Datasets
+We also provide the scripts to convert our dataset to other question answering dataset formats like squad and ms-marco.
+ 
+### Span-based 
+The [script](https://github.com/amazonqa/amazonqa/blob/master/src/prepro/convert_squad.sh) converts our dataset to squad format by extracting snippets using different span-heuristics. More details regarding this step are mentioned in the section 5.2 Span-based QA model.
+[train](https://amazon-qa.s3-us-west-2.amazonaws.com/train-qar_squad.jsonl)
+[val](https://amazon-qa.s3-us-west-2.amazonaws.com/val-qar_squad.jsonl)
+ 
+### Generative
+The [script](https://github.com/amazonqa/amazonqa/blob/master/src/prepro/convert_msmarco.sh) converts our dataset MSMARCO format.
+
+[train](https://amazon-qa.s3-us-west-2.amazonaws.com/train-qar_msmarco.jsonl)
+[val](https://amazon-qa.s3-us-west-2.amazonaws.com/val-qar_msmarco.jsonl)
