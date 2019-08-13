@@ -65,6 +65,7 @@ We also provide the scripts to convert our dataset to other question answering d
  
 ### Span-based 
 The [script](https://github.com/amazonqa/amazonqa/blob/master/src/prepro/convert_squad.sh) converts our dataset to squad format by extracting snippets using different span-heuristics. More details regarding this step are mentioned in the section 5.2 Span-based QA model.
+
 [train](https://amazon-qa.s3-us-west-2.amazonaws.com/train-qar_squad.jsonl)
 [val](https://amazon-qa.s3-us-west-2.amazonaws.com/val-qar_squad.jsonl)
  
