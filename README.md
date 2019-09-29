@@ -1,5 +1,5 @@
 # AmazonQA: A Review-Based Question Answering Task
-The AmazonQA dataset is a large review-based Question Answering dataset ([paper](http://paper)). 
+The AmazonQA dataset is a large review-based Question Answering dataset ([paper](https://arxiv.org/abs/1908.04364)). 
  
 This repository comprises:
 * instructions to download and work with the dataset
@@ -52,8 +52,7 @@ The [script](https://github.com/amazonqa/amazonqa/blob/master/src/prepro/preproc
  
 [train](https://amazon-qa.s3-us-west-2.amazonaws.com/train-qar_products.jsonl)
 [val](https://amazon-qa.s3-us-west-2.amazonaws.com/val-qar_products.jsonl)
- 
- 
+
 ## Processed Dataset
 The [script](https://github.com/amazonqa/amazonqa/blob/master/src/prepro/create_data.sh) creates question-answers pairs with query-relevant review snippets and is_answerable annotation by a trained classifier. More details regarding this step are mentioned in the section 3.1 Data Processing.
  
@@ -74,3 +73,6 @@ The [script](https://github.com/amazonqa/amazonqa/blob/master/src/prepro/convert
 
 [train](https://amazon-qa.s3-us-west-2.amazonaws.com/train-qar_msmarco.jsonl)
 [val](https://amazon-qa.s3-us-west-2.amazonaws.com/val-qar_msmarco.jsonl)
+
+### Answerability Classifier
+Binary classifier and related files can be found at [link](https://amazon-qa.s3-us-west-2.amazonaws.com/answerability_classifier.zip)
