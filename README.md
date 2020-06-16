@@ -6,11 +6,15 @@ This repository comprises:
 * implementations of preprocessing pipelines to re-generate the data for different configurations
 * analyses of the dataset
 * implementations of baseline models mentioned in the paper
- 
+
+# Updates
+06/16 - We have uploaded the test sets for all the dataset formats below.
+
 # Download Instructions
 The dataset can be downloaded from the following links:
 * [Train](https://amazon-qa.s3-us-west-2.amazonaws.com/train-qar.jsonl)
 * [Validation](https://amazon-qa.s3-us-west-2.amazonaws.com/val-qar.jsonl)
+* [Test](https://drive.google.com/file/d/1A_gaYbyBUOfwi8CQ7d5OO_b91lEvSnwr/view?usp=sharing)
  
 # Format
 The dataset is `.jsonl` format, where each line in the file is a `json` string that corresponds to a question, existing answers to the question and the extracted review snippets (relevant to the question).
@@ -52,12 +56,14 @@ The [script](https://github.com/amazonqa/amazonqa/blob/master/src/prepro/preproc
  
 [train](https://amazon-qa.s3-us-west-2.amazonaws.com/train-qar_products.jsonl)
 [val](https://amazon-qa.s3-us-west-2.amazonaws.com/val-qar_products.jsonl)
+[test](https://drive.google.com/file/d/1g2YYhtX5Te665-dlKssGHn5AZCrvyfYc/view?usp=sharing)
 
 ## Processed Dataset
 The [script](https://github.com/amazonqa/amazonqa/blob/master/src/prepro/create_data.sh) creates question-answers pairs with query-relevant review snippets and is_answerable annotation by a trained classifier. More details regarding this step are mentioned in the section 3.1 Data Processing.
  
 [train](https://amazon-qa.s3-us-west-2.amazonaws.com/train-qar.jsonl)
 [val](https://amazon-qa.s3-us-west-2.amazonaws.com/val-qar.jsonl)
+[test](https://drive.google.com/file/d/1A_gaYbyBUOfwi8CQ7d5OO_b91lEvSnwr/view?usp=sharing)
 
 ## Auxilliary Datasets
 We also provide the scripts to convert our dataset to other question answering dataset formats like squad and ms-marco.
@@ -67,12 +73,14 @@ The [script](https://github.com/amazonqa/amazonqa/blob/master/src/prepro/convert
 
 [train](https://amazon-qa.s3-us-west-2.amazonaws.com/train-qar_squad.jsonl)
 [val](https://amazon-qa.s3-us-west-2.amazonaws.com/val-qar_squad.jsonl)
- 
+[test](https://drive.google.com/file/d/1eede6X_r7uoOmDZkv5NlbM4Mu-OP-cCe/view?usp=sharing)
+
 ### Generative
 The [script](https://github.com/amazonqa/amazonqa/blob/master/src/prepro/convert_msmarco.sh) converts our dataset MSMARCO format.
 
 [train](https://amazon-qa.s3-us-west-2.amazonaws.com/train-qar_msmarco.jsonl)
 [val](https://amazon-qa.s3-us-west-2.amazonaws.com/val-qar_msmarco.jsonl)
+[test](https://drive.google.com/file/d/13wMbyP__PEaH61Dsy5R--kreJtU1u9Ue/view?usp=sharing)
 
 ### Answerability Classifier
 Binary classifier and related files can be found at [link](https://amazon-qa.s3-us-west-2.amazonaws.com/answerability_classifier.zip)
