@@ -39,7 +39,7 @@ Here are some other fields that we use for evaluation and analysis:
 * top_sentences_IR: List of strings. A list of top sentences (at most 10) based on IR score with the question. 
  
 # Dataset Statistics
-Our dataset consists of 923k questions, 3.6M ansheers and 14M reviews across 156k products. 
+Our dataset consists of 923k questions, 3.6M answers and 14M reviews across 156k products. 
 We build on the well-known Amazon dataset -  
 * [Amazon Product Data](http://jmcauley.ucsd.edu/data/amazon/)
 * [Amazon QA Data](http://jmcauley.ucsd.edu/data/amazon/qa/)
@@ -66,7 +66,7 @@ The [script](https://github.com/amazonqa/amazonqa/blob/master/src/prepro/create_
 [test](https://drive.google.com/file/d/1A_gaYbyBUOfwi8CQ7d5OO_b91lEvSnwr/view?usp=sharing)
 
 ## Auxilliary Datasets
-We also provide the scripts to convert our dataset to other question answering dataset formats like squad and ms-marco.
+We also provide the scripts to convert our dataset to other question answering dataset formats like SQuAD and MS MARCO.
  
 ### Span-based 
 The [script](https://github.com/amazonqa/amazonqa/blob/master/src/prepro/convert_squad.sh) converts our dataset to squad format by extracting snippets using different span-heuristics. More details regarding this step are mentioned in the section 5.2 Span-based QA model.
@@ -76,7 +76,7 @@ The [script](https://github.com/amazonqa/amazonqa/blob/master/src/prepro/convert
 [test](https://drive.google.com/file/d/1eede6X_r7uoOmDZkv5NlbM4Mu-OP-cCe/view?usp=sharing)
 
 ### Generative
-The [script](https://github.com/amazonqa/amazonqa/blob/master/src/prepro/convert_msmarco.sh) converts our dataset MSMARCO format.
+The [script](https://github.com/amazonqa/amazonqa/blob/master/src/prepro/convert_msmarco.sh) converts our dataset MS MARCO format.
 
 [train](https://amazon-qa.s3-us-west-2.amazonaws.com/train-qar_msmarco.jsonl)
 [val](https://amazon-qa.s3-us-west-2.amazonaws.com/val-qar_msmarco.jsonl)
